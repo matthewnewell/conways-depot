@@ -1,0 +1,173 @@
+.app-registry-page {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.app-registry-page__toolbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 20px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.app-registry-page__back {
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.app-registry-page__back:hover {
+  background: var(--color-surface-sunken);
+}
+
+.app-registry-page__title {
+  margin: 0;
+  font-size: 18px;
+}
+
+.app-registry-page__content {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 24px 20px 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+.app-registry-page__intro {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+
+.app-registry-page__signal {
+  font-size: 13px;
+  line-height: 1.6;
+  background: var(--color-wait-soft);
+  border: 1px solid var(--color-wait);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  color: var(--color-text);
+}
+
+.app-registry-page__loading {
+  color: var(--color-text-faint);
+  padding: 40px 0;
+  text-align: center;
+}
+
+.app-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.app-group__title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-accent);
+}
+
+.app-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+.app-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.app-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.app-card__name {
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.app-card__status {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.app-card__status--built {
+  background: var(--color-success-soft);
+  color: var(--color-success);
+}
+
+.app-card__status--planned {
+  background: var(--color-border);
+  color: var(--color-text-secondary);
+}
+
+.app-card__status--external {
+  background: var(--color-wait-soft);
+  color: var(--color-wait);
+}
+
+.app-card__desc {
+  font-size: 12.5px;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.app-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.app-card__team-type,
+.app-card__owner {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--color-surface-sunken);
+  color: var(--color-text-secondary);
+}
+
+.app-card__team-type {
+  color: var(--color-accent);
+  background: var(--color-accent-soft);
+}
+
+.app-card__link {
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  word-break: break-all;
+}

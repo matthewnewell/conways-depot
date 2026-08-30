@@ -1,0 +1,184 @@
+.project-list-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+}
+
+.project-list-page__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.project-list-page__header h1 {
+  margin: 0;
+  font-size: 28px;
+}
+
+.project-list-page__header p {
+  margin: 4px 0 28px;
+  color: var(--color-text-secondary);
+}
+
+.project-list-page__header-links {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.project-list-page__nav-link {
+  flex-shrink: 0;
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.project-list-page__nav-link:hover {
+  background: var(--color-surface-sunken);
+}
+
+.project-list-page__create {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 32px;
+  max-width: 480px;
+}
+
+.project-list-page__create input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+}
+
+.project-list-page__create button {
+  border: none;
+  background: var(--color-accent);
+  color: white;
+  border-radius: var(--radius-sm);
+  padding: 10px 18px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.project-list-page__create button:hover:not(:disabled) {
+  background: var(--color-accent-hover);
+}
+
+.project-list-page__loading,
+.project-list-page__empty {
+  color: var(--color-text-faint);
+  padding: 40px 0;
+  text-align: center;
+}
+
+.project-list-page__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.project-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.project-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.project-card__top {
+  display: flex;
+}
+
+.project-card__phase {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 3px 9px;
+  border-radius: 999px;
+}
+
+.project-card__phase--pursuit {
+  background: var(--color-surface-sunken);
+  color: var(--color-text-secondary);
+}
+
+.project-card__phase--award {
+  background: var(--color-wait-soft);
+  color: var(--color-wait);
+}
+
+.project-card__phase--execution {
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+}
+
+.project-card__phase--closeout {
+  background: var(--color-success-soft);
+  color: var(--color-success);
+}
+
+.project-card__name {
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.project-card__customer {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.project-card__external-ids {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.project-card__external-id-badge {
+  font-size: 11px;
+  color: var(--color-text-faint);
+  background: var(--color-surface-sunken);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.project-card__actions {
+  display: flex;
+  gap: 8px;
+  padding-top: 8px;
+  margin-top: auto;
+  border-top: 1px solid var(--color-border);
+}
+
+.project-card__actions button {
+  flex: 1;
+  border: 1px solid var(--color-border-strong);
+  background: transparent;
+  border-radius: var(--radius-sm);
+  padding: 6px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.project-card__delete:hover {
+  color: var(--color-critical);
+  border-color: var(--color-critical);
+  background: var(--color-critical-soft) !important;
+}
