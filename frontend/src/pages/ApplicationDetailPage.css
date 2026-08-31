@@ -83,6 +83,14 @@
   color: var(--color-success);
 }
 
+/* Outlined, not filled — not a fifth phase, a different kind of thing. */
+.app-detail-page__phase--organizational {
+  background: transparent;
+  border: 1px solid var(--color-accent);
+  color: var(--color-accent);
+  padding: 2px 9px;
+}
+
 .app-detail-page__content {
   flex: 1;
   min-width: 0;

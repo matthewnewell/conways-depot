@@ -30,14 +30,14 @@ assert 'WinMax' in by_status.get('external', []), 'WinMax should be seeded as ex
 assert any('Staffing' in n for n in by_status.get('planned', [])), 'Staffing engine should be a planned placeholder'
 "
 
-echo "== applications carry an honest phase (pursuit/award/execution), invalid phase rejected =="
+echo "== applications carry a phase list (multi-phase allowed), invalid phase rejected =="
 curl -s "$BASE/applications" | python3 -c "
 import json, sys
 apps = json.load(sys.stdin)
-by_name = {a['name']: a['phase'] for a in apps}
-assert by_name['WinMax'] == 'pursuit', by_name['WinMax']
-assert by_name['Costpoint'] == 'award', by_name['Costpoint']
-assert by_name['Value Stream'] == 'execution', by_name['Value Stream']
+by_name = {a['name']: a['phases'] for a in apps}
+assert by_name['WinMax'] == ['pursuit'], by_name['WinMax']
+assert by_name['Launchpad'] == ['award', 'execution', 'closeout'], by_name['Launchpad']
+assert by_name['Value Stream'] == ['execution'], by_name['Value Stream']
 print('ok —', by_name)
 "
 WV_ID=$(curl -s "$BASE/applications" | python3 -c "
@@ -45,8 +45,18 @@ import json, sys
 print(next(a['id'] for a in json.load(sys.stdin) if a['name'] == 'WinMax'))
 ")
 STATUS=$(curl -s -o /dev/null -w '%{http_code}' -X PUT "$BASE/applications/$WV_ID" \
-  -H 'Content-Type: application/json' -d '{"phase":"bogus"}')
+  -H 'Content-Type: application/json' -d '{"phases":["bogus"]}')
 [ "$STATUS" = "400" ] && echo "invalid phase correctly rejected: $STATUS" || (echo "expected 400, got $STATUS" && exit 1)
+
+echo "== Organizational Enablers: organizational scope, no phases, all 3 present =="
+curl -s "$BASE/applications" | python3 -c "
+import json, sys
+apps = json.load(sys.stdin)
+org = {a['name']: a for a in apps if a['scope'] == 'organizational'}
+assert set(org) == {'Staffing & Capacity Engine', 'HR & Talent System', 'Contract & Legal Authoring'}, set(org)
+assert all(a['phases'] == [] for a in org.values()), org
+print('ok —', sorted(org))
+"
 
 echo "== demo project has the digital-thread crosswalk and phase-scoped links =="
 PID=$(curl -s "$BASE/projects" | python3 -c "

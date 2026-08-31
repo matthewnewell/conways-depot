@@ -4,6 +4,12 @@ export const PHASES: Phase[] = ['pursuit', 'award', 'execution', 'closeout']
 export type AppStatus = 'built' | 'planned' | 'external'
 export type TeamType = 'stream-aligned' | 'platform' | 'enabling' | 'complicated-subsystem' | null
 
+/** "project": serves one project's lifecycle (see Application.phases). "organizational":
+ * ISO/IEC/IEEE 15288's Organizational Project-Enabling Processes (6.2) — staffing, HR,
+ * contract authoring — capabilities the org maintains for every project at once, not scoped
+ * to any single project's phase. Orthogonal to team_type. */
+export type AppScope = 'project' | 'organizational'
+
 export interface Capability {
   id: string
   name: string
@@ -17,10 +23,12 @@ export interface Application {
   status: AppStatus
   owning_team: string | null
   team_type: TeamType
-  /** The lifecycle phase this application is primarily reached for — a property of the
-   * application itself, distinct from ProjectAppLink.phase (which phase a specific project's
-   * record in it belongs to). Nullable: not every application maps to a single phase. */
-  phase: Phase | null
+  scope: AppScope
+  /** The lifecycle phase(s) this application is reached for — a property of the application
+   * itself, distinct from ProjectAppLink.phase (which phase a specific project's record in it
+   * belongs to). Empty for an "organizational"-scope application: it isn't tied to any
+   * project's phase at all. */
+  phases: Phase[]
   capability_id: string | null
   capability_name: string | null
   url: string | null

@@ -108,6 +108,24 @@ export default function GuidePage() {
           </p>
         </section>
 
+        <section className="guide-section">
+          <h2 className="guide-section__title">Project-scoped vs. organizational</h2>
+          <p className="guide-section__body">
+            Not every application lives inside a project's phases. Some serve every project at
+            once — staffing, HR, contract authoring — the same territory ISO/IEC/IEEE 15288
+            calls <em>Organizational Project-Enabling Processes</em> (Clause 6.2). Value
+            Stream's own template library leaves that category out on purpose, because it
+            doesn't fit a single project's value stream — but it fits <em>here</em>, at the
+            portfolio level, because that's exactly the altitude this registry operates at.
+            Every Application declares a <strong>scope</strong>: <em>project</em> (it moves
+            through a project's phases — Launchpad, for instance, spans Award through Closeout,
+            not just one) or <em>organizational</em> (no phase applies, because the whole point
+            is that it doesn't move with any one project). Phases are a list, not a single
+            value, for the same reason: forcing a project-scoped app into exactly one phase
+            would misrepresent the ones that legitimately span several.
+          </p>
+        </section>
+
         <section className="guide-section guide-section--scope">
           <h2 className="guide-section__title">What this deliberately is not, yet</h2>
           <p className="guide-section__body">

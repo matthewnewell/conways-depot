@@ -18,10 +18,11 @@ const PHASE_LABEL: Record<Phase, string> = {
   closeout: 'Closeout',
 }
 
-// A phase-less application still needs a checkbox to filter on — 'none' stands in for null.
-const NO_PHASE = 'none' as const
-type PhaseFilterValue = Phase | typeof NO_PHASE
-const PHASE_FILTER_VALUES: PhaseFilterValue[] = [...PHASES, NO_PHASE]
+// Organizational-scope applications carry no phases at all — they need their own filter
+// checkbox alongside the four real phases, not a "no phase" catch-all.
+const ORGANIZATIONAL = 'organizational' as const
+type PhaseFilterValue = Phase | typeof ORGANIZATIONAL
+const PHASE_FILTER_VALUES: PhaseFilterValue[] = [...PHASES, ORGANIZATIONAL]
 
 // Ordered by lifecycle intent, not alphabetically — Built first (the real answer), then
 // Planned (a named gap), then External (out of our hands) — so sorting by status reads as a
@@ -70,8 +71,12 @@ export default function ApplicationRegistryPage() {
     }
   }
 
+  // An organizational-scope app matches on its own checkbox; a project-scope app matches if
+  // any one of its (possibly several) phases is checked.
   const filtered = (applications ?? []).filter((a) =>
-    phaseFilter.has(a.phase ?? NO_PHASE),
+    a.scope === 'organizational'
+      ? phaseFilter.has(ORGANIZATIONAL)
+      : a.phases.some((p) => phaseFilter.has(p)),
   )
   const sorted = [...filtered].sort((a, b) => {
     const cmp = compare(a, b)
@@ -128,7 +133,7 @@ export default function ApplicationRegistryPage() {
                 checked={phaseFilter.has(v)}
                 onChange={() => togglePhaseFilter(v)}
               />
-              {v === NO_PHASE ? 'No phase' : PHASE_LABEL[v]}
+              {v === ORGANIZATIONAL ? 'Organizational' : PHASE_LABEL[v]}
             </label>
           ))}
         </div>
@@ -165,10 +170,18 @@ export default function ApplicationRegistryPage() {
                 <tr key={a.id} onClick={() => navigate(`/applications/${a.id}`)}>
                   <td className="app-table__name">{a.name}</td>
                   <td>
-                    {a.phase ? (
-                      <span className={`app-table__phase app-table__phase--${a.phase}`}>
-                        {PHASE_LABEL[a.phase]}
+                    {a.scope === 'organizational' ? (
+                      <span className="app-table__phase app-table__phase--organizational">
+                        Organizational
                       </span>
+                    ) : a.phases.length > 0 ? (
+                      <div className="app-table__phase-list">
+                        {a.phases.map((p) => (
+                          <span key={p} className={`app-table__phase app-table__phase--${p}`}>
+                            {PHASE_LABEL[p]}
+                          </span>
+                        ))}
+                      </div>
                     ) : (
                       <span className="app-table__muted">—</span>
                     )}

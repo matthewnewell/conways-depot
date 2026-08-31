@@ -20,6 +20,7 @@ See the frontend's Theory of Operation page for the Conway's Law / Reverse Conwa
 Topologies / Digital Thread grounding behind this shape.
 """
 
+import json
 from datetime import datetime, timezone
 
 from db import _uuid, db
@@ -27,6 +28,13 @@ from db import _uuid, db
 PHASES = ("pursuit", "award", "execution", "closeout")
 APP_STATUSES = ("built", "planned", "external")
 TEAM_TYPES = ("stream-aligned", "platform", "enabling", "complicated-subsystem")
+# "project" apps serve one project's lifecycle (WinMax, Value Stream, Launchpad — see
+# Application.phases). "organizational" apps are ISO/IEC/IEEE 15288's Organizational
+# Project-Enabling Processes (6.2) — staffing, HR, contract authoring — capabilities the org
+# maintains for every project at once, not scoped to any single project's phase. Orthogonal to
+# team_type: an enabling *team* can build either kind of app; scope is about who the app
+# serves, not who builds it.
+APP_SCOPES = ("project", "organizational")
 
 
 def _now():
@@ -55,12 +63,16 @@ class Application(db.Model):
     status = db.Column(db.String(20), nullable=False, default="planned")  # see APP_STATUSES
     owning_team = db.Column(db.String(200), nullable=True)
     team_type = db.Column(db.String(30), nullable=True)  # see TEAM_TYPES
-    # The lifecycle phase this application is primarily reached for — WinMax at Pursuit,
-    # Value Stream during Execution, and so on. Distinct from ProjectAppLink.phase (which
-    # phase a *specific project's* record in this app belongs to): this is a property of the
-    # application itself, independent of any one project. Nullable — not every application
-    # maps cleanly to a single phase, and the field shouldn't force one.
-    phase = db.Column(db.String(20), nullable=True)  # see PHASES
+    # The lifecycle phase(s) this application is reached for — WinMax at Pursuit only,
+    # Launchpad across Award/Execution/Closeout, and so on. A JSON array of PHASES values,
+    # same "JSON in a Text column" convention BurnedValue already uses for its own
+    # deliverables/milestones fields, rather than a junction table for what's a small fixed
+    # enum. Distinct from ProjectAppLink.phase (which phase a *specific project's* record in
+    # this app belongs to): this is a property of the application itself. Empty/null for an
+    # "organizational" scope app (see APP_SCOPES) — it isn't tied to any project's phase at all.
+    phases = db.Column(db.Text, nullable=True)
+    # "project" (default) or "organizational" — see APP_SCOPES above.
+    scope = db.Column(db.String(20), nullable=False, default="project")
     capability_id = db.Column(db.String(36), db.ForeignKey("capability.id"), nullable=True)
     # Base URL if this app is actually reachable somewhere (a real dev/prod URL) — how the
     # Depot deep-links out to it. Null for external vendor products we don't host and for
@@ -70,6 +82,14 @@ class Application(db.Model):
 
     capability = db.relationship("Capability", back_populates="applications")
 
+    @property
+    def phase_list(self) -> list[str]:
+        return json.loads(self.phases) if self.phases else []
+
+    @phase_list.setter
+    def phase_list(self, value: list[str] | None) -> None:
+        self.phases = json.dumps(list(value)) if value else None
+
     def to_dict(self) -> dict:
         return {
             "id": self.id,
@@ -78,7 +98,8 @@ class Application(db.Model):
             "status": self.status,
             "owning_team": self.owning_team,
             "team_type": self.team_type,
-            "phase": self.phase,
+            "phases": self.phase_list,
+            "scope": self.scope,
             "capability_id": self.capability_id,
             "capability_name": self.capability.name if self.capability else None,
             "url": self.url,

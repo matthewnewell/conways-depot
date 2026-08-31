@@ -2,12 +2,18 @@
 Registry seed — capabilities, applications, and one demo project, all honestly labeled.
 
 "Built" applications (Value Stream, BurnedValue) are real, currently-running sibling apps.
-"External" applications (WinMax, Costpoint) are real Deltek products this Depot registers but
-never integrates with — they're here to make the crosswalk concept concrete, not to pretend an
-integration exists. "Planned" applications are capability gaps the registry makes visible on
-purpose (Project Launchpad is next; the others are further out) — nothing behind them exists
-yet, and the seed data never links a project to a planned app, since that would be a dead link
-dressed up as a real one.
+"External" applications (WinMax, Costpoint, and the two Organizational Enablers below) are
+real vendor products this Depot registers but never integrates with — they're here to make the
+crosswalk concept concrete, not to pretend an integration exists. "Planned" applications are
+capability gaps the registry makes visible on purpose (Launchpad is next; the others are
+further out) — nothing behind them exists yet, and the seed data never links a project to a
+planned app, since that would be a dead link dressed up as a real one.
+
+Two kinds of application scope (Application.scope, see models.py): "project" apps serve one
+project's lifecycle and carry phases accordingly (Application.phases, a list — Launchpad spans
+Award through Closeout, not just one). "organizational" apps are ISO/IEC/IEEE 15288's
+Organizational Project-Enabling Processes (6.2) — staffing, HR, contract authoring — and
+deliberately carry no phases: they serve every project at once, not one project's lifecycle.
 
 The one seeded project is prefixed "Demo:", same convention Value Stream uses for its own
 seed map — and its Value Stream link points at that real, running demo map, so clicking it is
@@ -70,24 +76,34 @@ def seed_if_empty():
         name="Labor Demand & Capacity Planning",
         description="Projecting labor demand across awarded work and pipeline, against available capacity.",
     )
+    cap_hr = Capability(
+        name="HR & Talent Management",
+        description="Employee records, roles, and org structure — the org-wide system of record every project draws staff from.",
+    )
+    cap_contract_authoring = Capability(
+        name="Contract & Legal Authoring",
+        description="Shared templates, clause libraries, and legal review used to write any contract — distinct from tracking one project's specific SOWs.",
+    )
     db.session.add_all([
         cap_capture, cap_contract, cap_home_base, cap_vsm,
         cap_evm_erp, cap_evm_analysis, cap_capa, cap_staffing,
+        cap_hr, cap_contract_authoring,
     ])
     db.session.flush()
 
     # ── Applications ──
-    # phase assignments follow the very first brainstorm this whole app is built from: pursuit
-    # of X (WinMax) -> winning X (Costpoint, SOW Tracker, Project Launchpad) -> executing X
-    # (Value Stream, BurnedValue, Staffing & Capacity Engine, CAPA App). Nothing landed in
-    # Closeout — an honest gap, not a forced fit.
+    # Phase assignments follow the very first brainstorm this whole app is built from: pursuit
+    # of X (WinMax) -> winning X (Costpoint, SOW Tracker, Launchpad) -> executing X (Value
+    # Stream, BurnedValue, CAPA App). Several carry more than one phase now that Application.
+    # phases is a list, not a single value — Launchpad and Costpoint both stay relevant well
+    # past the phase they start in.
     app_value_stream = Application(
         name="Value Stream",
         description="Visual value-stream mapping — lead time, critical path, wait contributors.",
         status="built",
         owning_team="Matt (informal enabling team)",
         team_type="enabling",  # helps other teams adopt a VSM practice, not yet self-service platform-shaped
-        phase="execution",
+        phase_list=["execution"],
         capability=cap_vsm,
         url=VALUE_STREAM_BASE_URL,
     )
@@ -97,7 +113,7 @@ def seed_if_empty():
         status="built",
         owning_team="Matt (informal enabling team)",
         team_type="enabling",
-        phase="execution",
+        phase_list=["execution", "closeout"],
         capability=cap_evm_analysis,
         url=BURNEDVALUE_BASE_URL,
     )
@@ -107,7 +123,7 @@ def seed_if_empty():
         status="external",
         owning_team="Business Development",
         team_type=None,  # a vendor product, not an internally-owned team
-        phase="pursuit",
+        phase_list=["pursuit"],
         capability=cap_capture,
         url=None,  # real external SaaS product; no stable local URL to link to
     )
@@ -117,17 +133,17 @@ def seed_if_empty():
         status="external",
         owning_team="Finance / Contracts",
         team_type=None,
-        phase="award",
+        phase_list=["award", "execution", "closeout"],
         capability=cap_evm_erp,
         url=None,
     )
     app_launchpad = Application(
-        name="Project Launchpad",
+        name="Launchpad",
         description="Per-project home base: team roster, comm channels, contract basics, links out to every other app registered for that project.",
         status="planned",
         owning_team="Matt (informal enabling team)",
         team_type="platform",  # self-service — every project gets one, no bespoke setup
-        phase="award",
+        phase_list=["award", "execution", "closeout"],  # a project's home base outlives Award
         capability=cap_home_base,
         url=None,  # doesn't exist yet
     )
@@ -137,7 +153,7 @@ def seed_if_empty():
         status="planned",
         owning_team=None,
         team_type=None,
-        phase="award",
+        phase_list=["award", "execution"],
         capability=cap_contract,
         url=None,
     )
@@ -147,10 +163,15 @@ def seed_if_empty():
         status="planned",
         owning_team=None,
         team_type=None,
-        phase="execution",
+        phase_list=["execution", "closeout"],
         capability=cap_capa,
         url=None,
     )
+    # ── Organizational Enablers (ISO/IEC/IEEE 15288 Organizational Project-Enabling
+    #    Processes, 6.2) — scope="organizational", no phases: these serve every project at
+    #    once, they don't move through any one project's lifecycle. Value Stream's own
+    #    template library explicitly left this 15288 category out because it didn't fit a
+    #    per-project value stream; it fits *here*, at the portfolio level, on purpose. ──
     app_staffing = Application(
         name="Staffing & Capacity Engine",
         description=(
@@ -161,13 +182,34 @@ def seed_if_empty():
         status="planned",
         owning_team=None,
         team_type=None,
-        phase="execution",
+        scope="organizational",
         capability=cap_staffing,
+        url=None,
+    )
+    app_hr = Application(
+        name="HR & Talent System",
+        description="The org's system of record for employees, roles, and org structure — every project draws staff from it, none of them own it.",
+        status="external",
+        owning_team="Human Resources",
+        team_type=None,
+        scope="organizational",
+        capability=cap_hr,
+        url=None,
+    )
+    app_contract_authoring = Application(
+        name="Contract & Legal Authoring",
+        description="Shared contract templates and legal review, used to write any project's prime contract or subcontract — not the same as tracking one project's active SOWs.",
+        status="external",
+        owning_team="Legal / Contracts",
+        team_type=None,
+        scope="organizational",
+        capability=cap_contract_authoring,
         url=None,
     )
     db.session.add_all([
         app_value_stream, app_burnedvalue, app_winmax, app_costpoint,
-        app_launchpad, app_sow_tracker, app_capa, app_staffing,
+        app_launchpad, app_sow_tracker, app_capa,
+        app_staffing, app_hr, app_contract_authoring,
     ])
     db.session.flush()
 

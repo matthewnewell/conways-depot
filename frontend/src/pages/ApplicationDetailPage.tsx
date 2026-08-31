@@ -31,10 +31,16 @@ export default function ApplicationDetailPage() {
     <div className="app-detail-page">
       <div className="app-detail-page__toolbar">
         <h1 className="app-detail-page__title">{app.name}</h1>
-        {app.phase && (
-          <span className={`app-detail-page__phase app-detail-page__phase--${app.phase}`}>
-            {PHASE_LABEL[app.phase]}
+        {app.scope === 'organizational' ? (
+          <span className="app-detail-page__phase app-detail-page__phase--organizational">
+            Organizational
           </span>
+        ) : (
+          app.phases.map((p) => (
+            <span key={p} className={`app-detail-page__phase app-detail-page__phase--${p}`}>
+              {PHASE_LABEL[p]}
+            </span>
+          ))
         )}
         <span className={`app-detail-page__status app-detail-page__status--${app.status}`}>
           {STATUS_LABEL[app.status]}
@@ -52,6 +58,14 @@ export default function ApplicationDetailPage() {
         <section className="depot-section">
           <h2 className="depot-section__title">Ownership</h2>
           <div className="app-detail-page__facts">
+            <div className="app-detail-page__fact">
+              <span className="app-detail-page__fact-label">Scope</span>
+              <span className="app-detail-page__fact-value">
+                {app.scope === 'organizational'
+                  ? 'Organizational — serves every project, not one lifecycle'
+                  : 'Project — scoped to a project’s own lifecycle'}
+              </span>
+            </div>
             <div className="app-detail-page__fact">
               <span className="app-detail-page__fact-label">Owning team</span>
               <span className="app-detail-page__fact-value">{app.owning_team ?? '—'}</span>

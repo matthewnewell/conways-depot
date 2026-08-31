@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 
 from db import db
-from models import APP_STATUSES, PHASES, TEAM_TYPES, Application, Capability
+from models import APP_SCOPES, APP_STATUSES, PHASES, TEAM_TYPES, Application, Capability
 
 bp = Blueprint("applications", __name__, url_prefix="/api/applications")
 capabilities_bp = Blueprint("capabilities", __name__, url_prefix="/api/capabilities")
@@ -12,8 +12,12 @@ def _validate(body: dict) -> tuple[dict, int] | None:
         return {"error": f"status must be one of {APP_STATUSES}"}, 400
     if body.get("team_type") is not None and body.get("team_type") not in (*TEAM_TYPES, None):
         return {"error": f"team_type must be one of {TEAM_TYPES} or null"}, 400
-    if body.get("phase") is not None and body.get("phase") not in (*PHASES, None):
-        return {"error": f"phase must be one of {PHASES} or null"}, 400
+    if "scope" in body and body["scope"] not in APP_SCOPES:
+        return {"error": f"scope must be one of {APP_SCOPES}"}, 400
+    if "phases" in body:
+        phases = body["phases"]
+        if phases is not None and (not isinstance(phases, list) or any(p not in PHASES for p in phases)):
+            return {"error": f"phases must be a list drawn from {PHASES}, or null"}, 400
     return None
 
 
@@ -39,10 +43,11 @@ def create_application():
         status=body.get("status", "planned"),
         owning_team=body.get("owning_team"),
         team_type=body.get("team_type"),
-        phase=body.get("phase"),
+        scope=body.get("scope", "project"),
         capability_id=body.get("capability_id"),
         url=body.get("url"),
     )
+    a.phase_list = body.get("phases")
     db.session.add(a)
     db.session.commit()
     return jsonify(a.to_dict()), 201
@@ -62,9 +67,11 @@ def update_application(application_id):
     if err:
         return jsonify(err[0]), err[1]
 
-    for field in ("name", "description", "status", "owning_team", "team_type", "phase", "capability_id", "url"):
+    for field in ("name", "description", "status", "owning_team", "team_type", "scope", "capability_id", "url"):
         if field in body:
             setattr(a, field, body[field])
+    if "phases" in body:
+        a.phase_list = body["phases"]
 
     db.session.commit()
     return jsonify(a.to_dict())
