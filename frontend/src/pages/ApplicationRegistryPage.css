@@ -57,39 +57,6 @@
   text-align: center;
 }
 
-.app-registry-page__phase-filter {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  flex-wrap: wrap;
-  padding: 10px 14px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-}
-
-.app-registry-page__phase-filter-label {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: var(--color-text-faint);
-}
-
-.app-registry-page__phase-checkbox {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  color: var(--color-text-secondary);
-  cursor: pointer;
-}
-
-.app-registry-page__phase-checkbox input {
-  accent-color: var(--color-accent);
-  cursor: pointer;
-}
-
 .app-table {
   width: 100%;
   border-collapse: collapse;
@@ -173,51 +140,6 @@
 .app-table__status--external {
   background: var(--color-wait-soft);
   color: var(--color-wait);
-}
-
-.app-table__phase {
-  font-size: 10.5px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  padding: 2px 9px;
-  border-radius: 999px;
-  white-space: nowrap;
-}
-
-.app-table__phase--pursuit {
-  background: var(--color-surface-sunken);
-  color: var(--color-text-secondary);
-}
-
-.app-table__phase--award {
-  background: var(--color-wait-soft);
-  color: var(--color-wait);
-}
-
-.app-table__phase--execution {
-  background: var(--color-accent-soft);
-  color: var(--color-accent);
-}
-
-.app-table__phase--closeout {
-  background: var(--color-success-soft);
-  color: var(--color-success);
-}
-
-/* Outlined, not filled — visually distinct from the four phase pills on purpose: this isn't a
-   fifth phase, it's a different kind of thing (no project lifecycle applies at all). */
-.app-table__phase--organizational {
-  background: transparent;
-  border: 1px solid var(--color-accent);
-  color: var(--color-accent);
-  padding: 1px 8px;
-}
-
-.app-table__phase-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
 }
 
 .app-table__muted {

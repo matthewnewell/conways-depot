@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useApplications } from '../api/hooks'
 import type { Application, AppStatus, Phase } from '../api/types'
 import { PHASES } from '../api/types'
+import './depot-shared.css'
 import './ApplicationRegistryPage.css'
 
 const STATUS_LABEL: Record<AppStatus, string> = {
@@ -36,8 +37,9 @@ export default function ApplicationRegistryPage() {
   const { data: applications, isLoading } = useApplications()
   const [sortKey, setSortKey] = useState<SortKey>('name')
   const [sortDesc, setSortDesc] = useState(false)
-  // Phase is a filter, not a sort — a project's-worth of applications is small enough that
-  // "show me only Execution-phase apps" is more useful than "sort by phase" would be.
+  // Phase is a filter, not a sort or a column — a project's-worth of applications is small
+  // enough that "show me only Execution-phase apps" beats reordering, and showing it as a
+  // column too would just repeat what the filter bar already says.
   const [phaseFilter, setPhaseFilter] = useState<Set<PhaseFilterValue>>(
     new Set(PHASE_FILTER_VALUES),
   )
@@ -124,16 +126,16 @@ export default function ApplicationRegistryPage() {
           </div>
         )}
 
-        <div className="app-registry-page__phase-filter">
-          <span className="app-registry-page__phase-filter-label">Phase</span>
+        <div className="depot-checkbox-filter">
+          <span className="depot-checkbox-filter__label">Phase</span>
           {PHASE_FILTER_VALUES.map((v) => (
-            <label key={v} className="app-registry-page__phase-checkbox">
+            <label key={v} className="depot-checkbox-filter__option">
               <input
                 type="checkbox"
                 checked={phaseFilter.has(v)}
                 onChange={() => togglePhaseFilter(v)}
               />
-              {v === ORGANIZATIONAL ? 'Organizational' : PHASE_LABEL[v]}
+              {v === ORGANIZATIONAL ? 'Organization' : PHASE_LABEL[v]}
             </label>
           ))}
         </div>
@@ -153,7 +155,6 @@ export default function ApplicationRegistryPage() {
                 <th className="app-table__sortable" onClick={() => toggleSort('name')}>
                   Name{sortIndicator('name')}
                 </th>
-                <th>Phase</th>
                 <th className="app-table__sortable" onClick={() => toggleSort('status')}>
                   Status{sortIndicator('status')}
                 </th>
@@ -169,23 +170,6 @@ export default function ApplicationRegistryPage() {
               {sorted.map((a: Application) => (
                 <tr key={a.id} onClick={() => navigate(`/applications/${a.id}`)}>
                   <td className="app-table__name">{a.name}</td>
-                  <td>
-                    {a.scope === 'organizational' ? (
-                      <span className="app-table__phase app-table__phase--organizational">
-                        Organizational
-                      </span>
-                    ) : a.phases.length > 0 ? (
-                      <div className="app-table__phase-list">
-                        {a.phases.map((p) => (
-                          <span key={p} className={`app-table__phase app-table__phase--${p}`}>
-                            {PHASE_LABEL[p]}
-                          </span>
-                        ))}
-                      </div>
-                    ) : (
-                      <span className="app-table__muted">—</span>
-                    )}
-                  </td>
                   <td>
                     <span className={`app-table__status app-table__status--${a.status}`}>
                       {STATUS_LABEL[a.status]}

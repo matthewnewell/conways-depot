@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import {
   useAddExternalId,
   useApplications,
   useCreateLink,
   useDeleteExternalId,
   useDeleteLink,
+  useDeleteProject,
   usePortfolios,
   useProject,
   useUpdateProject,
@@ -24,10 +25,12 @@ const PHASE_LABEL: Record<Phase, string> = {
 
 export default function ProjectDetailPage() {
   const { projectId } = useParams<{ projectId: string }>()
+  const navigate = useNavigate()
   const { data: project, isLoading } = useProject(projectId)
   const { data: applications } = useApplications()
   const { data: portfolios } = usePortfolios()
   const updateProject = useUpdateProject(projectId ?? '')
+  const deleteProject = useDeleteProject()
   const addExternalId = useAddExternalId(projectId ?? '')
   const deleteExternalId = useDeleteExternalId(projectId ?? '')
   const createLink = useCreateLink(projectId ?? '')
@@ -45,6 +48,16 @@ export default function ProjectDetailPage() {
 
   if (!projectId) return null
   if (isLoading || !project) return <div className="project-detail-page__loading">Loading…</div>
+
+  function handleDelete() {
+    if (!confirm(`Delete "${project!.name}"? This cannot be undone.`)) return
+    // Navigate immediately rather than waiting on the mutation's onSuccess: confirm() already
+    // captured consent, there's nothing left worth staying on this page for, and the request
+    // still goes through in the background (it's fired at the shared query client, not tied
+    // to this component staying mounted).
+    deleteProject.mutate(project!.id)
+    navigate('/')
+  }
 
   function resetLinkForm() {
     setShowAddLink(null)
@@ -99,6 +112,9 @@ export default function ProjectDetailPage() {
             </option>
           ))}
         </select>
+        <button className="project-detail-page__delete" onClick={handleDelete}>
+          Delete
+        </button>
       </div>
 
       <div className="project-detail-page__content">

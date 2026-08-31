@@ -50,6 +50,23 @@
   font-weight: 600;
 }
 
+.project-detail-page__delete {
+  flex-shrink: 0;
+  border: 1px solid var(--color-border-strong);
+  background: transparent;
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.project-detail-page__delete:hover {
+  color: var(--color-critical);
+  border-color: var(--color-critical);
+  background: var(--color-critical-soft);
+}
+
 .project-detail-page__content {
   flex: 1;
   min-width: 0;

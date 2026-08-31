@@ -33,7 +33,7 @@ export default function ApplicationDetailPage() {
         <h1 className="app-detail-page__title">{app.name}</h1>
         {app.scope === 'organizational' ? (
           <span className="app-detail-page__phase app-detail-page__phase--organizational">
-            Organizational
+            Organization
           </span>
         ) : (
           app.phases.map((p) => (
@@ -62,7 +62,7 @@ export default function ApplicationDetailPage() {
               <span className="app-detail-page__fact-label">Scope</span>
               <span className="app-detail-page__fact-value">
                 {app.scope === 'organizational'
-                  ? 'Organizational — serves every project, not one lifecycle'
+                  ? 'Organization — serves every project, not one lifecycle'
                   : 'Project — scoped to a project’s own lifecycle'}
               </span>
             </div>
