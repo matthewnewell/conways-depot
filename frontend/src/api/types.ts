@@ -17,6 +17,10 @@ export interface Application {
   status: AppStatus
   owning_team: string | null
   team_type: TeamType
+  /** The lifecycle phase this application is primarily reached for — a property of the
+   * application itself, distinct from ProjectAppLink.phase (which phase a specific project's
+   * record in it belongs to). Nullable: not every application maps to a single phase. */
+  phase: Phase | null
   capability_id: string | null
   capability_name: string | null
   url: string | null

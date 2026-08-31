@@ -77,12 +77,17 @@ def seed_if_empty():
     db.session.flush()
 
     # ── Applications ──
+    # phase assignments follow the very first brainstorm this whole app is built from: pursuit
+    # of X (WinMax) -> winning X (Costpoint, SOW Tracker, Project Launchpad) -> executing X
+    # (Value Stream, BurnedValue, Staffing & Capacity Engine, CAPA App). Nothing landed in
+    # Closeout — an honest gap, not a forced fit.
     app_value_stream = Application(
         name="Value Stream",
         description="Visual value-stream mapping — lead time, critical path, wait contributors.",
         status="built",
         owning_team="Matt (informal enabling team)",
         team_type="enabling",  # helps other teams adopt a VSM practice, not yet self-service platform-shaped
+        phase="execution",
         capability=cap_vsm,
         url=VALUE_STREAM_BASE_URL,
     )
@@ -92,6 +97,7 @@ def seed_if_empty():
         status="built",
         owning_team="Matt (informal enabling team)",
         team_type="enabling",
+        phase="execution",
         capability=cap_evm_analysis,
         url=BURNEDVALUE_BASE_URL,
     )
@@ -101,6 +107,7 @@ def seed_if_empty():
         status="external",
         owning_team="Business Development",
         team_type=None,  # a vendor product, not an internally-owned team
+        phase="pursuit",
         capability=cap_capture,
         url=None,  # real external SaaS product; no stable local URL to link to
     )
@@ -110,6 +117,7 @@ def seed_if_empty():
         status="external",
         owning_team="Finance / Contracts",
         team_type=None,
+        phase="award",
         capability=cap_evm_erp,
         url=None,
     )
@@ -119,6 +127,7 @@ def seed_if_empty():
         status="planned",
         owning_team="Matt (informal enabling team)",
         team_type="platform",  # self-service — every project gets one, no bespoke setup
+        phase="award",
         capability=cap_home_base,
         url=None,  # doesn't exist yet
     )
@@ -128,6 +137,7 @@ def seed_if_empty():
         status="planned",
         owning_team=None,
         team_type=None,
+        phase="award",
         capability=cap_contract,
         url=None,
     )
@@ -137,6 +147,7 @@ def seed_if_empty():
         status="planned",
         owning_team=None,
         team_type=None,
+        phase="execution",
         capability=cap_capa,
         url=None,
     )
@@ -150,6 +161,7 @@ def seed_if_empty():
         status="planned",
         owning_team=None,
         team_type=None,
+        phase="execution",
         capability=cap_staffing,
         url=None,
     )

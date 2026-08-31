@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom'
 import { useApplication } from '../api/hooks'
-import type { AppStatus } from '../api/types'
+import type { AppStatus, Phase } from '../api/types'
 import './depot-shared.css'
 import './ApplicationDetailPage.css'
 
@@ -8,6 +8,13 @@ const STATUS_LABEL: Record<AppStatus, string> = {
   built: 'Built',
   planned: 'Planned',
   external: 'External',
+}
+
+const PHASE_LABEL: Record<Phase, string> = {
+  pursuit: 'Pursuit',
+  award: 'Award',
+  execution: 'Execution',
+  closeout: 'Closeout',
 }
 
 /** The "show page" for one Application — everything the registry list doesn't have room for
@@ -24,6 +31,11 @@ export default function ApplicationDetailPage() {
     <div className="app-detail-page">
       <div className="app-detail-page__toolbar">
         <h1 className="app-detail-page__title">{app.name}</h1>
+        {app.phase && (
+          <span className={`app-detail-page__phase app-detail-page__phase--${app.phase}`}>
+            {PHASE_LABEL[app.phase]}
+          </span>
+        )}
         <span className={`app-detail-page__status app-detail-page__status--${app.status}`}>
           {STATUS_LABEL[app.status]}
         </span>

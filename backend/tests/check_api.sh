@@ -30,6 +30,24 @@ assert 'WinMax' in by_status.get('external', []), 'WinMax should be seeded as ex
 assert any('Staffing' in n for n in by_status.get('planned', [])), 'Staffing engine should be a planned placeholder'
 "
 
+echo "== applications carry an honest phase (pursuit/award/execution), invalid phase rejected =="
+curl -s "$BASE/applications" | python3 -c "
+import json, sys
+apps = json.load(sys.stdin)
+by_name = {a['name']: a['phase'] for a in apps}
+assert by_name['WinMax'] == 'pursuit', by_name['WinMax']
+assert by_name['Costpoint'] == 'award', by_name['Costpoint']
+assert by_name['Value Stream'] == 'execution', by_name['Value Stream']
+print('ok —', by_name)
+"
+WV_ID=$(curl -s "$BASE/applications" | python3 -c "
+import json, sys
+print(next(a['id'] for a in json.load(sys.stdin) if a['name'] == 'WinMax'))
+")
+STATUS=$(curl -s -o /dev/null -w '%{http_code}' -X PUT "$BASE/applications/$WV_ID" \
+  -H 'Content-Type: application/json' -d '{"phase":"bogus"}')
+[ "$STATUS" = "400" ] && echo "invalid phase correctly rejected: $STATUS" || (echo "expected 400, got $STATUS" && exit 1)
+
 echo "== demo project has the digital-thread crosswalk and phase-scoped links =="
 PID=$(curl -s "$BASE/projects" | python3 -c "
 import json, sys

@@ -142,13 +142,48 @@
   color: var(--color-wait);
 }
 
-.app-table__desc {
-  color: var(--color-text-secondary);
-  line-height: 1.5;
+.app-table__phase {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 2px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
 }
 
-/* Description is the one column that gets dropped when space is tight — the full text is
-   always one click away on the item's own show page. */
+.app-table__phase--pursuit {
+  background: var(--color-surface-sunken);
+  color: var(--color-text-secondary);
+}
+
+.app-table__phase--award {
+  background: var(--color-wait-soft);
+  color: var(--color-wait);
+}
+
+.app-table__phase--execution {
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+}
+
+.app-table__phase--closeout {
+  background: var(--color-success-soft);
+  color: var(--color-success);
+}
+
+.app-table__muted {
+  color: var(--color-text-faint);
+}
+
+.app-table__capability {
+  color: var(--color-text-secondary);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Capability is the one column that gets dropped when space is tight — a tight, keyword-style
+   label, not the full prose description (that's one click away on the item's own show page). */
 @media (max-width: 640px) {
   .app-table__desc-col {
     display: none;

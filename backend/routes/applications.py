@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 
 from db import db
-from models import APP_STATUSES, TEAM_TYPES, Application, Capability
+from models import APP_STATUSES, PHASES, TEAM_TYPES, Application, Capability
 
 bp = Blueprint("applications", __name__, url_prefix="/api/applications")
 capabilities_bp = Blueprint("capabilities", __name__, url_prefix="/api/capabilities")
@@ -12,6 +12,8 @@ def _validate(body: dict) -> tuple[dict, int] | None:
         return {"error": f"status must be one of {APP_STATUSES}"}, 400
     if body.get("team_type") is not None and body.get("team_type") not in (*TEAM_TYPES, None):
         return {"error": f"team_type must be one of {TEAM_TYPES} or null"}, 400
+    if body.get("phase") is not None and body.get("phase") not in (*PHASES, None):
+        return {"error": f"phase must be one of {PHASES} or null"}, 400
     return None
 
 
@@ -37,6 +39,7 @@ def create_application():
         status=body.get("status", "planned"),
         owning_team=body.get("owning_team"),
         team_type=body.get("team_type"),
+        phase=body.get("phase"),
         capability_id=body.get("capability_id"),
         url=body.get("url"),
     )
@@ -59,7 +62,7 @@ def update_application(application_id):
     if err:
         return jsonify(err[0]), err[1]
 
-    for field in ("name", "description", "status", "owning_team", "team_type", "capability_id", "url"):
+    for field in ("name", "description", "status", "owning_team", "team_type", "phase", "capability_id", "url"):
         if field in body:
             setattr(a, field, body[field])
 

@@ -55,6 +55,12 @@ class Application(db.Model):
     status = db.Column(db.String(20), nullable=False, default="planned")  # see APP_STATUSES
     owning_team = db.Column(db.String(200), nullable=True)
     team_type = db.Column(db.String(30), nullable=True)  # see TEAM_TYPES
+    # The lifecycle phase this application is primarily reached for — WinMax at Pursuit,
+    # Value Stream during Execution, and so on. Distinct from ProjectAppLink.phase (which
+    # phase a *specific project's* record in this app belongs to): this is a property of the
+    # application itself, independent of any one project. Nullable — not every application
+    # maps cleanly to a single phase, and the field shouldn't force one.
+    phase = db.Column(db.String(20), nullable=True)  # see PHASES
     capability_id = db.Column(db.String(36), db.ForeignKey("capability.id"), nullable=True)
     # Base URL if this app is actually reachable somewhere (a real dev/prod URL) — how the
     # Depot deep-links out to it. Null for external vendor products we don't host and for
@@ -72,6 +78,7 @@ class Application(db.Model):
             "status": self.status,
             "owning_team": self.owning_team,
             "team_type": self.team_type,
+            "phase": self.phase,
             "capability_id": self.capability_id,
             "capability_name": self.capability.name if self.capability else None,
             "url": self.url,

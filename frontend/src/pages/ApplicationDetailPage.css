@@ -53,6 +53,36 @@
   color: var(--color-wait);
 }
 
+.app-detail-page__phase {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+
+.app-detail-page__phase--pursuit {
+  background: var(--color-surface-sunken);
+  color: var(--color-text-secondary);
+}
+
+.app-detail-page__phase--award {
+  background: var(--color-wait-soft);
+  color: var(--color-wait);
+}
+
+.app-detail-page__phase--execution {
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+}
+
+.app-detail-page__phase--closeout {
+  background: var(--color-success-soft);
+  color: var(--color-success);
+}
+
 .app-detail-page__content {
   flex: 1;
   min-width: 0;

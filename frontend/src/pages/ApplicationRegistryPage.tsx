@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApplications } from '../api/hooks'
-import type { Application, AppStatus } from '../api/types'
+import type { Application, AppStatus, Phase } from '../api/types'
+import { PHASES } from '../api/types'
 import './ApplicationRegistryPage.css'
 
 const STATUS_LABEL: Record<AppStatus, string> = {
@@ -10,12 +11,22 @@ const STATUS_LABEL: Record<AppStatus, string> = {
   external: 'External',
 }
 
+const PHASE_LABEL: Record<Phase, string> = {
+  pursuit: 'Pursuit',
+  award: 'Award',
+  execution: 'Execution',
+  closeout: 'Closeout',
+}
+
 // Ordered by lifecycle intent, not alphabetically — Built first (the real answer), then
 // Planned (a named gap), then External (out of our hands) — so sorting by status reads as a
 // meaningful ordering, not an arbitrary one.
 const STATUS_ORDER: Record<AppStatus, number> = { built: 0, planned: 1, external: 2 }
+const PHASE_ORDER: Record<Phase, number> = Object.fromEntries(
+  PHASES.map((p, i) => [p, i]),
+) as Record<Phase, number>
 
-type SortKey = 'name' | 'status'
+type SortKey = 'name' | 'phase' | 'status' | 'capability'
 
 export default function ApplicationRegistryPage() {
   const navigate = useNavigate()
@@ -32,11 +43,24 @@ export default function ApplicationRegistryPage() {
     }
   }
 
+  function compare(a: Application, b: Application): number {
+    switch (sortKey) {
+      case 'name':
+        return a.name.localeCompare(b.name)
+      case 'status':
+        return STATUS_ORDER[a.status] - STATUS_ORDER[b.status] || a.name.localeCompare(b.name)
+      case 'phase': {
+        const av = a.phase ? PHASE_ORDER[a.phase] : PHASES.length
+        const bv = b.phase ? PHASE_ORDER[b.phase] : PHASES.length
+        return av - bv || a.name.localeCompare(b.name)
+      }
+      case 'capability':
+        return (a.capability_name ?? '').localeCompare(b.capability_name ?? '') || a.name.localeCompare(b.name)
+    }
+  }
+
   const sorted = [...(applications ?? [])].sort((a, b) => {
-    const cmp =
-      sortKey === 'name'
-        ? a.name.localeCompare(b.name)
-        : STATUS_ORDER[a.status] - STATUS_ORDER[b.status] || a.name.localeCompare(b.name)
+    const cmp = compare(a, b)
     return sortDesc ? -cmp : cmp
   })
 
@@ -89,10 +113,18 @@ export default function ApplicationRegistryPage() {
                 <th className="app-table__sortable" onClick={() => toggleSort('name')}>
                   Name{sortIndicator('name')}
                 </th>
+                <th className="app-table__sortable" onClick={() => toggleSort('phase')}>
+                  Phase{sortIndicator('phase')}
+                </th>
                 <th className="app-table__sortable" onClick={() => toggleSort('status')}>
                   Status{sortIndicator('status')}
                 </th>
-                <th className="app-table__desc-col">Description</th>
+                <th
+                  className="app-table__sortable app-table__desc-col"
+                  onClick={() => toggleSort('capability')}
+                >
+                  Capability{sortIndicator('capability')}
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -100,11 +132,22 @@ export default function ApplicationRegistryPage() {
                 <tr key={a.id} onClick={() => navigate(`/applications/${a.id}`)}>
                   <td className="app-table__name">{a.name}</td>
                   <td>
+                    {a.phase ? (
+                      <span className={`app-table__phase app-table__phase--${a.phase}`}>
+                        {PHASE_LABEL[a.phase]}
+                      </span>
+                    ) : (
+                      <span className="app-table__muted">—</span>
+                    )}
+                  </td>
+                  <td>
                     <span className={`app-table__status app-table__status--${a.status}`}>
                       {STATUS_LABEL[a.status]}
                     </span>
                   </td>
-                  <td className="app-table__desc-col app-table__desc">{a.description}</td>
+                  <td className="app-table__desc-col app-table__capability">
+                    {a.capability_name ?? <span className="app-table__muted">—</span>}
+                  </td>
                 </tr>
               ))}
             </tbody>
