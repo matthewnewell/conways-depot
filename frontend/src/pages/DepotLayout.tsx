@@ -5,6 +5,17 @@ import DepotChatPanel from '../components/DepotChatPanel'
 import DepotNav from '../components/DepotNav'
 import './DepotLayout.css'
 
+const CHAT_OPEN_STORAGE_KEY = 'conways-depot:chat-open'
+
+// Plain useState wouldn't survive a trip through the Guide page — it lives outside this
+// layout (no persistent chat there by design, see below), so navigating there and back
+// unmounts DepotLayout entirely and would silently reset the toggle. localStorage survives
+// that, plus a full page reload, which "remembers where it is" really implies.
+function readStoredChatOpen(): boolean {
+  if (typeof window === 'undefined') return false
+  return window.localStorage.getItem(CHAT_OPEN_STORAGE_KEY) === 'true'
+}
+
 /** Shared parent for every operational route (project list, project detail, application
  * registry) — keeps the chat panel mounted across navigation, same pattern as Value Stream's
  * MapLayout. The Theory of Operation page deliberately sits OUTSIDE the chat-enabled part of
@@ -14,7 +25,14 @@ import './DepotLayout.css'
 export default function DepotLayout() {
   const { projectId } = useParams<{ projectId?: string }>()
   const { data: health } = useHealth()
-  const [chatOpen, setChatOpen] = useState(true)
+  // Collapsed by default — an operator opts into the assistant, it doesn't default to taking
+  // a third of the screen.
+  const [chatOpen, setChatOpen] = useState(readStoredChatOpen)
+
+  function updateChatOpen(open: boolean) {
+    setChatOpen(open)
+    window.localStorage.setItem(CHAT_OPEN_STORAGE_KEY, String(open))
+  }
 
   return (
     <div className="depot-layout">
@@ -31,12 +49,12 @@ export default function DepotLayout() {
             key={projectId ?? 'portfolio'}
             projectId={projectId}
             aiConfigured={health?.ai_configured ?? false}
-            onCollapse={() => setChatOpen(false)}
+            onCollapse={() => updateChatOpen(false)}
           />
         ) : (
           <button
             className="depot-layout__chat-tab"
-            onClick={() => setChatOpen(true)}
+            onClick={() => updateChatOpen(true)}
             title="Open chat"
           >
             ✨ Chat
