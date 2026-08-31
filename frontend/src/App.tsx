@@ -2,6 +2,7 @@ import { Route, Routes } from 'react-router-dom'
 import ProjectListPage from './pages/ProjectListPage'
 import ProjectDetailPage from './pages/ProjectDetailPage'
 import ApplicationRegistryPage from './pages/ApplicationRegistryPage'
+import ApplicationDetailPage from './pages/ApplicationDetailPage'
 import GuidePage from './pages/GuidePage'
 import DepotLayout from './pages/DepotLayout'
 
@@ -14,6 +15,7 @@ export default function App() {
         <Route path="/" element={<ProjectListPage />} />
         <Route path="/projects/:projectId" element={<ProjectDetailPage />} />
         <Route path="/applications" element={<ApplicationRegistryPage />} />
+        <Route path="/applications/:applicationId" element={<ApplicationDetailPage />} />
       </Route>
       <Route path="/guide" element={<GuidePage />} />
     </Routes>

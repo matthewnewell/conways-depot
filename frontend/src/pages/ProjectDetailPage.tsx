@@ -11,6 +11,7 @@ import {
 } from '../api/hooks'
 import type { Phase } from '../api/types'
 import { PHASES } from '../api/types'
+import './depot-shared.css'
 import './ProjectDetailPage.css'
 
 const PHASE_LABEL: Record<Phase, string> = {

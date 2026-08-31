@@ -1,45 +1,44 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useApplications } from '../api/hooks'
-import type { Application } from '../api/types'
+import type { Application, AppStatus } from '../api/types'
 import './ApplicationRegistryPage.css'
 
-const STATUS_LABEL: Record<string, string> = {
+const STATUS_LABEL: Record<AppStatus, string> = {
   built: 'Built',
   planned: 'Planned',
   external: 'External',
 }
 
-type GroupBy = 'capability' | 'status' | 'team' | 'team_type'
+// Ordered by lifecycle intent, not alphabetically — Built first (the real answer), then
+// Planned (a named gap), then External (out of our hands) — so sorting by status reads as a
+// meaningful ordering, not an arbitrary one.
+const STATUS_ORDER: Record<AppStatus, number> = { built: 0, planned: 1, external: 2 }
 
-const GROUP_LABEL: Record<GroupBy, string> = {
-  capability: 'Capability',
-  status: 'Status',
-  team: 'Owning team',
-  team_type: 'Team type',
-}
-
-function groupKey(a: Application, groupBy: GroupBy): string {
-  switch (groupBy) {
-    case 'capability':
-      return a.capability_name ?? 'Uncategorized'
-    case 'status':
-      return STATUS_LABEL[a.status]
-    case 'team':
-      return a.owning_team ?? 'Unowned'
-    case 'team_type':
-      return a.team_type ?? 'No team type (external product, or unowned)'
-  }
-}
+type SortKey = 'name' | 'status'
 
 export default function ApplicationRegistryPage() {
+  const navigate = useNavigate()
   const { data: applications, isLoading } = useApplications()
-  const [groupBy, setGroupBy] = useState<GroupBy>('capability')
+  const [sortKey, setSortKey] = useState<SortKey>('name')
+  const [sortDesc, setSortDesc] = useState(false)
 
-  const groups = new Map<string, Application[]>()
-  for (const a of applications ?? []) {
-    const key = groupKey(a, groupBy)
-    groups.set(key, [...(groups.get(key) ?? []), a])
+  function toggleSort(key: SortKey) {
+    if (key === sortKey) {
+      setSortDesc((d) => !d)
+    } else {
+      setSortKey(key)
+      setSortDesc(false)
+    }
   }
+
+  const sorted = [...(applications ?? [])].sort((a, b) => {
+    const cmp =
+      sortKey === 'name'
+        ? a.name.localeCompare(b.name)
+        : STATUS_ORDER[a.status] - STATUS_ORDER[b.status] || a.name.localeCompare(b.name)
+    return sortDesc ? -cmp : cmp
+  })
 
   // Client-side Conway signal: a team's name attached to more than one registered app. Cheap,
   // deterministic, same computation the chat assistant's context is built from server-side —
@@ -50,29 +49,22 @@ export default function ApplicationRegistryPage() {
   }
   const overloadedTeams = [...teamCounts.entries()].filter(([, n]) => n >= 2)
 
+  function sortIndicator(key: SortKey) {
+    if (key !== sortKey) return null
+    return <span className="app-table__sort-arrow">{sortDesc ? '↓' : '↑'}</span>
+  }
+
   return (
     <div className="app-registry-page">
       <div className="app-registry-page__toolbar">
         <h1 className="app-registry-page__title">Application Registry</h1>
-        <div className="app-registry-page__group-toggle">
-          <span className="app-registry-page__group-label">Group by</span>
-          {(Object.keys(GROUP_LABEL) as GroupBy[]).map((g) => (
-            <button
-              key={g}
-              className={`app-registry-page__group-btn ${groupBy === g ? 'app-registry-page__group-btn--active' : ''}`}
-              onClick={() => setGroupBy(g)}
-            >
-              {GROUP_LABEL[g]}
-            </button>
-          ))}
-        </div>
       </div>
 
       <div className="app-registry-page__content">
         <p className="app-registry-page__intro">
           Every application the Depot knows about — built, planned, or an external vendor
           product. Registering an app here never wires up a real integration; it's a claim
-          about what exists and who owns it.
+          about what exists and who owns it. Click a row for the full record.
         </p>
 
         {overloadedTeams.length > 0 && (
@@ -90,33 +82,34 @@ export default function ApplicationRegistryPage() {
 
         {isLoading && <div className="app-registry-page__loading">Loading registry…</div>}
 
-        {[...groups.entries()].map(([groupName, apps]) => (
-          <section key={groupName} className="app-group">
-            <h2 className="app-group__title">{groupName}</h2>
-            <div className="app-grid">
-              {apps.map((a) => (
-                <div key={a.id} className="app-card">
-                  <div className="app-card__top">
-                    <span className="app-card__name">{a.name}</span>
-                    <span className={`app-card__status app-card__status--${a.status}`}>
+        {!isLoading && (applications?.length ?? 0) > 0 && (
+          <table className="app-table">
+            <thead>
+              <tr>
+                <th className="app-table__sortable" onClick={() => toggleSort('name')}>
+                  Name{sortIndicator('name')}
+                </th>
+                <th className="app-table__sortable" onClick={() => toggleSort('status')}>
+                  Status{sortIndicator('status')}
+                </th>
+                <th className="app-table__desc-col">Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sorted.map((a: Application) => (
+                <tr key={a.id} onClick={() => navigate(`/applications/${a.id}`)}>
+                  <td className="app-table__name">{a.name}</td>
+                  <td>
+                    <span className={`app-table__status app-table__status--${a.status}`}>
                       {STATUS_LABEL[a.status]}
                     </span>
-                  </div>
-                  {a.description && <div className="app-card__desc">{a.description}</div>}
-                  <div className="app-card__meta">
-                    {a.team_type && <span className="app-card__team-type">{a.team_type}</span>}
-                    {a.owning_team && <span className="app-card__owner">{a.owning_team}</span>}
-                  </div>
-                  {a.url && (
-                    <a className="app-card__link" href={a.url} target="_blank" rel="noreferrer">
-                      {a.url} →
-                    </a>
-                  )}
-                </div>
+                  </td>
+                  <td className="app-table__desc-col app-table__desc">{a.description}</td>
+                </tr>
               ))}
-            </div>
-          </section>
-        ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   )

@@ -1,0 +1,45 @@
+/* Shared building blocks for "detail/show" pages (ProjectDetailPage, ApplicationDetailPage) —
+   a labeled section is the same shape everywhere, only its content differs. */
+
+.depot-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.depot-section__header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.depot-section__title {
+  margin: 0;
+  font-size: 15px;
+}
+
+.depot-section__subtitle {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.depot-section__body {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+.depot-section__header-row button {
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.depot-section__header-row button:hover {
+  background: var(--color-surface-sunken);
+}

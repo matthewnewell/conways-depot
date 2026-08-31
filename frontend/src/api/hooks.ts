@@ -111,6 +111,14 @@ export function useApplications() {
   })
 }
 
+export function useApplication(id: string | undefined) {
+  return useQuery({
+    queryKey: ['applications', id],
+    queryFn: () => api.get<Application>(`/applications/${id}`),
+    enabled: !!id,
+  })
+}
+
 export function useCapabilities() {
   return useQuery({
     queryKey: ['capabilities'],

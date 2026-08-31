@@ -21,39 +21,6 @@
   flex: 1;
 }
 
-.app-registry-page__group-toggle {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
-}
-
-.app-registry-page__group-label {
-  font-size: 12px;
-  color: var(--color-text-faint);
-  margin-right: 2px;
-}
-
-.app-registry-page__group-btn {
-  border: 1px solid var(--color-border-strong);
-  background: var(--color-surface);
-  border-radius: var(--radius-sm);
-  padding: 6px 12px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--color-text-secondary);
-}
-
-.app-registry-page__group-btn:hover {
-  background: var(--color-surface-sunken);
-}
-
-.app-registry-page__group-btn--active {
-  background: var(--color-accent);
-  color: white;
-  border-color: var(--color-accent);
-}
-
 .app-registry-page__content {
   flex: 1;
   min-width: 0;
@@ -63,7 +30,7 @@
   padding: 24px 20px 80px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 16px;
   width: 100%;
 }
 
@@ -90,103 +57,100 @@
   text-align: center;
 }
 
-.app-group {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.app-group__title {
-  margin: 0;
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: var(--color-accent);
-}
-
-.app-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 14px;
-}
-
-.app-card {
+.app-table {
+  width: 100%;
+  border-collapse: collapse;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  overflow: hidden;
 }
 
-.app-card__top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.app-card__name {
-  font-weight: 700;
-  font-size: 15px;
-}
-
-.app-card__status {
-  flex-shrink: 0;
-  font-size: 10px;
+.app-table th {
+  text-align: left;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  padding: 2px 8px;
-  border-radius: 999px;
+  color: var(--color-text-faint);
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface-sunken);
+  white-space: nowrap;
 }
 
-.app-card__status--built {
+.app-table__sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.app-table__sortable:hover {
+  color: var(--color-accent);
+}
+
+.app-table__sort-arrow {
+  margin-left: 4px;
+  color: var(--color-accent);
+}
+
+.app-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 13px;
+  vertical-align: top;
+}
+
+.app-table tbody tr {
+  cursor: pointer;
+}
+
+.app-table tbody tr:hover {
+  background: var(--color-accent-soft);
+}
+
+.app-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.app-table__name {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.app-table__status {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 2px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.app-table__status--built {
   background: var(--color-success-soft);
   color: var(--color-success);
 }
 
-.app-card__status--planned {
+.app-table__status--planned {
   background: var(--color-border);
   color: var(--color-text-secondary);
 }
 
-.app-card__status--external {
+.app-table__status--external {
   background: var(--color-wait-soft);
   color: var(--color-wait);
 }
 
-.app-card__desc {
-  font-size: 12.5px;
+.app-table__desc {
   color: var(--color-text-secondary);
   line-height: 1.5;
 }
 
-.app-card__meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.app-card__team-type,
-.app-card__owner {
-  font-size: 11px;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: var(--color-surface-sunken);
-  color: var(--color-text-secondary);
-}
-
-.app-card__team-type {
-  color: var(--color-accent);
-  background: var(--color-accent-soft);
-}
-
-.app-card__link {
-  font-size: 12px;
-  font-weight: 600;
-  text-decoration: none;
-  word-break: break-all;
+/* Description is the one column that gets dropped when space is tight — the full text is
+   always one click away on the item's own show page. */
+@media (max-width: 640px) {
+  .app-table__desc-col {
+    display: none;
+  }
 }
