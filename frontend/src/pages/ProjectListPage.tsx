@@ -12,12 +12,20 @@ const PHASE_LABEL: Record<Phase, string> = {
   closeout: 'Closeout',
 }
 
+const PHASE_ORDER: Record<Phase, number> = Object.fromEntries(
+  PHASES.map((p, i) => [p, i]),
+) as Record<Phase, number>
+
+type SortKey = 'portfolio' | 'phase' | 'name'
+
 export default function ProjectListPage() {
   const { data: projects, isLoading } = useProjects()
   const createProject = useCreateProject()
   const deleteProject = useDeleteProject()
   const navigate = useNavigate()
   const [newName, setNewName] = useState('')
+  const [sortKey, setSortKey] = useState<SortKey>('portfolio')
+  const [sortDesc, setSortDesc] = useState(false)
 
   function handleCreate() {
     const name = newName.trim() || 'Untitled project'
@@ -30,85 +38,112 @@ export default function ProjectListPage() {
     deleteProject.mutate(id)
   }
 
-  const byPhase = new Map<Phase, ProjectSummary[]>()
-  for (const p of projects ?? []) {
-    byPhase.set(p.phase, [...(byPhase.get(p.phase) ?? []), p])
+  function toggleSort(key: SortKey) {
+    if (key === sortKey) {
+      setSortDesc((d) => !d)
+    } else {
+      setSortKey(key)
+      setSortDesc(false)
+    }
+  }
+
+  function compare(a: ProjectSummary, b: ProjectSummary): number {
+    switch (sortKey) {
+      case 'portfolio':
+        return (
+          (a.portfolio_name ?? '').localeCompare(b.portfolio_name ?? '') ||
+          a.name.localeCompare(b.name)
+        )
+      case 'phase':
+        return PHASE_ORDER[a.phase] - PHASE_ORDER[b.phase] || a.name.localeCompare(b.name)
+      case 'name':
+        return a.name.localeCompare(b.name)
+    }
+  }
+
+  const sorted = [...(projects ?? [])].sort((a, b) => {
+    const cmp = compare(a, b)
+    return sortDesc ? -cmp : cmp
+  })
+
+  function sortIndicator(key: SortKey) {
+    if (key !== sortKey) return null
+    return <span className="proj-table__sort-arrow">{sortDesc ? '↓' : '↑'}</span>
   }
 
   return (
     <div className="project-list-page">
-      <header className="project-list-page__header">
-        <p>
-          A registry of projects and the applications tied to them, grouped by lifecycle phase
-          — not a platform.
-        </p>
-      </header>
-
-      <div className="project-list-page__create">
-        <input
-          placeholder="New project name…"
-          value={newName}
-          onChange={(e) => setNewName(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
-        />
-        <button onClick={handleCreate} disabled={createProject.isPending}>
-          + New project
-        </button>
+      <div className="project-list-page__toolbar">
+        <h1 className="project-list-page__title">Projects Registry</h1>
       </div>
 
-      {isLoading && <div className="project-list-page__loading">Loading projects…</div>}
+      <div className="project-list-page__content">
+        <p className="project-list-page__intro">
+          Every project the Depot tracks — each with its own digital-thread id, grouped by
+          portfolio and lifecycle phase. Click a row for the full record.
+        </p>
 
-      {!isLoading && projects?.length === 0 && (
-        <div className="project-list-page__empty">No projects registered yet — create one above.</div>
-      )}
-
-      {!isLoading && (projects?.length ?? 0) > 0 && (
-        <div className="project-phase-board">
-          {PHASES.map((phase) => {
-            const inPhase = byPhase.get(phase) ?? []
-            return (
-              <section key={phase} className="project-phase-column">
-                <div className={`project-phase-column__header project-phase-column__header--${phase}`}>
-                  {PHASE_LABEL[phase]}
-                  <span className="project-phase-column__count">{inPhase.length}</span>
-                </div>
-                <div className="project-phase-column__body">
-                  {inPhase.length === 0 && (
-                    <div className="project-phase-column__empty">No projects here</div>
-                  )}
-                  {inPhase.map((p) => (
-                    <div
-                      key={p.id}
-                      className="project-card"
-                      onClick={() => navigate(`/projects/${p.id}`)}
-                    >
-                      <div className="project-card__name">{p.name}</div>
-                      {p.customer && <div className="project-card__customer">{p.customer}</div>}
-                      {p.external_ids.length > 0 && (
-                        <div className="project-card__external-ids">
-                          {p.external_ids.map((e) => (
-                            <span key={e.id} className="project-card__external-id-badge">
-                              {e.system}: {e.external_id}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                      <div className="project-card__actions" onClick={(e) => e.stopPropagation()}>
-                        <button
-                          className="project-card__delete"
-                          onClick={() => handleDelete(p.id, p.name)}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            )
-          })}
+        <div className="project-list-page__create">
+          <input
+            placeholder="New project name…"
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
+          />
+          <button onClick={handleCreate} disabled={createProject.isPending}>
+            + New project
+          </button>
         </div>
-      )}
+
+        {isLoading && <div className="project-list-page__loading">Loading projects…</div>}
+
+        {!isLoading && projects?.length === 0 && (
+          <div className="project-list-page__empty">No projects registered yet — create one above.</div>
+        )}
+
+        {!isLoading && (projects?.length ?? 0) > 0 && (
+          <table className="proj-table">
+            <thead>
+              <tr>
+                <th className="proj-table__sortable" onClick={() => toggleSort('portfolio')}>
+                  Portfolio{sortIndicator('portfolio')}
+                </th>
+                <th className="proj-table__sortable" onClick={() => toggleSort('phase')}>
+                  Phase{sortIndicator('phase')}
+                </th>
+                <th className="proj-table__sortable" onClick={() => toggleSort('name')}>
+                  Project name{sortIndicator('name')}
+                </th>
+                <th className="proj-table__desc-col">Description</th>
+                <th className="proj-table__actions-col"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {sorted.map((p) => (
+                <tr key={p.id} onClick={() => navigate(`/projects/${p.id}`)}>
+                  <td className="proj-table__portfolio">
+                    {p.portfolio_name ?? <span className="proj-table__muted">—</span>}
+                  </td>
+                  <td>
+                    <span className={`proj-table__phase proj-table__phase--${p.phase}`}>
+                      {PHASE_LABEL[p.phase]}
+                    </span>
+                  </td>
+                  <td className="proj-table__name">{p.name}</td>
+                  <td className="proj-table__desc-col proj-table__desc">
+                    {p.description ?? <span className="proj-table__muted">—</span>}
+                  </td>
+                  <td className="proj-table__actions-col" onClick={(e) => e.stopPropagation()}>
+                    <button className="proj-table__delete" onClick={() => handleDelete(p.id, p.name)}>
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
     </div>
   )
 }

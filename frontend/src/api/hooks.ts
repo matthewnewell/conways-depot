@@ -7,6 +7,7 @@ import type {
   ChatResult,
   ExternalId,
   Phase,
+  Portfolio,
   ProjectAppLink,
   ProjectDetail,
   ProjectSummary,
@@ -40,8 +41,13 @@ function useInvalidateProject(id: string | undefined) {
 export function useCreateProject() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (data: { name: string; customer?: string; phase?: Phase; description?: string }) =>
-      api.post<ProjectDetail>('/projects', data),
+    mutationFn: (data: {
+      name: string
+      customer?: string
+      phase?: Phase
+      description?: string
+      portfolio_id?: string
+    }) => api.post<ProjectDetail>('/projects', data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['projects'] }),
   })
 }
@@ -49,9 +55,17 @@ export function useCreateProject() {
 export function useUpdateProject(id: string) {
   const invalidate = useInvalidateProject(id)
   return useMutation({
-    mutationFn: (data: Partial<Pick<ProjectSummary, 'name' | 'customer' | 'phase' | 'description'>>) =>
-      api.put<ProjectDetail>(`/projects/${id}`, data),
+    mutationFn: (
+      data: Partial<Pick<ProjectSummary, 'name' | 'customer' | 'phase' | 'description' | 'portfolio_id'>>,
+    ) => api.put<ProjectDetail>(`/projects/${id}`, data),
     onSuccess: invalidate,
+  })
+}
+
+export function usePortfolios() {
+  return useQuery({
+    queryKey: ['portfolios'],
+    queryFn: () => api.get<Portfolio[]>('/portfolios'),
   })
 }
 

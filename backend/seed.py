@@ -18,7 +18,7 @@ one id, connected only by a stored URL.
 from datetime import datetime, timedelta, timezone
 
 from db import db
-from models import Application, Capability, ExternalId, Project, ProjectAppLink, ProjectPhaseEvent
+from models import Application, Capability, ExternalId, Portfolio, Project, ProjectAppLink, ProjectPhaseEvent
 
 
 def _days_ago(n: int) -> datetime:
@@ -172,10 +172,22 @@ def seed_if_empty():
     db.session.flush()
 
     # ── One demo project, spanning Pursuit -> Award -> Execution ──
+    # A Portfolio groups Projects for an organizational reason (a business line, here), not a
+    # lifecycle one — deliberately spans both demo projects even though they have different
+    # customers, since that's the realistic case: a portfolio is usually an internal construct,
+    # not a per-customer bucket.
+    portfolio = Portfolio(
+        name="Industrial Programs",
+        description="Manufacturing and industrial-facility work across customers.",
+    )
+    db.session.add(portfolio)
+    db.session.flush()
+
     project = Project(
         name="Demo: Bracket Assembly Program",
         customer="Acme Aerostructures",
         phase="execution",
+        portfolio=portfolio,
         description=(
             "Illustrative project, mirroring Value Stream's own seeded demo map so the "
             "Execution-phase link below is a real, clickable connection between two "
@@ -230,6 +242,7 @@ def seed_if_empty():
         name="Prospect: Riverside Facility Expansion",
         customer="Riverside Logistics",
         phase="pursuit",
+        portfolio=portfolio,
         description="Illustrative early-stage pursuit — only a capture record exists yet.",
     )
     db.session.add(prospect)

@@ -86,6 +86,30 @@ class Application(db.Model):
         }
 
 
+class Portfolio(db.Model):
+    """A grouping of Projects — an internal organizational construct (a business line, a
+    customer segment), not a lifecycle concept like phase. One Portfolio has many Projects;
+    a Project's portfolio is optional, since not every project needs to be sorted into one
+    right away. Mirrors BurnedValue's own Portfolio/Project relationship for the same reason
+    Application Capabilities mirror TOGAF — reuse an established shape rather than invent one."""
+    __tablename__ = "portfolio"
+
+    id = db.Column(db.String(36), primary_key=True, default=_uuid)
+    name = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=_now, nullable=False)
+
+    projects = db.relationship("Project", back_populates="portfolio")
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "name": self.name,
+            "description": self.description,
+            "created_at": self.created_at.isoformat(),
+        }
+
+
 class Project(db.Model):
     __tablename__ = "project"
 
@@ -94,9 +118,11 @@ class Project(db.Model):
     customer = db.Column(db.String(200), nullable=True)
     phase = db.Column(db.String(20), nullable=False, default="pursuit")  # see PHASES
     description = db.Column(db.Text, nullable=True)
+    portfolio_id = db.Column(db.String(36), db.ForeignKey("portfolio.id"), nullable=True, index=True)
     created_at = db.Column(db.DateTime, default=_now, nullable=False)
     updated_at = db.Column(db.DateTime, default=_now, onupdate=_now, nullable=False)
 
+    portfolio = db.relationship("Portfolio", back_populates="projects")
     external_ids = db.relationship(
         "ExternalId", back_populates="project", cascade="all, delete-orphan", lazy="selectin"
     )
@@ -117,6 +143,8 @@ class Project(db.Model):
             "customer": self.customer,
             "phase": self.phase,
             "description": self.description,
+            "portfolio_id": self.portfolio_id,
+            "portfolio_name": self.portfolio.name if self.portfolio else None,
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
             "external_ids": [e.to_dict() for e in self.external_ids],

@@ -60,12 +60,21 @@ export interface ProjectAppLink {
   created_at: string
 }
 
+export interface Portfolio {
+  id: string
+  name: string
+  description: string | null
+  created_at: string
+}
+
 export interface ProjectSummary {
   id: string
   name: string
   customer: string | null
   phase: Phase
   description: string | null
+  portfolio_id: string | null
+  portfolio_name: string | null
   created_at: string
   updated_at: string
   external_ids: ExternalId[]

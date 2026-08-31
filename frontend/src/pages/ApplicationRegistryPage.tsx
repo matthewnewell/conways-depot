@@ -18,21 +18,28 @@ const PHASE_LABEL: Record<Phase, string> = {
   closeout: 'Closeout',
 }
 
+// A phase-less application still needs a checkbox to filter on — 'none' stands in for null.
+const NO_PHASE = 'none' as const
+type PhaseFilterValue = Phase | typeof NO_PHASE
+const PHASE_FILTER_VALUES: PhaseFilterValue[] = [...PHASES, NO_PHASE]
+
 // Ordered by lifecycle intent, not alphabetically — Built first (the real answer), then
 // Planned (a named gap), then External (out of our hands) — so sorting by status reads as a
 // meaningful ordering, not an arbitrary one.
 const STATUS_ORDER: Record<AppStatus, number> = { built: 0, planned: 1, external: 2 }
-const PHASE_ORDER: Record<Phase, number> = Object.fromEntries(
-  PHASES.map((p, i) => [p, i]),
-) as Record<Phase, number>
 
-type SortKey = 'name' | 'phase' | 'status' | 'capability'
+type SortKey = 'name' | 'status' | 'capability'
 
 export default function ApplicationRegistryPage() {
   const navigate = useNavigate()
   const { data: applications, isLoading } = useApplications()
   const [sortKey, setSortKey] = useState<SortKey>('name')
   const [sortDesc, setSortDesc] = useState(false)
+  // Phase is a filter, not a sort — a project's-worth of applications is small enough that
+  // "show me only Execution-phase apps" is more useful than "sort by phase" would be.
+  const [phaseFilter, setPhaseFilter] = useState<Set<PhaseFilterValue>>(
+    new Set(PHASE_FILTER_VALUES),
+  )
 
   function toggleSort(key: SortKey) {
     if (key === sortKey) {
@@ -43,30 +50,38 @@ export default function ApplicationRegistryPage() {
     }
   }
 
+  function togglePhaseFilter(value: PhaseFilterValue) {
+    setPhaseFilter((prev) => {
+      const next = new Set(prev)
+      if (next.has(value)) next.delete(value)
+      else next.add(value)
+      return next
+    })
+  }
+
   function compare(a: Application, b: Application): number {
     switch (sortKey) {
       case 'name':
         return a.name.localeCompare(b.name)
       case 'status':
         return STATUS_ORDER[a.status] - STATUS_ORDER[b.status] || a.name.localeCompare(b.name)
-      case 'phase': {
-        const av = a.phase ? PHASE_ORDER[a.phase] : PHASES.length
-        const bv = b.phase ? PHASE_ORDER[b.phase] : PHASES.length
-        return av - bv || a.name.localeCompare(b.name)
-      }
       case 'capability':
         return (a.capability_name ?? '').localeCompare(b.capability_name ?? '') || a.name.localeCompare(b.name)
     }
   }
 
-  const sorted = [...(applications ?? [])].sort((a, b) => {
+  const filtered = (applications ?? []).filter((a) =>
+    phaseFilter.has(a.phase ?? NO_PHASE),
+  )
+  const sorted = [...filtered].sort((a, b) => {
     const cmp = compare(a, b)
     return sortDesc ? -cmp : cmp
   })
 
   // Client-side Conway signal: a team's name attached to more than one registered app. Cheap,
   // deterministic, same computation the chat assistant's context is built from server-side —
-  // shown here too so it's visible without asking.
+  // shown here too so it's visible without asking. Computed off the full set, not the filtered
+  // one — a filter shouldn't make a real structural signal disappear.
   const teamCounts = new Map<string, number>()
   for (const a of applications ?? []) {
     if (a.owning_team) teamCounts.set(a.owning_team, (teamCounts.get(a.owning_team) ?? 0) + 1)
@@ -104,18 +119,36 @@ export default function ApplicationRegistryPage() {
           </div>
         )}
 
+        <div className="app-registry-page__phase-filter">
+          <span className="app-registry-page__phase-filter-label">Phase</span>
+          {PHASE_FILTER_VALUES.map((v) => (
+            <label key={v} className="app-registry-page__phase-checkbox">
+              <input
+                type="checkbox"
+                checked={phaseFilter.has(v)}
+                onChange={() => togglePhaseFilter(v)}
+              />
+              {v === NO_PHASE ? 'No phase' : PHASE_LABEL[v]}
+            </label>
+          ))}
+        </div>
+
         {isLoading && <div className="app-registry-page__loading">Loading registry…</div>}
 
-        {!isLoading && (applications?.length ?? 0) > 0 && (
+        {!isLoading && filtered.length === 0 && (applications?.length ?? 0) > 0 && (
+          <div className="app-registry-page__loading">
+            No applications match the selected phase(s).
+          </div>
+        )}
+
+        {!isLoading && filtered.length > 0 && (
           <table className="app-table">
             <thead>
               <tr>
                 <th className="app-table__sortable" onClick={() => toggleSort('name')}>
                   Name{sortIndicator('name')}
                 </th>
-                <th className="app-table__sortable" onClick={() => toggleSort('phase')}>
-                  Phase{sortIndicator('phase')}
-                </th>
+                <th>Phase</th>
                 <th className="app-table__sortable" onClick={() => toggleSort('status')}>
                   Status{sortIndicator('status')}
                 </th>

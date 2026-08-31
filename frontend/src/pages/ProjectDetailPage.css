@@ -39,7 +39,8 @@
   outline: none;
 }
 
-.project-detail-page__phase-select {
+.project-detail-page__phase-select,
+.project-detail-page__portfolio-select {
   flex-shrink: 0;
   border: 1px solid var(--color-border-strong);
   background: var(--color-surface);

@@ -6,6 +6,7 @@ import {
   useCreateLink,
   useDeleteExternalId,
   useDeleteLink,
+  usePortfolios,
   useProject,
   useUpdateProject,
 } from '../api/hooks'
@@ -25,6 +26,7 @@ export default function ProjectDetailPage() {
   const { projectId } = useParams<{ projectId: string }>()
   const { data: project, isLoading } = useProject(projectId)
   const { data: applications } = useApplications()
+  const { data: portfolios } = usePortfolios()
   const updateProject = useUpdateProject(projectId ?? '')
   const addExternalId = useAddExternalId(projectId ?? '')
   const deleteExternalId = useDeleteExternalId(projectId ?? '')
@@ -74,6 +76,18 @@ export default function ProjectDetailPage() {
           value={project.name}
           onChange={(e) => updateProject.mutate({ name: e.target.value })}
         />
+        <select
+          className="project-detail-page__portfolio-select"
+          value={project.portfolio_id ?? ''}
+          onChange={(e) => updateProject.mutate({ portfolio_id: e.target.value || null })}
+        >
+          <option value="">No portfolio</option>
+          {portfolios?.map((pf) => (
+            <option key={pf.id} value={pf.id}>
+              {pf.name}
+            </option>
+          ))}
+        </select>
         <select
           className="project-detail-page__phase-select"
           value={project.phase}

@@ -36,6 +36,7 @@ def _set_sqlite_pragma(dbapi_conn, connection_record):
 # No Alembic: a handful of fresh tables, no legacy data.
 _MIGRATIONS: list[tuple[str, str, str]] = [
     ("application", "phase", "ALTER TABLE application ADD COLUMN phase VARCHAR(20)"),
+    ("project", "portfolio_id", "ALTER TABLE project ADD COLUMN portfolio_id VARCHAR(36) REFERENCES portfolio(id)"),
 ]
 
 

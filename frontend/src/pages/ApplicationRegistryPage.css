@@ -57,6 +57,39 @@
   text-align: center;
 }
 
+.app-registry-page__phase-filter {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 10px 14px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.app-registry-page__phase-filter-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-text-faint);
+}
+
+.app-registry-page__phase-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.app-registry-page__phase-checkbox input {
+  accent-color: var(--color-accent);
+  cursor: pointer;
+}
+
 .app-table {
   width: 100%;
   border-collapse: collapse;
