@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+import { useState } from 'react'
 import { useApplications } from '../api/hooks'
 import type { Application } from '../api/types'
 import './ApplicationRegistryPage.css'
@@ -9,13 +9,35 @@ const STATUS_LABEL: Record<string, string> = {
   external: 'External',
 }
 
+type GroupBy = 'capability' | 'status' | 'team' | 'team_type'
+
+const GROUP_LABEL: Record<GroupBy, string> = {
+  capability: 'Capability',
+  status: 'Status',
+  team: 'Owning team',
+  team_type: 'Team type',
+}
+
+function groupKey(a: Application, groupBy: GroupBy): string {
+  switch (groupBy) {
+    case 'capability':
+      return a.capability_name ?? 'Uncategorized'
+    case 'status':
+      return STATUS_LABEL[a.status]
+    case 'team':
+      return a.owning_team ?? 'Unowned'
+    case 'team_type':
+      return a.team_type ?? 'No team type (external product, or unowned)'
+  }
+}
+
 export default function ApplicationRegistryPage() {
-  const navigate = useNavigate()
   const { data: applications, isLoading } = useApplications()
+  const [groupBy, setGroupBy] = useState<GroupBy>('capability')
 
   const groups = new Map<string, Application[]>()
   for (const a of applications ?? []) {
-    const key = a.capability_name ?? 'Uncategorized'
+    const key = groupKey(a, groupBy)
     groups.set(key, [...(groups.get(key) ?? []), a])
   }
 
@@ -31,17 +53,26 @@ export default function ApplicationRegistryPage() {
   return (
     <div className="app-registry-page">
       <div className="app-registry-page__toolbar">
-        <button className="app-registry-page__back" onClick={() => navigate('/')}>
-          ← Projects
-        </button>
         <h1 className="app-registry-page__title">Application Registry</h1>
+        <div className="app-registry-page__group-toggle">
+          <span className="app-registry-page__group-label">Group by</span>
+          {(Object.keys(GROUP_LABEL) as GroupBy[]).map((g) => (
+            <button
+              key={g}
+              className={`app-registry-page__group-btn ${groupBy === g ? 'app-registry-page__group-btn--active' : ''}`}
+              onClick={() => setGroupBy(g)}
+            >
+              {GROUP_LABEL[g]}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="app-registry-page__content">
         <p className="app-registry-page__intro">
           Every application the Depot knows about — built, planned, or an external vendor
-          product — grouped by the Capability it fulfills. Registering an app here never wires
-          up a real integration; it's a claim about what exists and who owns it.
+          product. Registering an app here never wires up a real integration; it's a claim
+          about what exists and who owns it.
         </p>
 
         {overloadedTeams.length > 0 && (
@@ -59,9 +90,9 @@ export default function ApplicationRegistryPage() {
 
         {isLoading && <div className="app-registry-page__loading">Loading registry…</div>}
 
-        {[...groups.entries()].map(([capability, apps]) => (
-          <section key={capability} className="app-group">
-            <h2 className="app-group__title">{capability}</h2>
+        {[...groups.entries()].map(([groupName, apps]) => (
+          <section key={groupName} className="app-group">
+            <h2 className="app-group__title">{groupName}</h2>
             <div className="app-grid">
               {apps.map((a) => (
                 <div key={a.id} className="app-card">

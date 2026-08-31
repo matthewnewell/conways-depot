@@ -15,24 +15,43 @@
   border-bottom: 1px solid var(--color-border);
 }
 
-.app-registry-page__back {
-  border: none;
-  background: transparent;
-  color: var(--color-text-secondary);
-  font-size: 13px;
-  font-weight: 600;
-  padding: 6px 8px;
-  border-radius: var(--radius-sm);
-  flex-shrink: 0;
-}
-
-.app-registry-page__back:hover {
-  background: var(--color-surface-sunken);
-}
-
 .app-registry-page__title {
   margin: 0;
   font-size: 18px;
+  flex: 1;
+}
+
+.app-registry-page__group-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.app-registry-page__group-label {
+  font-size: 12px;
+  color: var(--color-text-faint);
+  margin-right: 2px;
+}
+
+.app-registry-page__group-btn {
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.app-registry-page__group-btn:hover {
+  background: var(--color-surface-sunken);
+}
+
+.app-registry-page__group-btn--active {
+  background: var(--color-accent);
+  color: white;
+  border-color: var(--color-accent);
 }
 
 .app-registry-page__content {

@@ -31,6 +31,18 @@ export interface ExternalId {
   created_at: string
 }
 
+/** One phase transition — from_phase is null for the very first event (the project's initial
+ * phase at creation). Logged automatically server-side whenever phase actually changes; never
+ * created or edited directly. This is what makes `phase` real lifecycle state instead of a
+ * label: it's the record of when a project moved, not just where it is right now. */
+export interface PhaseEvent {
+  id: string
+  project_id: string
+  from_phase: Phase | null
+  to_phase: Phase
+  occurred_at: string
+}
+
 export interface ProjectAppLink {
   id: string
   project_id: string
@@ -53,6 +65,7 @@ export interface ProjectSummary {
   created_at: string
   updated_at: string
   external_ids: ExternalId[]
+  phase_events: PhaseEvent[]
 }
 
 export interface ProjectDetail extends ProjectSummary {

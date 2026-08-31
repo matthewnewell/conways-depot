@@ -1,51 +1,19 @@
 .project-list-page {
-  max-width: 1100px;
+  max-width: 1300px;
   margin: 0 auto;
-  padding: 40px 24px 80px;
-}
-
-.project-list-page__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.project-list-page__header h1 {
-  margin: 0;
-  font-size: 28px;
+  padding: 28px 24px 80px;
 }
 
 .project-list-page__header p {
-  margin: 4px 0 28px;
+  margin: 0 0 24px;
   color: var(--color-text-secondary);
-}
-
-.project-list-page__header-links {
-  display: flex;
-  gap: 8px;
-  flex-shrink: 0;
-  margin-top: 4px;
-}
-
-.project-list-page__nav-link {
-  flex-shrink: 0;
-  border: 1px solid var(--color-border-strong);
-  background: var(--color-surface);
-  border-radius: var(--radius-sm);
-  padding: 8px 14px;
   font-size: 13px;
-  font-weight: 600;
-}
-
-.project-list-page__nav-link:hover {
-  background: var(--color-surface-sunken);
 }
 
 .project-list-page__create {
   display: flex;
   gap: 10px;
-  margin-bottom: 32px;
+  margin-bottom: 28px;
   max-width: 480px;
 }
 
@@ -78,17 +46,80 @@
   text-align: center;
 }
 
-.project-list-page__grid {
+.project-phase-board {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(4, minmax(240px, 1fr));
+  gap: 14px;
+  overflow-x: auto;
 }
 
-.project-card {
+.project-phase-column {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  min-width: 240px;
+}
+
+.project-phase-column__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--color-border);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.project-phase-column__count {
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--color-surface-sunken);
+  color: var(--color-text-secondary);
+  border-radius: 999px;
+  padding: 1px 8px;
+}
+
+.project-phase-column__header--pursuit {
+  color: var(--color-text-secondary);
+}
+
+.project-phase-column__header--award {
+  color: var(--color-wait);
+}
+
+.project-phase-column__header--execution {
+  color: var(--color-accent);
+}
+
+.project-phase-column__header--closeout {
+  color: var(--color-success);
+}
+
+.project-phase-column__body {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+
+.project-phase-column__empty {
+  font-size: 12px;
+  color: var(--color-text-faint);
+  font-style: italic;
+  padding: 4px 0;
+}
+
+.project-card {
+  background: var(--color-surface-sunken);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 14px;
   cursor: pointer;
   transition: box-shadow 0.15s ease, transform 0.15s ease;
   display: flex;
@@ -99,48 +130,16 @@
 .project-card:hover {
   box-shadow: var(--shadow-md);
   transform: translateY(-2px);
-}
-
-.project-card__top {
-  display: flex;
-}
-
-.project-card__phase {
-  font-size: 10.5px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  padding: 3px 9px;
-  border-radius: 999px;
-}
-
-.project-card__phase--pursuit {
-  background: var(--color-surface-sunken);
-  color: var(--color-text-secondary);
-}
-
-.project-card__phase--award {
-  background: var(--color-wait-soft);
-  color: var(--color-wait);
-}
-
-.project-card__phase--execution {
-  background: var(--color-accent-soft);
-  color: var(--color-accent);
-}
-
-.project-card__phase--closeout {
-  background: var(--color-success-soft);
-  color: var(--color-success);
+  background: var(--color-surface);
 }
 
 .project-card__name {
   font-weight: 700;
-  font-size: 15px;
+  font-size: 14px;
 }
 
 .project-card__customer {
-  font-size: 13px;
+  font-size: 12.5px;
   color: var(--color-text-secondary);
 }
 
@@ -151,9 +150,9 @@
 }
 
 .project-card__external-id-badge {
-  font-size: 11px;
+  font-size: 10.5px;
   color: var(--color-text-faint);
-  background: var(--color-surface-sunken);
+  background: var(--color-surface);
   padding: 2px 8px;
   border-radius: 999px;
 }
@@ -181,4 +180,10 @@
   color: var(--color-critical);
   border-color: var(--color-critical);
   background: var(--color-critical-soft) !important;
+}
+
+@media (max-width: 900px) {
+  .project-phase-board {
+    grid-template-columns: 1fr;
+  }
 }

@@ -2,12 +2,15 @@ import { useState } from 'react'
 import { Outlet, useParams } from 'react-router-dom'
 import { useHealth } from '../api/hooks'
 import DepotChatPanel from '../components/DepotChatPanel'
+import DepotNav from '../components/DepotNav'
 import './DepotLayout.css'
 
 /** Shared parent for every operational route (project list, project detail, application
  * registry) — keeps the chat panel mounted across navigation, same pattern as Value Stream's
- * MapLayout. The Theory of Operation page deliberately sits OUTSIDE this layout, same as
- * Value Stream's Guide page: a one-time explainer doesn't need a persistent chat pane. */
+ * MapLayout. The Theory of Operation page deliberately sits OUTSIDE the chat-enabled part of
+ * this layout (same as Value Stream's Guide page — a one-time explainer doesn't need a
+ * persistent chat pane), but it renders the same DepotNav directly, so navigation is
+ * consistent everywhere. */
 export default function DepotLayout() {
   const { projectId } = useParams<{ projectId?: string }>()
   const { data: health } = useHealth()
@@ -15,6 +18,7 @@ export default function DepotLayout() {
 
   return (
     <div className="depot-layout">
+      <DepotNav />
       <div className="depot-layout__row">
         <div className="depot-layout__main">
           <Outlet />

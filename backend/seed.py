@@ -15,8 +15,14 @@ an actual live demonstration of the whole point: two independently-run apps, tie
 one id, connected only by a stored URL.
 """
 
+from datetime import datetime, timedelta, timezone
+
 from db import db
-from models import Application, Capability, ExternalId, Project, ProjectAppLink
+from models import Application, Capability, ExternalId, Project, ProjectAppLink, ProjectPhaseEvent
+
+
+def _days_ago(n: int) -> datetime:
+    return datetime.now(timezone.utc) - timedelta(days=n)
 
 # The real id of Value Stream's own seeded demo map (`Demo: Bracket Assembly...`), as of when
 # this was written. If Value Stream's dev DB is ever reset, this link goes stale — an accepted
@@ -167,6 +173,14 @@ def seed_if_empty():
     db.session.add(project)
     db.session.flush()
 
+    # Illustrative phase history — a real transition log, not just today's snapshot, so the
+    # project detail page has something real to show for "how did this project get here."
+    db.session.add_all([
+        ProjectPhaseEvent(project_id=project.id, from_phase=None, to_phase="pursuit", occurred_at=_days_ago(90)),
+        ProjectPhaseEvent(project_id=project.id, from_phase="pursuit", to_phase="award", occurred_at=_days_ago(60)),
+        ProjectPhaseEvent(project_id=project.id, from_phase="award", to_phase="execution", occurred_at=_days_ago(45)),
+    ])
+
     db.session.add_all([
         ExternalId(project_id=project.id, system="WinMax", external_id="OPP-8891"),
         ExternalId(project_id=project.id, system="Costpoint", external_id="4402-01"),
@@ -208,6 +222,7 @@ def seed_if_empty():
     )
     db.session.add(prospect)
     db.session.flush()
+    db.session.add(ProjectPhaseEvent(project_id=prospect.id, from_phase=None, to_phase="pursuit", occurred_at=_days_ago(10)))
     db.session.add(ExternalId(project_id=prospect.id, system="WinMax", external_id="OPP-9214"))
     db.session.add(ProjectAppLink(
         project_id=prospect.id, application_id=app_winmax.id, phase="pursuit",

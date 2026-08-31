@@ -96,6 +96,12 @@ class Project(db.Model):
     app_links = db.relationship(
         "ProjectAppLink", back_populates="project", cascade="all, delete-orphan", lazy="selectin"
     )
+    # Ordered oldest-first so the frontend can render it as a plain top-to-bottom timeline
+    # without re-sorting. See ProjectPhaseEvent below for why this exists.
+    phase_events = db.relationship(
+        "ProjectPhaseEvent", back_populates="project", cascade="all, delete-orphan",
+        lazy="selectin", order_by="ProjectPhaseEvent.occurred_at",
+    )
 
     def to_dict(self, include_links: bool = True) -> dict:
         d = {
@@ -107,6 +113,7 @@ class Project(db.Model):
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
             "external_ids": [e.to_dict() for e in self.external_ids],
+            "phase_events": [e.to_dict() for e in self.phase_events],
         }
         if include_links:
             d["app_links"] = [l.to_dict() for l in self.app_links]
@@ -133,6 +140,33 @@ class ExternalId(db.Model):
             "system": self.system,
             "external_id": self.external_id,
             "created_at": self.created_at.isoformat(),
+        }
+
+
+class ProjectPhaseEvent(db.Model):
+    """One phase transition, logged automatically whenever a Project's phase actually changes
+    (see routes/projects.py's create_project/update_project — never written directly). This is
+    what makes `phase` real lifecycle STATE rather than a decorative label: a bare current-value
+    column can tell you where a project is right now, but never how long Pursuit actually took
+    or when it was awarded — the exact questions "managing a lifecycle" implies answering.
+    from_phase is null for the very first event (a project's initial phase at creation)."""
+    __tablename__ = "project_phase_event"
+
+    id = db.Column(db.String(36), primary_key=True, default=_uuid)
+    project_id = db.Column(db.String(36), db.ForeignKey("project.id"), nullable=False, index=True)
+    from_phase = db.Column(db.String(20), nullable=True)
+    to_phase = db.Column(db.String(20), nullable=False)
+    occurred_at = db.Column(db.DateTime, default=_now, nullable=False)
+
+    project = db.relationship("Project", back_populates="phase_events")
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "project_id": self.project_id,
+            "from_phase": self.from_phase,
+            "to_phase": self.to_phase,
+            "occurred_at": self.occurred_at.isoformat(),
         }
 
 

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import {
   useAddExternalId,
   useApplications,
@@ -22,7 +22,6 @@ const PHASE_LABEL: Record<Phase, string> = {
 
 export default function ProjectDetailPage() {
   const { projectId } = useParams<{ projectId: string }>()
-  const navigate = useNavigate()
   const { data: project, isLoading } = useProject(projectId)
   const { data: applications } = useApplications()
   const updateProject = useUpdateProject(projectId ?? '')
@@ -69,9 +68,6 @@ export default function ProjectDetailPage() {
   return (
     <div className="project-detail-page">
       <div className="project-detail-page__toolbar">
-        <button className="project-detail-page__back" onClick={() => navigate('/')}>
-          ← Projects
-        </button>
         <input
           className="project-detail-page__title"
           value={project.name}
@@ -91,6 +87,32 @@ export default function ProjectDetailPage() {
       </div>
 
       <div className="project-detail-page__content">
+        <section className="depot-section">
+          <h2 className="depot-section__title">Phase History</h2>
+          <p className="depot-section__subtitle">
+            The record of when this project actually moved, not just where it is right now —
+            what makes phase real lifecycle state instead of a label.
+          </p>
+          <div className="phase-history">
+            {project.phase_events.map((e) => (
+              <div key={e.id} className="phase-history__event">
+                <span className="phase-history__transition">
+                  {e.from_phase ? PHASE_LABEL[e.from_phase] : 'Created'}
+                  <span className="phase-history__arrow">→</span>
+                  {PHASE_LABEL[e.to_phase]}
+                </span>
+                <span className="phase-history__date">
+                  {new Date(e.occurred_at).toLocaleDateString(undefined, {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                  })}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+
         <section className="depot-section">
           <div className="depot-section__header-row">
             <h2 className="depot-section__title">External System IDs</h2>

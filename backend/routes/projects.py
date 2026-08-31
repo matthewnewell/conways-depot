@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 
 from db import db
-from models import PHASES, ExternalId, Project, ProjectAppLink
+from models import PHASES, ExternalId, Project, ProjectAppLink, ProjectPhaseEvent
 
 bp = Blueprint("projects", __name__, url_prefix="/api/projects")
 # Flat resources for mutating a single external-id/link row, matching Value Stream's
@@ -40,6 +40,8 @@ def create_project():
         description=body.get("description"),
     )
     db.session.add(p)
+    db.session.flush()  # assign p.id before the phase event references it
+    db.session.add(ProjectPhaseEvent(project_id=p.id, from_phase=None, to_phase=p.phase))
     db.session.commit()
     return jsonify(p.to_dict()), 201
 
@@ -65,7 +67,8 @@ def update_project(project_id):
         p.name = name
     if "customer" in body:
         p.customer = body["customer"]
-    if "phase" in body:
+    if "phase" in body and body["phase"] != p.phase:
+        db.session.add(ProjectPhaseEvent(project_id=p.id, from_phase=p.phase, to_phase=body["phase"]))
         p.phase = body["phase"]
     if "description" in body:
         p.description = body["description"]

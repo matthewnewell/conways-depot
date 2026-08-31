@@ -1,19 +1,16 @@
-import { useNavigate } from 'react-router-dom'
+import DepotNav from '../components/DepotNav'
 import './GuidePage.css'
 
 /** App-level explainer, outside the chat-enabled layout — same "full page, own route, no
  * persistent chat" pattern as Value Stream's Guide page. This is the pitch: someone should be
  * able to open this page cold and come away confident the shape of the thing is reasonable,
- * not invented for its own sake. */
+ * not invented for its own sake. DepotNav is rendered directly (not inherited from a layout)
+ * so navigation stays consistent even outside the chat-enabled part of the app. */
 export default function GuidePage() {
-  const navigate = useNavigate()
-
   return (
     <div className="guide-page">
+      <DepotNav />
       <div className="guide-page__toolbar">
-        <button className="guide-page__back" onClick={() => navigate('/')}>
-          ← Projects
-        </button>
         <h1 className="guide-page__title">Theory of Operation</h1>
       </div>
 

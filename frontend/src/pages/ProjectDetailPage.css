@@ -21,21 +21,6 @@
   border-bottom: 1px solid var(--color-border);
 }
 
-.project-detail-page__back {
-  border: none;
-  background: transparent;
-  color: var(--color-text-secondary);
-  font-size: 13px;
-  font-weight: 600;
-  padding: 6px 8px;
-  border-radius: var(--radius-sm);
-  flex-shrink: 0;
-}
-
-.project-detail-page__back:hover {
-  background: var(--color-surface-sunken);
-}
-
 .project-detail-page__title {
   flex: 1;
   min-width: 0;
@@ -114,6 +99,41 @@
 
 .depot-section__header-row button:hover {
   background: var(--color-surface-sunken);
+}
+
+.phase-history {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.phase-history__event {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  padding: 6px 12px;
+  background: var(--color-surface-sunken);
+  border-radius: var(--radius-sm);
+}
+
+.phase-history__transition {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.phase-history__arrow {
+  color: var(--color-text-faint);
+  font-weight: 400;
+}
+
+.phase-history__date {
+  font-size: 12px;
+  color: var(--color-text-faint);
+  font-variant-numeric: tabular-nums;
 }
 
 .external-id-list {
