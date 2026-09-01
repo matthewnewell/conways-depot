@@ -39,3 +39,19 @@
   background: var(--color-accent-soft);
   color: var(--color-accent);
 }
+
+.depot-nav__admin-link {
+  margin-left: auto;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.depot-nav__admin-link:hover {
+  background: var(--color-surface-sunken);
+  color: var(--color-text);
+}

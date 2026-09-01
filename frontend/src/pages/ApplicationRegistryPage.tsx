@@ -85,16 +85,6 @@ export default function ApplicationRegistryPage() {
     return sortDesc ? -cmp : cmp
   })
 
-  // Client-side Conway signal: a team's name attached to more than one registered app. Cheap,
-  // deterministic, same computation the chat assistant's context is built from server-side —
-  // shown here too so it's visible without asking. Computed off the full set, not the filtered
-  // one — a filter shouldn't make a real structural signal disappear.
-  const teamCounts = new Map<string, number>()
-  for (const a of applications ?? []) {
-    if (a.owning_team) teamCounts.set(a.owning_team, (teamCounts.get(a.owning_team) ?? 0) + 1)
-  }
-  const overloadedTeams = [...teamCounts.entries()].filter(([, n]) => n >= 2)
-
   function sortIndicator(key: SortKey) {
     if (key !== sortKey) return null
     return <span className="app-table__sort-arrow">{sortDesc ? '↓' : '↑'}</span>
@@ -112,19 +102,6 @@ export default function ApplicationRegistryPage() {
           product. Registering an app here never wires up a real integration; it's a claim
           about what exists and who owns it. Click a row for the full record.
         </p>
-
-        {overloadedTeams.length > 0 && (
-          <div className="app-registry-page__signal">
-            <strong>Conway signal:</strong>{' '}
-            {overloadedTeams.map(([team, n], i) => (
-              <span key={team}>
-                {i > 0 && ', '}
-                "{team}" owns {n} registered applications
-              </span>
-            ))}
-            {' '}— worth checking whether that's one team stretched across too much surface area.
-          </div>
-        )}
 
         <div className="depot-checkbox-filter">
           <span className="depot-checkbox-filter__label">Phase</span>

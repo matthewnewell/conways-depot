@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useCreateProject, usePortfolios, useProjects } from '../api/hooks'
+import { usePortfolios, useProjects } from '../api/hooks'
 import type { Phase, ProjectSummary } from '../api/types'
 import { PHASES } from '../api/types'
 import './depot-shared.css'
@@ -26,9 +26,7 @@ type SortKey = 'phase' | 'name'
 export default function ProjectListPage() {
   const { data: projects, isLoading } = useProjects()
   const { data: portfolios } = usePortfolios()
-  const createProject = useCreateProject()
   const navigate = useNavigate()
-  const [newName, setNewName] = useState('')
   const [sortKey, setSortKey] = useState<SortKey>('name')
   const [sortDesc, setSortDesc] = useState(false)
   // Portfolio is a filter, not a table column — same pattern as Phase on the Application
@@ -51,12 +49,6 @@ export default function ProjectListPage() {
       return next
     })
   }, [portfolios])
-
-  function handleCreate() {
-    const name = newName.trim() || 'Untitled project'
-    createProject.mutate({ name }, { onSuccess: (p) => navigate(`/projects/${p.id}`) })
-    setNewName('')
-  }
 
   function togglePortfolioFilter(value: PortfolioFilterValue) {
     setPortfolioFilter((prev) => {
@@ -110,18 +102,6 @@ export default function ProjectListPage() {
           the full record.
         </p>
 
-        <div className="project-list-page__create">
-          <input
-            placeholder="New project name…"
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
-          />
-          <button onClick={handleCreate} disabled={createProject.isPending}>
-            + New project
-          </button>
-        </div>
-
         {(portfolios?.length ?? 0) > 0 && (
           <div className="depot-checkbox-filter">
             <span className="depot-checkbox-filter__label">Portfolio</span>
@@ -149,7 +129,9 @@ export default function ProjectListPage() {
         {isLoading && <div className="project-list-page__loading">Loading projects…</div>}
 
         {!isLoading && projects?.length === 0 && (
-          <div className="project-list-page__empty">No projects registered yet — create one above.</div>
+          <div className="project-list-page__empty">
+            No projects registered yet — create one from ⚙ Admin.
+          </div>
         )}
 
         {!isLoading && (projects?.length ?? 0) > 0 && filtered.length === 0 && (

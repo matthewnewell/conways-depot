@@ -7,7 +7,7 @@ import './DepotLayout.css'
 
 const CHAT_OPEN_STORAGE_KEY = 'conways-depot:chat-open'
 
-// Plain useState wouldn't survive a trip through the Guide page — it lives outside this
+// Plain useState wouldn't survive a trip through the splash page — it lives outside this
 // layout (no persistent chat there by design, see below), so navigating there and back
 // unmounts DepotLayout entirely and would silently reset the toggle. localStorage survives
 // that, plus a full page reload, which "remembers where it is" really implies.
@@ -18,8 +18,8 @@ function readStoredChatOpen(): boolean {
 
 /** Shared parent for every operational route (project list, project detail, application
  * registry) — keeps the chat panel mounted across navigation, same pattern as Value Stream's
- * MapLayout. The Theory of Operation page deliberately sits OUTSIDE the chat-enabled part of
- * this layout (same as Value Stream's Guide page — a one-time explainer doesn't need a
+ * MapLayout. The splash page (what this is and why) deliberately sits OUTSIDE the chat-enabled
+ * part of this layout (same as Value Stream's Guide page — a one-time explainer doesn't need a
  * persistent chat pane), but it renders the same DepotNav directly, so navigation is
  * consistent everywhere. */
 export default function DepotLayout() {

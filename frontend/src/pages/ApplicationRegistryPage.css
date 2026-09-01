@@ -41,16 +41,6 @@
   color: var(--color-text-secondary);
 }
 
-.app-registry-page__signal {
-  font-size: 13px;
-  line-height: 1.6;
-  background: var(--color-wait-soft);
-  border: 1px solid var(--color-wait);
-  border-radius: var(--radius-md);
-  padding: 10px 14px;
-  color: var(--color-text);
-}
-
 .app-registry-page__loading {
   color: var(--color-text-faint);
   padding: 40px 0;
