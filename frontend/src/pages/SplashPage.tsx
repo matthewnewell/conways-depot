@@ -11,7 +11,7 @@ const APPS = [
 ]
 
 /** The nav brand links here. One line on what the Depot is, plus one high-level diagram:
- * a project runs one thread from pursuit to closeout and subscribes to apps from the store. */
+ * a project runs one thread from pursuit to closeout and connects to apps from the store. */
 export default function SplashPage() {
   return (
     <div className="splash-page">
@@ -24,14 +24,14 @@ export default function SplashPage() {
         <section className="splash-section">
           <p className="splash-section__lede">
             Conway's Depot establishes a project's digital thread. It's a home base for the team
-            and a launchpad to the applications the project subscribes to.
+            and a launchpad for its applications.
           </p>
         </section>
 
         <section className="splash-section splash-diagram">
           <svg viewBox="0 0 780 188" role="img" aria-labelledby="depot-diagram-title">
             <title id="depot-diagram-title">
-              A project runs one digital thread from pursuit through closeout and subscribes to
+              A project runs one digital thread from pursuit through closeout and connects to
               apps from the store.
             </title>
 
@@ -71,7 +71,7 @@ export default function SplashPage() {
             />
             <path d="M740 37 L754 43 L740 49 Z" fill="var(--color-accent)" />
 
-            {/* the app store — the catalog the project subscribes from */}
+            {/* the app store — the catalog the project connects to */}
             <rect
               x="40"
               y="92"
@@ -93,7 +93,7 @@ export default function SplashPage() {
               APP STORE
             </text>
 
-            {/* subscribed apps connect up onto the project's thread */}
+            {/* connected apps attach onto the project's thread */}
             {APPS.map(({ x, label }) => (
               <g key={label}>
                 <rect
@@ -133,7 +133,7 @@ export default function SplashPage() {
               fontSize="10.5"
               fill="var(--color-text-faint)"
             >
-              one thread, pursuit to closeout — subscribing to the apps it needs
+              one thread, pursuit to closeout — connecting to the apps it needs
             </text>
           </svg>
         </section>
