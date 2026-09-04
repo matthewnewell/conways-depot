@@ -93,7 +93,7 @@ export default function ProjectListPage() {
   return (
     <div className="project-list-page">
       <div className="project-list-page__toolbar">
-        <h1 className="project-list-page__title">Projects Registry</h1>
+        <h1 className="project-list-page__title">Project Registry</h1>
       </div>
 
       <div className="project-list-page__content">

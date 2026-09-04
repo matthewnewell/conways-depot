@@ -56,7 +56,12 @@ export function useUpdateProject(id: string) {
   const invalidate = useInvalidateProject(id)
   return useMutation({
     mutationFn: (
-      data: Partial<Pick<ProjectSummary, 'name' | 'customer' | 'phase' | 'description' | 'portfolio_id'>>,
+      data: Partial<
+        Pick<
+          ProjectSummary,
+          'name' | 'customer' | 'phase' | 'description' | 'portfolio_id' | 'team_notes' | 'channels'
+        >
+      >,
     ) => api.put<ProjectDetail>(`/projects/${id}`, data),
     onSuccess: invalidate,
   })

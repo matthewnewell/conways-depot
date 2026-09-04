@@ -13,7 +13,7 @@ const PHASE_LABEL: Record<Phase, string> = {
 }
 
 /** Management, not browsing — creating, updating, and deleting live here instead of on the
- * Projects Registry, which is a read-first list for finding a project, not administering one.
+ * Project Registry, which is a read-first list for finding a project, not administering one.
  * No permissions behind this yet: it's a separate view, not an access-controlled one — the
  * link is just as reachable as any other nav item on purpose, for now. */
 export default function AdminPage() {

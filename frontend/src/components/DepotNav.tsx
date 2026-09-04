@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom'
+import { IS_EMBEDDED } from '../lib/embed'
 import './DepotNav.css'
 
 /** Persistent top navbar across every page — including the splash page, which sits outside the
@@ -7,8 +8,14 @@ import './DepotNav.css'
  * of a project, not a separate collection. The brand text links to the splash page (what this
  * is and why) rather than duplicating "Projects" as a second link to the same place. Admin sits
  * apart on the right — management (create/update/delete), not browsing — with no permissions
- * behind it yet; it's a separate view, not an access-controlled one. */
+ * behind it yet; it's a separate view, not an access-controlled one.
+ *
+ * Hidden when the Depot runs inside the demo shell — there, the shell's black bar carries the
+ * same Conway's Depot / Projects / Applications / Admin navigation, and two stacked navbars
+ * would be redundant. See src/lib/embed.ts. */
 export default function DepotNav() {
+  if (IS_EMBEDDED) return null
+
   return (
     <nav className="depot-nav">
       <NavLink to="/about" className="depot-nav__brand">

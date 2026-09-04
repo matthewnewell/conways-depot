@@ -1,183 +1,173 @@
+import { Link } from 'react-router-dom'
 import DepotNav from '../components/DepotNav'
 import './SplashPage.css'
 
-/** The "Conway's Depot" brand text links here — a splash/about page, outside the chat-enabled
- * layout (same "full page, own route, no persistent chat" pattern Value Stream uses for its
- * own Guide page). This absorbed what used to be a separate Theory of Operation page: one
- * place for "what is this and why," rather than splitting welcome copy from the deeper
- * reasoning across two pages. DepotNav is rendered directly (not inherited from a layout) so
- * navigation stays consistent even outside the chat-enabled part of the app. */
+const APPS = [
+  { x: 120, label: 'New Business App' },
+  { x: 255, label: 'Contract App' },
+  { x: 390, label: 'Planning App' },
+  { x: 525, label: 'Accounting App' },
+  { x: 660, label: 'Lessons Learned App' },
+]
+
+/** The nav brand links here. One line on what the Depot is, plus one high-level diagram:
+ * a project runs one thread from pursuit to closeout and subscribes to apps from the store. */
 export default function SplashPage() {
   return (
     <div className="splash-page">
       <DepotNav />
       <div className="splash-page__toolbar">
-        <h1 className="splash-page__title">Conway's Depot</h1>
+        <h1 className="splash-page__title">An App Store for Projects</h1>
       </div>
 
       <div className="splash-page__content">
         <section className="splash-section">
           <p className="splash-section__lede">
-            Conway's Depot exists because a growing pile of small, single-purpose internal
-            tools is a good problem to have — until nothing keeps track of what exists, who
-            owns it, or how the pieces relate. If you're landing here cold: this page explains
-            what the app actually does and why it's shaped the way it is, grounded in
-            established practice rather than invented for its own sake. If you already know all
-            that, <strong>Projects</strong> and <strong>Applications</strong> in the nav above
-            are where the actual registry lives.
-          </p>
-          <p className="splash-section__lede">
-            Conway's Depot is a registry, not a platform. It never runs a workflow, calls
-            another application's API, or holds another application's data. It holds three
-            things: <strong>Projects</strong> (one id, carried through a project's whole life),{' '}
-            <strong>Applications</strong> (a catalog of the domain apps that exist, are
-            planned, or are external vendor products), and <strong>Capabilities</strong> (the
-            stable business need an application fulfills, independent of which application
-            fulfills it today).
+            Conway's Depot establishes a project's digital thread. It's a home base for the team
+            and a launchpad to the applications the project subscribes to.
           </p>
         </section>
 
-        <section className="splash-section">
-          <h2 className="splash-section__title">Theory of operation</h2>
-          <p className="splash-section__body">
-            Everything below is an attempt to build that on established ground rather than
-            invent new vocabulary — the goal is a foundation credible enough for someone else to
-            build on, not a clever one-off.
-          </p>
+        <section className="splash-section splash-diagram">
+          <svg viewBox="0 0 780 188" role="img" aria-labelledby="depot-diagram-title">
+            <title id="depot-diagram-title">
+              A project runs one digital thread from pursuit through closeout and subscribes to
+              apps from the store.
+            </title>
+
+            <g
+              fontSize="10"
+              fontWeight="700"
+              letterSpacing="0.6"
+              fill="var(--color-text-secondary)"
+              textAnchor="middle"
+            >
+              <text x="140" y="14">PURSUIT</text>
+              <text x="320" y="14">AWARD</text>
+              <text x="500" y="14">EXECUTION</text>
+              <text x="660" y="14">CLOSEOUT</text>
+            </g>
+
+            {/* the digital thread */}
+            <text
+              x="36"
+              y="32"
+              textAnchor="start"
+              fontSize="11"
+              fontWeight="700"
+              fill="var(--color-text)"
+            >
+              Project
+            </text>
+            <circle cx="40" cy="43" r="4.5" fill="var(--color-accent)" />
+            <line
+              x1="40"
+              y1="43"
+              x2="740"
+              y2="43"
+              stroke="var(--color-accent)"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+            />
+            <path d="M740 37 L754 43 L740 49 Z" fill="var(--color-accent)" />
+
+            {/* the app store — the catalog the project subscribes from */}
+            <rect
+              x="40"
+              y="92"
+              width="700"
+              height="62"
+              rx="12"
+              fill="none"
+              stroke="var(--color-border-strong)"
+            />
+            <text
+              x="48"
+              y="84"
+              textAnchor="start"
+              fontSize="9.5"
+              fontWeight="700"
+              letterSpacing="0.7"
+              fill="var(--color-text-secondary)"
+            >
+              APP STORE
+            </text>
+
+            {/* subscribed apps connect up onto the project's thread */}
+            {APPS.map(({ x, label }) => (
+              <g key={label}>
+                <rect
+                  x={x - 64}
+                  y="104"
+                  width="128"
+                  height="34"
+                  rx="7"
+                  fill="var(--color-surface-sunken)"
+                  stroke="var(--color-border)"
+                />
+                <line
+                  x1={x}
+                  y1="48"
+                  x2={x}
+                  y2="104"
+                  stroke="var(--color-accent)"
+                  strokeWidth="1.5"
+                />
+                <path d={`M${x - 4} 52 L${x + 4} 52 L${x} 44 Z`} fill="var(--color-accent)" />
+                <text
+                  x={x}
+                  y="125"
+                  textAnchor="middle"
+                  fontSize="9"
+                  fill="var(--color-text-secondary)"
+                >
+                  {label}
+                </text>
+              </g>
+            ))}
+
+            <text
+              x="390"
+              y="176"
+              textAnchor="middle"
+              fontSize="10.5"
+              fill="var(--color-text-faint)"
+            >
+              one thread, pursuit to closeout — subscribing to the apps it needs
+            </text>
+          </svg>
         </section>
 
-        <section className="splash-section">
-          <h2 className="splash-section__title">Why a registry, and why now</h2>
-          <p className="splash-section__body">
-            Every domain problem an organization has is a candidate for its own small,
-            AI-augmented application — a value-stream tool, a cost-tracking tool, a capture
-            tool, eventually a dozen more. That's healthy: small, legible, single-purpose tools
-            beat one monolith trying to do everything (the lesson of building{' '}
-            <em>BurnedValue</em> first — packing too much into one app made it harder to
-            reason about, not more capable). But an organization heading toward a dozen such
-            tools needs <em>something</em> that knows what exists, who owns it, and how the
-            pieces relate — without becoming the very monolith it's meant to prevent. That's
-            the entire job of this app.
-          </p>
+        <section className="splash-section splash-cta">
+          <Link className="splash-cta__link" to="/admin">
+            Create a new project →
+          </Link>
+          <Link className="splash-cta__link" to="/applications">
+            Browse the app store →
+          </Link>
         </section>
 
-        <section className="splash-section">
-          <h2 className="splash-section__title">Conway's Law — and why it's about to matter more</h2>
-          <p className="splash-section__body">
-            Conway's Law, formulated by programmer Melvin Conway in 1967, is blunt about it:
+        <section className="splash-section splash-section--scope splash-conway">
+          <blockquote className="splash-conway__quote">
             "Organizations which design systems are constrained to produce designs which are
-            copies of the communication structures of these organizations." Split a build
-            across four siloed teams — UI, database, backend, security — and you'll get four
-            heavy, tightly-bounded layers back, whether or not that's the best technical shape.
-            Where teams talk often, the seam between their work stays a clean API; where they
-            don't, that same seam turns brittle.
-          </p>
-          <p className="splash-section__body">
-            That's not a historical curiosity. It's the exact risk sitting in front of an
-            organization about to have an explosion of AI-augmented applications: as building a
-            small app for one more problem gets cheap, dozens of them will show up, built by
-            whichever team happened to need one, integrated however those teams happened to
-            already talk to each other. Conway's Law says that swarm won't be neutral — it will
-            either mirror the org's existing communication patterns or, left unwatched,
-            accumulate exactly the brittle seams that teams-that-don't-talk produce. Conway's
-            Depot exists so that shape gets chosen on purpose, instead of discovered by
-            accident, later, the hard way.
-          </p>
-          <p className="splash-section__body">
-            The <em>reverse Conway maneuver</em> — sometimes called the <em>inverse Conway
-            maneuver</em> — is how you choose it on purpose: instead of letting today's org
-            chart dictate tomorrow's architecture, reshape the org first, often into small,
-            autonomous, cross-functional teams aligned around one business capability (the
-            "two-pizza team" pattern), so the architecture you actually want falls out of that
-            structure. <em>Team Topologies</em> (Skelton &amp; Pais) gives that a working
-            vocabulary — four team types: <strong>stream-aligned</strong> (owns a value stream
-            end to end), <strong>platform</strong> (provides a self-service capability other
-            teams consume), <strong>enabling</strong> (helps a team acquire a capability it's
-            missing, then steps back), and <strong>complicated-subsystem</strong> (owns
-            something that genuinely needs deep specialist knowledge). <strong>Capability</strong>{' '}
-            — the same "business capability" a reverse Conway reorg organizes teams around — is
-            a first-class thing in this registry for exactly that reason: made visible and
-            trackable, not left living only in a slide deck.
-          </p>
-          <p className="splash-section__body">
-            Every Application registered here declares its team type honestly — Value Stream
-            and BurnedValue are both tagged <em>enabling</em> right now, not <em>platform</em>,
-            because one person built each to help other teams adopt a practice, not as a
-            self-service product yet. That's a real signal, not a technicality: an enabling
-            team's tools staying enabling-shaped for too long, or one team quietly accumulating
-            several registered applications, is exactly the kind of structural friction the
-            reverse Conway maneuver exists to catch early. The registry surfaces that
-            deterministically — ask the chat assistant "is any team carrying too much of the
-            registry?" and it answers from a plain count, not an AI guess.
+            copies of the communication structures of these organizations."
+          </blockquote>
+          <p className="splash-conway__cite">
+            — Melvin E. Conway, <em>How Do Committees Invent?</em>, 1968
           </p>
         </section>
 
         <section className="splash-section">
-          <h2 className="splash-section__title">The digital thread</h2>
           <p className="splash-section__body">
-            A Project's id here is meant to be issued as early as Pursuit and never replaced —
-            what systems engineering calls a <em>digital thread</em> (the term the DoD's
-            Digital Engineering Strategy uses for exactly this pattern; the UK's building-safety
-            regulation calls the same idea a "golden thread of information"). It's also not a
-            new requirement on top of existing practice: PMI's own standards for Portfolio and
-            Program management already require a persistent, unique identifier for a project for
-            this same reason — traceability across its life. In a Deltek shop specifically,
-            this crosswalk already has to exist informally the moment a WinMax pursuit gets
-            awarded and picked up in Costpoint as a charge number — this registry just makes
-            that crosswalk explicit and durable instead of tribal knowledge.
+            For a system to work, the people building its parts have to agree on how the parts
+            meet — so a system ends up shaped like the org that built it, roughest at the seams
+            between groups that rarely talk.
           </p>
           <p className="splash-section__body">
-            Practically: a Project accumulates <strong>External IDs</strong> as it moves
-            through systems (a WinMax opportunity number, later a Costpoint charge number) —
-            the Depot's own id stays the stable spine underneath all of them, never swapped
-            out for whichever system currently has the "official" number.
-          </p>
-        </section>
-
-        <section className="splash-section">
-          <h2 className="splash-section__title">Capability vs. Application</h2>
-          <p className="splash-section__body">
-            This split is TOGAF's Business Capability Map, not an invention: a{' '}
-            <strong>Capability</strong> ("Value Stream Mapping," "Cost / EVM Analysis") is
-            stable — a project needs it for as long as the project exists. An{' '}
-            <strong>Application</strong> is whichever tool currently fulfills that capability,
-            and it's explicitly allowed to change. BurnedValue is registered as fulfilling "Cost
-            / EVM Analysis" today; if it's replaced next year, the capability doesn't move and
-            neither does any project's history — only the application backing it changes. No
-            project is ever forced into using a specific application because of how it's
-            registered here.
-          </p>
-        </section>
-
-        <section className="splash-section">
-          <h2 className="splash-section__title">Project-scoped vs. organizational</h2>
-          <p className="splash-section__body">
-            Not every application lives inside a project's phases. Some serve every project at
-            once — staffing, HR, contract authoring — the same territory ISO/IEC/IEEE 15288
-            calls <em>Organizational Project-Enabling Processes</em> (Clause 6.2). Value
-            Stream's own template library leaves that category out on purpose, because it
-            doesn't fit a single project's value stream — but it fits <em>here</em>, at the
-            portfolio level, because that's exactly the altitude this registry operates at.
-            Every Application declares a <strong>scope</strong>: <em>project</em> (it moves
-            through a project's phases — Launchpad, for instance, spans Award through Closeout,
-            not just one) or <em>organizational</em> (no phase applies, because the whole point
-            is that it doesn't move with any one project). Phases are a list, not a single
-            value, for the same reason: forcing a project-scoped app into exactly one phase
-            would misrepresent the ones that legitimately span several.
-          </p>
-        </section>
-
-        <section className="splash-section splash-section--scope">
-          <h2 className="splash-section__title">What this deliberately is not, yet</h2>
-          <p className="splash-section__body">
-            No live API integration with WinMax, Costpoint, or anything else — every link
-            between a Project and an Application is a stored pointer (an id, a URL), reviewed
-            and entered by a person, never a background sync. No staffing or labor-capacity
-            math — "Staffing & Capacity Engine" is a registered <em>planned</em> application
-            with a real capability behind it, because that's a hard, worthwhile problem that
-            deserves its own project, not a bolt-on feature here. No enforcement, no
-            permissions, no workflow. This is scaffolding sized to prove the shape is right
-            before anything heavier gets built on it.
+            A project's parts live in different functions — new business, contracts, planning,
+            cost, lessons learned. Conway's Depot doesn't merge them. It gives the project one id
+            every function can point at, and one place showing which function holds what — a
+            bridge across those seams.
           </p>
         </section>
       </div>

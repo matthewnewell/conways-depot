@@ -2,15 +2,19 @@
 Registry seed — capabilities, applications, and one demo project, all honestly labeled.
 
 "Built" applications (Value Stream, BurnedValue) are real, currently-running sibling apps.
-"External" applications (WinMax, Costpoint, and the two Organizational Enablers below) are
-real vendor products this Depot registers but never integrates with — they're here to make the
+"External" applications (WinMax, Costpoint, and the two Organizational Enablers below) are real
+vendor products this Depot registers but never integrates with — they're here to make the
 crosswalk concept concrete, not to pretend an integration exists. "Planned" applications are
-capability gaps the registry makes visible on purpose (Launchpad is next; the others are
-further out) — nothing behind them exists yet, and the seed data never links a project to a
-planned app, since that would be a dead link dressed up as a real one.
+capability gaps the registry makes visible on purpose (SOW Tracker, CAPA, and the Staffing
+engine are still out there) — nothing behind them exists yet, and the seed data never links a
+project to a planned app, since that would be a dead link dressed up as a real one.
+
+There is no "Launchpad" app here (there used to be one, briefly). Starting a project and wiring
+it up is the Depot's own job — done on the project detail page, which is the project's home
+base — not a separate application a project "connects" to.
 
 Two kinds of application scope (Application.scope, see models.py): "project" apps serve one
-project's lifecycle and carry phases accordingly (Application.phases, a list — Launchpad spans
+project's lifecycle and carry phases accordingly (Application.phases, a list — Costpoint spans
 Award through Closeout, not just one). "organizational" apps are ISO/IEC/IEEE 15288's
 Organizational Project-Enabling Processes (6.2) — staffing, HR, contract authoring — and
 deliberately carry no phases: they serve every project at once, not one project's lifecycle.
@@ -52,10 +56,6 @@ def seed_if_empty():
         name="Contract & Subcontract SOW Management",
         description="Managing the prime contract and any subcontractor statements of work under it.",
     )
-    cap_home_base = Capability(
-        name="Project Home Base",
-        description="A single landing page for a project's team, comms channels, and contract basics.",
-    )
     cap_vsm = Capability(
         name="Value Stream Mapping / Bottleneck Analysis",
         description="Modeling a workflow's steps and wait times to find and act on the constraint.",
@@ -85,7 +85,7 @@ def seed_if_empty():
         description="Shared templates, clause libraries, and legal review used to write any contract — distinct from tracking one project's specific SOWs.",
     )
     db.session.add_all([
-        cap_capture, cap_contract, cap_home_base, cap_vsm,
+        cap_capture, cap_contract, cap_vsm,
         cap_evm_erp, cap_evm_analysis, cap_capa, cap_staffing,
         cap_hr, cap_contract_authoring,
     ])
@@ -93,10 +93,9 @@ def seed_if_empty():
 
     # ── Applications ──
     # Phase assignments follow the very first brainstorm this whole app is built from: pursuit
-    # of X (WinMax) -> winning X (Costpoint, SOW Tracker, Launchpad) -> executing X (Value
-    # Stream, BurnedValue, CAPA App). Several carry more than one phase now that Application.
-    # phases is a list, not a single value — Launchpad and Costpoint both stay relevant well
-    # past the phase they start in.
+    # of X (WinMax) -> winning X (Costpoint, SOW Tracker) -> executing X (Value Stream,
+    # BurnedValue, CAPA App). Several carry more than one phase now that Application.phases is a
+    # list, not a single value — Costpoint stays relevant well past the award it starts at.
     app_value_stream = Application(
         name="Value Stream",
         description="Visual value-stream mapping — lead time, critical path, wait contributors.",
@@ -136,16 +135,6 @@ def seed_if_empty():
         phase_list=["award", "execution", "closeout"],
         capability=cap_evm_erp,
         url=None,
-    )
-    app_launchpad = Application(
-        name="Launchpad",
-        description="Per-project home base: team roster, comm channels, contract basics, links out to every other app registered for that project.",
-        status="planned",
-        owning_team="Matt (informal enabling team)",
-        team_type="platform",  # self-service — every project gets one, no bespoke setup
-        phase_list=["award", "execution", "closeout"],  # a project's home base outlives Award
-        capability=cap_home_base,
-        url=None,  # doesn't exist yet
     )
     app_sow_tracker = Application(
         name="Subcontractor SOW Tracker",
@@ -208,7 +197,7 @@ def seed_if_empty():
     )
     db.session.add_all([
         app_value_stream, app_burnedvalue, app_winmax, app_costpoint,
-        app_launchpad, app_sow_tracker, app_capa,
+        app_sow_tracker, app_capa,
         app_staffing, app_hr, app_contract_authoring,
     ])
     db.session.flush()

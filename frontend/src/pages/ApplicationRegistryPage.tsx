@@ -30,7 +30,7 @@ const PHASE_FILTER_VALUES: PhaseFilterValue[] = [...PHASES, ORGANIZATIONAL]
 // meaningful ordering, not an arbitrary one.
 const STATUS_ORDER: Record<AppStatus, number> = { built: 0, planned: 1, external: 2 }
 
-type SortKey = 'name' | 'status' | 'capability'
+type SortKey = 'name' | 'status' | 'capability' | 'projects'
 
 export default function ApplicationRegistryPage() {
   const navigate = useNavigate()
@@ -70,6 +70,8 @@ export default function ApplicationRegistryPage() {
         return STATUS_ORDER[a.status] - STATUS_ORDER[b.status] || a.name.localeCompare(b.name)
       case 'capability':
         return (a.capability_name ?? '').localeCompare(b.capability_name ?? '') || a.name.localeCompare(b.name)
+      case 'projects':
+        return a.project_count - b.project_count || a.name.localeCompare(b.name)
     }
   }
 
@@ -135,6 +137,9 @@ export default function ApplicationRegistryPage() {
                 <th className="app-table__sortable" onClick={() => toggleSort('status')}>
                   Status{sortIndicator('status')}
                 </th>
+                <th className="app-table__sortable app-table__num-col" onClick={() => toggleSort('projects')}>
+                  Projects{sortIndicator('projects')}
+                </th>
                 <th
                   className="app-table__sortable app-table__desc-col"
                   onClick={() => toggleSort('capability')}
@@ -151,6 +156,11 @@ export default function ApplicationRegistryPage() {
                     <span className={`app-table__status app-table__status--${a.status}`}>
                       {STATUS_LABEL[a.status]}
                     </span>
+                  </td>
+                  <td className="app-table__num-col app-table__projects">
+                    {a.project_count > 0
+                      ? a.project_count
+                      : <span className="app-table__muted">0</span>}
                   </td>
                   <td className="app-table__desc-col app-table__capability">
                     {a.capability_name ?? <span className="app-table__muted">—</span>}

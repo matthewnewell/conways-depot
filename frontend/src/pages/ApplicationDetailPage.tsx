@@ -1,6 +1,7 @@
 import { useParams } from 'react-router-dom'
 import { useApplication } from '../api/hooks'
 import type { AppStatus, Phase } from '../api/types'
+import { OUTBOUND_TARGET } from '../lib/embed'
 import './depot-shared.css'
 import './ApplicationDetailPage.css'
 
@@ -80,13 +81,21 @@ export default function ApplicationDetailPage() {
               <span className="app-detail-page__fact-label">Capability</span>
               <span className="app-detail-page__fact-value">{app.capability_name ?? '—'}</span>
             </div>
+            <div className="app-detail-page__fact">
+              <span className="app-detail-page__fact-label">Projects using it</span>
+              <span className="app-detail-page__fact-value">
+                {app.project_count === 0
+                  ? 'None yet'
+                  : `${app.project_count} project${app.project_count === 1 ? '' : 's'}`}
+              </span>
+            </div>
           </div>
         </section>
 
         <section className="depot-section">
           <h2 className="depot-section__title">Where it lives</h2>
           {app.url ? (
-            <a className="app-detail-page__link" href={app.url} target="_blank" rel="noreferrer">
+            <a className="app-detail-page__link" href={app.url} target={OUTBOUND_TARGET} rel="noreferrer">
               {app.url} →
             </a>
           ) : (

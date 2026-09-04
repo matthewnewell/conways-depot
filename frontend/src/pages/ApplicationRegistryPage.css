@@ -142,6 +142,18 @@
   white-space: nowrap;
 }
 
+/* Project-count column — a narrow numeric column, right-aligned so the digits line up. */
+.app-table__num-col {
+  text-align: right;
+  width: 1%;
+  white-space: nowrap;
+}
+
+.app-table__projects {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
 /* Capability is the one column that gets dropped when space is tight — a tight, keyword-style
    label, not the full prose description (that's one click away on the item's own show page). */
 @media (max-width: 640px) {

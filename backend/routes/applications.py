@@ -1,10 +1,26 @@
 from flask import Blueprint, jsonify, request
+from sqlalchemy import func
 
 from db import db
-from models import APP_SCOPES, APP_STATUSES, PHASES, TEAM_TYPES, Application, Capability
+from models import APP_SCOPES, APP_STATUSES, PHASES, TEAM_TYPES, Application, Capability, ProjectAppLink
 
 bp = Blueprint("applications", __name__, url_prefix="/api/applications")
 capabilities_bp = Blueprint("capabilities", __name__, url_prefix="/api/capabilities")
+
+
+def _project_counts() -> dict[str, int]:
+    """How many distinct projects have a link to each application — the registry's read on
+    which catalog entries are actually load-bearing. A plain count of ProjectAppLink rows,
+    deduped by project (one project linking an app at two phases still counts once)."""
+    rows = (
+        db.session.query(
+            ProjectAppLink.application_id,
+            func.count(func.distinct(ProjectAppLink.project_id)),
+        )
+        .group_by(ProjectAppLink.application_id)
+        .all()
+    )
+    return {app_id: n for app_id, n in rows}
 
 
 def _validate(body: dict) -> tuple[dict, int] | None:
@@ -24,7 +40,8 @@ def _validate(body: dict) -> tuple[dict, int] | None:
 @bp.get("")
 def list_applications():
     apps = Application.query.order_by(Application.name).all()
-    return jsonify([a.to_dict() for a in apps])
+    counts = _project_counts()
+    return jsonify([{**a.to_dict(), "project_count": counts.get(a.id, 0)} for a in apps])
 
 
 @bp.post("")
@@ -56,7 +73,7 @@ def create_application():
 @bp.get("/<application_id>")
 def get_application(application_id):
     a = Application.query.get_or_404(application_id)
-    return jsonify(a.to_dict())
+    return jsonify({**a.to_dict(), "project_count": _project_counts().get(a.id, 0)})
 
 
 @bp.put("/<application_id>")

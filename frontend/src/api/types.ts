@@ -16,6 +16,12 @@ export interface Capability {
   description: string | null
 }
 
+/** One comm-channel link on a project's home base. */
+export interface ChannelLink {
+  label: string
+  url: string
+}
+
 export interface Application {
   id: string
   name: string
@@ -33,6 +39,9 @@ export interface Application {
   capability_name: string | null
   url: string | null
   created_at: string
+  /** How many distinct projects have a link to this application. Present on the list and
+   * detail endpoints; a read on which catalog entries are actually load-bearing. */
+  project_count: number
 }
 
 export interface ExternalId {
@@ -83,6 +92,10 @@ export interface ProjectSummary {
   description: string | null
   portfolio_id: string | null
   portfolio_name: string | null
+  /** Project home base — the PM's working context for this project (was Launchpad's
+   * Workspace before Launchpad was folded into the project detail page). */
+  team_notes: string | null
+  channels: ChannelLink[]
   created_at: string
   updated_at: string
   external_ids: ExternalId[]

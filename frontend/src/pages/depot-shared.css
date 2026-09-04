@@ -1,7 +1,7 @@
 /* Shared building blocks for "detail/show" pages (ProjectDetailPage, ApplicationDetailPage) —
    a labeled section is the same shape everywhere, only its content differs. */
 
-/* Checkbox filter bar — same shape on Application Registry (Phase) and Projects Registry
+/* Checkbox filter bar — same shape on Application Registry (Phase) and Project Registry
    (Portfolio): a labeled row of checkboxes above a table, all checked by default. */
 .depot-checkbox-filter {
   display: flex;

@@ -26,7 +26,7 @@
   flex: 1;
   min-width: 0;
   overflow-y: auto;
-  max-width: 900px;
+  max-width: 640px;
   margin: 0 auto;
   padding: 28px 20px 80px;
   display: flex;
@@ -74,4 +74,59 @@
   border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-lg);
   padding: 18px 20px;
+}
+
+.splash-diagram {
+  margin-top: 8px;
+}
+
+.splash-diagram svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.splash-cta {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.splash-cta__link {
+  flex: 1 1 240px;
+  padding: 12px 14px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-accent);
+  text-align: center;
+  text-decoration: none;
+}
+
+.splash-cta__link:hover {
+  border-color: var(--color-accent);
+  background: var(--color-surface-sunken);
+}
+
+.splash-conway {
+  gap: 8px;
+}
+
+.splash-conway__quote {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--color-text);
+}
+
+.splash-conway__cite {
+  margin: 0;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.splash-conway__cite em {
+  font-style: italic;
 }

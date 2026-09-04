@@ -36,7 +36,7 @@ import json, sys
 apps = json.load(sys.stdin)
 by_name = {a['name']: a['phases'] for a in apps}
 assert by_name['WinMax'] == ['pursuit'], by_name['WinMax']
-assert by_name['Launchpad'] == ['award', 'execution', 'closeout'], by_name['Launchpad']
+assert by_name['Costpoint'] == ['award', 'execution', 'closeout'], by_name['Costpoint']
 assert by_name['Value Stream'] == ['execution'], by_name['Value Stream']
 print('ok —', by_name)
 "
@@ -61,7 +61,7 @@ print('ok —', sorted(org))
 echo "== demo project has the digital-thread crosswalk and phase-scoped links =="
 PID=$(curl -s "$BASE/projects" | python3 -c "
 import json, sys
-print(next(p['id'] for p in json.load(sys.stdin) if p['name'].startswith('Demo')))
+print(next(p['id'] for p in json.load(sys.stdin) if p['name'].startswith('Demo: Bracket')))
 ")
 curl -s "$BASE/projects/$PID" | python3 -c "
 import json, sys

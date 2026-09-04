@@ -203,67 +203,97 @@
   border: 1px solid var(--color-border-strong);
 }
 
-.phase-board {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(200px, 1fr));
-  gap: 14px;
-  overflow-x: auto;
-}
-
-.phase-column {
+/* Home-base "thread" block at the top of the page — the durable id + customer + portfolio. */
+.thread-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  display: flex;
-  flex-direction: column;
-  min-width: 200px;
+  padding: 14px 16px;
 }
 
-.phase-column__header {
-  font-size: 12px;
+.thread-block__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.thread-block__label {
+  flex-shrink: 0;
+  width: 96px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--color-border);
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  letter-spacing: 0.03em;
+  color: var(--color-text-faint);
 }
 
-.phase-column__header--pursuit {
-  color: var(--color-text-secondary);
+.thread-block__id {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-sunken);
+  border-radius: var(--radius-sm);
+  padding: 3px 8px;
+  font-size: 12px;
 }
 
-.phase-column__header--award {
-  color: var(--color-wait);
+.thread-block__id code {
+  font-family: var(--font-mono);
 }
 
-.phase-column__header--execution {
+.thread-block__copy {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-text-faint);
+}
+
+.thread-block__id:hover .thread-block__copy {
   color: var(--color-accent);
 }
 
-.phase-column__header--closeout {
-  color: var(--color-success);
+.thread-block__customer {
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  padding: 4px 8px;
+  font-size: 13px;
+  background: transparent;
+  min-width: 240px;
 }
 
-.phase-column__body {
-  padding: 12px;
+.thread-block__customer:hover,
+.thread-block__customer:focus {
+  border-color: var(--color-border-strong);
+  background: var(--color-surface-sunken);
+  outline: none;
+}
+
+.thread-block__desc {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+/* Connected applications — a flat list, not a phase board. Phase is a small tag on each card,
+   not the layout: a PM reads this as "what's wired up", not as a Kanban of tools by lifecycle. */
+.connected-apps {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  flex: 1;
-}
-
-.phase-column__empty {
-  font-size: 12px;
-  color: var(--color-text-faint);
-  font-style: italic;
-  padding: 4px 0;
+  max-width: 640px;
 }
 
 .app-link-card {
   background: var(--color-surface-sunken);
   border-radius: var(--radius-md);
-  padding: 10px;
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -279,6 +309,30 @@
 .app-link-card__name {
   font-weight: 700;
   font-size: 13px;
+}
+
+.app-link-card__tags {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.app-link-card__phase {
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--color-border);
+  color: var(--color-text-faint);
+}
+
+.app-link-card__nolink {
+  font-size: 12px;
+  color: var(--color-text-faint);
+  font-style: italic;
 }
 
 .app-link-card__status {
@@ -343,23 +397,78 @@
   color: var(--color-critical);
 }
 
-.phase-column__add-link {
+/* Team & channels — the home-base editing fields (lifted from the folded-in Launchpad). */
+.home-base__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 640px;
+}
+
+.home-base__field > span {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-text-faint);
+}
+
+.home-base__field textarea {
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 13px;
+  resize: vertical;
+}
+
+.home-base__channel {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.home-base__channel input {
+  flex: 1;
+  padding: 7px 9px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-size: 12px;
+}
+
+.home-base__channel input:first-child {
+  flex: 0 0 160px;
+}
+
+.home-base__channel-remove {
+  border: 1px solid var(--color-border-strong);
+  background: transparent;
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.home-base__channel-remove:hover {
+  color: var(--color-critical);
+  border-color: var(--color-critical);
+}
+
+.home-base__channel-add {
+  align-self: flex-start;
   border: 1px dashed var(--color-border-strong);
   background: transparent;
   color: var(--color-text-secondary);
   border-radius: var(--radius-sm);
-  padding: 8px;
+  padding: 7px 12px;
   font-size: 12px;
   font-weight: 600;
 }
 
-.phase-column__add-link:hover {
+.home-base__channel-add:hover {
   background: var(--color-surface-sunken);
   border-style: solid;
-}
-
-@media (max-width: 900px) {
-  .phase-board {
-    grid-template-columns: 1fr;
-  }
 }

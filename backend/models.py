@@ -28,7 +28,7 @@ from db import _uuid, db
 PHASES = ("pursuit", "award", "execution", "closeout")
 APP_STATUSES = ("built", "planned", "external")
 TEAM_TYPES = ("stream-aligned", "platform", "enabling", "complicated-subsystem")
-# "project" apps serve one project's lifecycle (WinMax, Value Stream, Launchpad — see
+# "project" apps serve one project's lifecycle (WinMax, Value Stream, Costpoint — see
 # Application.phases). "organizational" apps are ISO/IEC/IEEE 15288's Organizational
 # Project-Enabling Processes (6.2) — staffing, HR, contract authoring — capabilities the org
 # maintains for every project at once, not scoped to any single project's phase. Orthogonal to
@@ -64,7 +64,7 @@ class Application(db.Model):
     owning_team = db.Column(db.String(200), nullable=True)
     team_type = db.Column(db.String(30), nullable=True)  # see TEAM_TYPES
     # The lifecycle phase(s) this application is reached for — WinMax at Pursuit only,
-    # Launchpad across Award/Execution/Closeout, and so on. A JSON array of PHASES values,
+    # Costpoint across Award/Execution/Closeout, and so on. A JSON array of PHASES values,
     # same "JSON in a Text column" convention BurnedValue already uses for its own
     # deliverables/milestones fields, rather than a junction table for what's a small fixed
     # enum. Distinct from ProjectAppLink.phase (which phase a *specific project's* record in
@@ -140,10 +140,26 @@ class Project(db.Model):
     phase = db.Column(db.String(20), nullable=False, default="pursuit")  # see PHASES
     description = db.Column(db.Text, nullable=True)
     portfolio_id = db.Column(db.String(36), db.ForeignKey("portfolio.id"), nullable=True, index=True)
+    # Project home base — the PM's working context for THIS project: a free-text team/notes
+    # field and a list of comm-channel links ({"label", "url"}). "JSON in a Text column" for the
+    # channel list, same convention as Application.phases, rather than a child table for a short
+    # editable list. This is the project's own metadata, not another application's data — the
+    # project detail page is the home base, so it lives here (this was Launchpad's Workspace
+    # before Launchpad was folded in).
+    team_notes = db.Column(db.Text, nullable=True)
+    channels = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=_now, nullable=False)
     updated_at = db.Column(db.DateTime, default=_now, onupdate=_now, nullable=False)
 
     portfolio = db.relationship("Portfolio", back_populates="projects")
+
+    @property
+    def channel_list(self) -> list[dict]:
+        return json.loads(self.channels) if self.channels else []
+
+    @channel_list.setter
+    def channel_list(self, value: list[dict] | None) -> None:
+        self.channels = json.dumps(list(value)) if value else None
     external_ids = db.relationship(
         "ExternalId", back_populates="project", cascade="all, delete-orphan", lazy="selectin"
     )
@@ -166,6 +182,8 @@ class Project(db.Model):
             "description": self.description,
             "portfolio_id": self.portfolio_id,
             "portfolio_name": self.portfolio.name if self.portfolio else None,
+            "team_notes": self.team_notes,
+            "channels": self.channel_list,
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
             "external_ids": [e.to_dict() for e in self.external_ids],

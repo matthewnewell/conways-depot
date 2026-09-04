@@ -40,7 +40,9 @@ def create_project():
         phase=body.get("phase", "pursuit"),
         description=body.get("description"),
         portfolio_id=body.get("portfolio_id"),
+        team_notes=body.get("team_notes") or None,
     )
+    p.channel_list = body.get("channels") or None
     db.session.add(p)
     db.session.flush()  # assign p.id before the phase event references it
     db.session.add(ProjectPhaseEvent(project_id=p.id, from_phase=None, to_phase=p.phase))
@@ -76,6 +78,10 @@ def update_project(project_id):
         p.description = body["description"]
     if "portfolio_id" in body:
         p.portfolio_id = body["portfolio_id"]
+    if "team_notes" in body:
+        p.team_notes = body["team_notes"] or None
+    if "channels" in body:
+        p.channel_list = body["channels"] or None
 
     db.session.commit()
     return jsonify(p.to_dict())
