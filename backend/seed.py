@@ -1,23 +1,28 @@
 """
-Registry seed — capabilities, applications, and one demo project, all honestly labeled.
+Registry seed — capabilities, applications, and two demo projects.
 
-"Built" applications (Value Stream, BurnedValue) are real, currently-running sibling apps.
-"External" applications (WinMax, Costpoint, and the two Organizational Enablers below) are real
-vendor products this Depot registers but never integrates with — they're here to make the
-crosswalk concept concrete, not to pretend an integration exists. "Planned" applications are
-capability gaps the registry makes visible on purpose (SOW Tracker, CAPA, and the Staffing
-engine are still out there) — nothing behind them exists yet, and the seed data never links a
-project to a planned app, since that would be a dead link dressed up as a real one.
+Value Stream is a real, currently-running sibling app (it has a `url`). WinMax and Contract &
+Legal Authoring are real vendor products this Depot registers but never integrates with — no
+`url`, and the crosswalk (ExternalId) is the only connection. Staffing & Capacity Engine and
+People & Access Directory aren't built yet — the descriptions say so, and they're here to keep
+the capability visible as a gap. (There's no `status` field distinguishing these — the prose
+and the presence/absence of a `url` carry it.)
+
+Personas (models.Person) and their project memberships are seeded separately by
+seed_people_if_empty() — a demo "viewing as" switcher, not authentication.
 
 There is no "Launchpad" app here (there used to be one, briefly). Starting a project and wiring
 it up is the Depot's own job — done on the project detail page, which is the project's home
 base — not a separate application a project "connects" to.
 
 Two kinds of application scope (Application.scope, see models.py): "project" apps serve one
-project's lifecycle and carry phases accordingly (Application.phases, a list — Costpoint spans
-Award through Closeout, not just one). "organizational" apps are ISO/IEC/IEEE 15288's
-Organizational Project-Enabling Processes (6.2) — staffing, HR, contract authoring — and
-deliberately carry no phases: they serve every project at once, not one project's lifecycle.
+project's lifecycle. "organizational" apps are ISO/IEC/IEEE 15288's Organizational
+Project-Enabling Processes — staffing, contract authoring — they serve every project at once.
+
+Every app is filed under a browse Category (Application.category, see APP_CATEGORIES) — 15288's
+process groups (agreement / enterprise / project / technical) plus a "general" bucket. That's
+the registry's aisle; Application.capability stays the specific need within it. An app carries
+no lifecycle phase of its own — that's a property of a project's link to it, not the app.
 
 The one seeded project is prefixed "Demo:", same convention Value Stream uses for its own
 seed map — and its Value Stream link points at that real, running demo map, so clicking it is
@@ -40,7 +45,6 @@ def _days_ago(n: int) -> datetime:
 # with too.
 VALUE_STREAM_DEMO_MAP_ID = "b21f6ed1-3403-4a0b-a0c0-44f93d646562"
 VALUE_STREAM_BASE_URL = "http://localhost:5173"
-BURNEDVALUE_BASE_URL = "http://localhost:5000"
 
 
 def seed_if_empty():
@@ -52,115 +56,51 @@ def seed_if_empty():
         name="Capture & Pursuit Management",
         description="Tracking an opportunity from identification through bid decision and submission.",
     )
-    cap_contract = Capability(
-        name="Contract & Subcontract SOW Management",
-        description="Managing the prime contract and any subcontractor statements of work under it.",
-    )
     cap_vsm = Capability(
         name="Value Stream Mapping / Bottleneck Analysis",
         description="Modeling a workflow's steps and wait times to find and act on the constraint.",
-    )
-    cap_evm_erp = Capability(
-        name="ERP / Financial System of Record",
-        description="The book-of-record for contract value, actual costs, and invoicing.",
-    )
-    cap_evm_analysis = Capability(
-        name="Cost / EVM Analysis",
-        description="Earned value forecasting, scope-change tracking, and BLUF-style cost narratives on top of the financial system of record.",
-    )
-    cap_capa = Capability(
-        name="Corrective & Preventive Action (CAPA)",
-        description="Tracking a nonconformance or lesson-learned from root cause through closure.",
     )
     cap_staffing = Capability(
         name="Labor Demand & Capacity Planning",
         description="Projecting labor demand across awarded work and pipeline, against available capacity.",
     )
-    cap_hr = Capability(
-        name="HR & Talent Management",
-        description="Employee records, roles, and org structure — the org-wide system of record every project draws staff from.",
-    )
     cap_contract_authoring = Capability(
         name="Contract & Legal Authoring",
         description="Shared templates, clause libraries, and legal review used to write any contract — distinct from tracking one project's specific SOWs.",
     )
+    cap_identity = Capability(
+        name="Identity & Project Membership",
+        description="Who is on which project — the roster every app's 'my work' view filters against. The nav persona switcher is a demo stand-in; the real thing isn't built.",
+    )
     db.session.add_all([
-        cap_capture, cap_contract, cap_vsm,
-        cap_evm_erp, cap_evm_analysis, cap_capa, cap_staffing,
-        cap_hr, cap_contract_authoring,
+        cap_capture, cap_vsm, cap_staffing, cap_contract_authoring, cap_identity,
     ])
     db.session.flush()
 
-    # ── Applications ──
-    # Phase assignments follow the very first brainstorm this whole app is built from: pursuit
-    # of X (WinMax) -> winning X (Costpoint, SOW Tracker) -> executing X (Value Stream,
-    # BurnedValue, CAPA App). Several carry more than one phase now that Application.phases is a
-    # list, not a single value — Costpoint stays relevant well past the award it starts at.
+    # ── Applications ── each filed under a 15288-derived Category (see APP_CATEGORIES); the
+    #    Capability is the specific need within it.
     app_value_stream = Application(
         name="Value Stream",
         description="Visual value-stream mapping — lead time, critical path, wait contributors.",
-        status="built",
         owning_team="Matt (informal enabling team)",
         team_type="enabling",  # helps other teams adopt a VSM practice, not yet self-service platform-shaped
-        phase_list=["execution"],
+        category="project",  # 15288 Project Processes — Assessment / Measurement
         capability=cap_vsm,
         url=VALUE_STREAM_BASE_URL,
-    )
-    app_burnedvalue = Application(
-        name="BurnedValue",
-        description="EVM tracking, scope-change and forecast analysis for awarded contracts.",
-        status="built",
-        owning_team="Matt (informal enabling team)",
-        team_type="enabling",
-        phase_list=["execution", "closeout"],
-        capability=cap_evm_analysis,
-        url=BURNEDVALUE_BASE_URL,
     )
     app_winmax = Application(
         name="WinMax",
         description="Deltek's capture management product — pursuit tracking, gate reviews, P(win).",
-        status="external",
         owning_team="Business Development",
         team_type=None,  # a vendor product, not an internally-owned team
-        phase_list=["pursuit"],
+        category="agreement",  # 15288 Agreement Processes — Supply (pursuing work to supply)
         capability=cap_capture,
         url=None,  # real external SaaS product; no stable local URL to link to
     )
-    app_costpoint = Application(
-        name="Costpoint",
-        description="Deltek's project ERP — the financial system of record once a contract is awarded.",
-        status="external",
-        owning_team="Finance / Contracts",
-        team_type=None,
-        phase_list=["award", "execution", "closeout"],
-        capability=cap_evm_erp,
-        url=None,
-    )
-    app_sow_tracker = Application(
-        name="Subcontractor SOW Tracker",
-        description="Not yet built — a placeholder for subcontract SOW authoring and tracking.",
-        status="planned",
-        owning_team=None,
-        team_type=None,
-        phase_list=["award", "execution"],
-        capability=cap_contract,
-        url=None,
-    )
-    app_capa = Application(
-        name="CAPA App",
-        description="Not yet built — a placeholder for corrective/preventive action tracking.",
-        status="planned",
-        owning_team=None,
-        team_type=None,
-        phase_list=["execution", "closeout"],
-        capability=cap_capa,
-        url=None,
-    )
-    # ── Organizational Enablers (ISO/IEC/IEEE 15288 Organizational Project-Enabling
-    #    Processes, 6.2) — scope="organizational", no phases: these serve every project at
-    #    once, they don't move through any one project's lifecycle. Value Stream's own
-    #    template library explicitly left this 15288 category out because it didn't fit a
-    #    per-project value stream; it fits *here*, at the portfolio level, on purpose. ──
+    # ── Organizational Enablers (ISO/IEC/IEEE 15288 Organizational Project-Enabling Processes) —
+    #    scope="organizational": these serve every project at once. Value Stream's own template
+    #    library left this 15288 category out because it didn't fit a per-project value stream;
+    #    it fits *here*, at the portfolio level, on purpose. ──
     app_staffing = Application(
         name="Staffing & Capacity Engine",
         description=(
@@ -168,37 +108,40 @@ def seed_if_empty():
             "a registry entry and nothing more for now: a real, hard problem worth a project of "
             "its own, not a bolt-on to something else."
         ),
-        status="planned",
         owning_team=None,
         team_type=None,
         scope="organizational",
+        category="enterprise",  # 15288 Organizational Project-Enabling — Resource Management
         capability=cap_staffing,
         url=None,
     )
-    app_hr = Application(
-        name="HR & Talent System",
-        description="The org's system of record for employees, roles, and org structure — every project draws staff from it, none of them own it.",
-        status="external",
-        owning_team="Human Resources",
+    app_people_directory = Application(
+        name="People & Access Directory",
+        description=(
+            "Not yet built — the roster of who's on which project, and the access rules that "
+            "would follow from it. The persona switcher in the nav is a demo illustration of "
+            "the capability, not the real system."
+        ),
+        owning_team=None,
         team_type=None,
         scope="organizational",
-        capability=cap_hr,
+        category="enterprise",  # 15288 Organizational Project-Enabling — Resource / HR Management
+        capability=cap_identity,
         url=None,
     )
     app_contract_authoring = Application(
         name="Contract & Legal Authoring",
         description="Shared contract templates and legal review, used to write any project's prime contract or subcontract — not the same as tracking one project's active SOWs.",
-        status="external",
         owning_team="Legal / Contracts",
         team_type=None,
         scope="organizational",
+        category="agreement",  # 15288 Agreement Processes — Supply (prime) / Acquisition (subs)
         capability=cap_contract_authoring,
         url=None,
     )
     db.session.add_all([
-        app_value_stream, app_burnedvalue, app_winmax, app_costpoint,
-        app_sow_tracker, app_capa,
-        app_staffing, app_hr, app_contract_authoring,
+        app_value_stream, app_winmax,
+        app_staffing, app_people_directory, app_contract_authoring,
     ])
     db.session.flush()
 
@@ -219,6 +162,7 @@ def seed_if_empty():
         customer="Acme Aerostructures",
         phase="execution",
         portfolio=portfolio,
+        team_topology="stream-aligned",
         description=(
             "Illustrative project, mirroring Value Stream's own seeded demo map so the "
             "Execution-phase link below is a real, clickable connection between two "
@@ -236,10 +180,7 @@ def seed_if_empty():
         ProjectPhaseEvent(project_id=project.id, from_phase="award", to_phase="execution", occurred_at=_days_ago(45)),
     ])
 
-    db.session.add_all([
-        ExternalId(project_id=project.id, system="WinMax", external_id="OPP-8891"),
-        ExternalId(project_id=project.id, system="Costpoint", external_id="4402-01"),
-    ])
+    db.session.add(ExternalId(project_id=project.id, system="WinMax", external_id="OPP-8891"))
 
     db.session.add_all([
         ProjectAppLink(
@@ -248,22 +189,10 @@ def seed_if_empty():
             notes="Captured as a sole-source bracket redesign pursuit.",
         ),
         ProjectAppLink(
-            project_id=project.id, application_id=app_costpoint.id, phase="award",
-            external_ref="4402-01",
-            notes="Charge number assigned at award.",
-        ),
-        ProjectAppLink(
             project_id=project.id, application_id=app_value_stream.id, phase="execution",
             external_ref=VALUE_STREAM_DEMO_MAP_ID,
             link_url=f"{VALUE_STREAM_BASE_URL}/maps/{VALUE_STREAM_DEMO_MAP_ID}/bluf",
             notes="Design -> Procure -> Build -> Ship value stream for the bracket redesign.",
-        ),
-        # A planned application can still be linked — the pointer just has no external_ref or
-        # link_url yet, because nothing exists to point at. That's the honest state of a
-        # capability gap made visible at the project level, not just the portfolio level.
-        ProjectAppLink(
-            project_id=project.id, application_id=app_capa.id, phase="closeout",
-            notes="Root-cause on the QA hold delay, once CAPA App exists to record it in.",
         ),
     ])
 
@@ -285,4 +214,46 @@ def seed_if_empty():
         external_ref="OPP-9214",
     ))
 
+    db.session.commit()
+
+
+# Persona name -> (title, is_admin, [project names they're on]). Matched to projects by name so
+# this can also backfill an already-seeded dev DB (see seed_people_if_empty). A project name
+# that isn't present is skipped, not an error — a fresh DB won't have the user-made ones.
+_DEMO_PEOPLE: list[tuple[str, str, bool, list[tuple[str, str]]]] = [
+    ("Admin", "Enterprise Architect", True, []),  # the "see everything" seat — the default persona
+    ("Sam Ortiz", "Program Manager", False, [
+        ("Demo: Bracket Assembly Program", "Program Manager"),
+        ("Demo: Nacelle Fairing Retrofit", "Program Manager"),
+    ]),
+    ("Alex Chen", "Lead Engineer", False, [
+        ("Demo: Bracket Assembly Program", "Lead Engineer"),
+    ]),
+    ("Jess Kim", "Capture Manager", False, [
+        ("Prospect: Riverside Facility Expansion", "Capture Manager"),
+    ]),
+]
+
+
+def seed_people_if_empty():
+    """Demo personas for the nav's "viewing as" switcher — see models.Person: not auth, no
+    enforcement. Guarded separately from seed_if_empty() so a dev DB seeded before personas
+    existed picks them up on the next backend start."""
+    from models import Person, ProjectMembership
+
+    if Person.query.count() > 0:
+        return
+
+    projects_by_name = {p.name: p for p in Project.query.all()}
+    for name, title, is_admin, memberships in _DEMO_PEOPLE:
+        person = Person(name=name, title=title, is_admin=is_admin)
+        db.session.add(person)
+        db.session.flush()
+        for project_name, role_label in memberships:
+            project = projects_by_name.get(project_name)
+            if project is None:
+                continue
+            db.session.add(ProjectMembership(
+                person_id=person.id, project_id=project.id, role_label=role_label,
+            ))
     db.session.commit()

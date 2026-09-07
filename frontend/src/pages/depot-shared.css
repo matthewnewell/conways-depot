@@ -36,45 +36,127 @@
   cursor: pointer;
 }
 
+/* "Mine / All" lens toggle — sits in the same row as the checkbox filter bar. A demo
+   affordance for the persona switcher (see lib/persona.tsx): it changes the default view,
+   it never hides anything you couldn't reach another way. */
+.depot-scope-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  background: var(--color-surface-sunken);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.depot-scope-toggle__option {
+  padding: 4px 12px;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.depot-scope-toggle__option--active {
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: var(--shadow-sm);
+}
+
+/* A labelled section is a card everywhere — same recipe as the splash's feature cards, so the
+   detail pages and the splash read as one product: white surface, hairline border, soft
+   radius, room to breathe. */
 .depot-section {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  padding: 20px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
 }
 
 .depot-section__header-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
 }
 
 .depot-section__title {
   margin: 0;
-  font-size: 15px;
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--color-text);
 }
 
-.depot-section__subtitle {
-  margin: 0;
-  font-size: 13px;
-  color: var(--color-text-secondary);
-}
-
+.depot-section__subtitle,
 .depot-section__body {
   margin: 0;
-  font-size: 13px;
-  color: var(--color-text-secondary);
+  font-size: 0.84rem;
   line-height: 1.6;
+  color: var(--color-text-secondary);
 }
 
+/* ── shared button ──────────────────────────────────────────────────────────
+   Mirrors the splash's .splash-btn so an action looks the same wherever it is. */
+.depot-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.depot-btn--primary {
+  background: var(--color-accent);
+  color: #fff;
+}
+
+.depot-btn--primary:hover {
+  background: var(--color-accent-hover);
+}
+
+.depot-btn--primary:disabled {
+  background: var(--color-border-strong);
+  color: var(--color-text-faint);
+}
+
+.depot-btn--ghost {
+  background: var(--color-surface);
+  border-color: var(--color-border-strong);
+  color: var(--color-text-secondary);
+}
+
+.depot-btn--ghost:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  background: var(--color-surface-sunken);
+}
+
+/* Header-row actions pick up the ghost look without needing the class in every JSX call. */
 .depot-section__header-row button {
+  padding: 8px 14px;
   border: 1px solid var(--color-border-strong);
   background: var(--color-surface);
   border-radius: var(--radius-sm);
-  padding: 6px 12px;
-  font-size: 12px;
+  font-size: 0.8rem;
   font-weight: 600;
+  color: var(--color-text-secondary);
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
 .depot-section__header-row button:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
   background: var(--color-surface-sunken);
 }

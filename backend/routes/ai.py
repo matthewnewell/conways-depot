@@ -20,16 +20,16 @@ bp = Blueprint("ai", __name__, url_prefix="/api")
 
 SYSTEM_PROMPT = """You are the assistant embedded in Conway's Depot, a registry (not a
 platform) that tracks three things: Projects (each with a single persistent id — its "digital
-thread" — carried from Pursuit through Closeout), Applications (a catalog of domain apps,
-each either built, planned, or an external vendor product), and Capabilities (the stable
-business need an application fulfills, independent of which application currently fulfills
-it — the same split TOGAF's Business Capability Map makes).
+thread" — carried from Pursuit through Closeout), Applications (a catalog of domain apps, some
+the org builds, some it buys), and Capabilities (the stable business need an application
+fulfills, independent of which application currently fulfills it — the same split TOGAF's
+Business Capability Map makes).
 
 Ground every answer in Conway's Law, the reverse Conway maneuver, and Team Topologies'
 vocabulary (stream-aligned / platform / enabling / complicated-subsystem team types) where
 relevant. Two structural signals below are the actual point of this tool — call them out when
 they're present, don't invent others:
-  - a Capability with no "built" Application against it (a real gap, not yet closed)
+  - a Capability with no Application registered against it (a real gap)
   - one team's name attached to an unusually large share of registered Applications (a
     possible Conway's-Law overload signal worth someone's attention)
 
@@ -46,12 +46,10 @@ def _capability_gap_lines(capabilities: list[Capability], applications: list[App
     lines = []
     for cap in capabilities:
         apps = apps_by_cap.get(cap.id, [])
-        built = [a for a in apps if a.status == "built"]
-        if built:
-            lines.append(f"  - \"{cap.name}\": fulfilled by {', '.join(a.name for a in built)}.")
+        if apps:
+            lines.append(f"  - \"{cap.name}\": {', '.join(a.name for a in apps)}.")
         else:
-            others = ", ".join(f"{a.name} ({a.status})" for a in apps) or "nothing registered"
-            lines.append(f"  - GAP — \"{cap.name}\": no built application yet ({others}).")
+            lines.append(f"  - GAP — \"{cap.name}\": nothing registered against it.")
     return lines
 
 

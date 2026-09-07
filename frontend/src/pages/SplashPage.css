@@ -6,127 +6,294 @@
   overflow: hidden;
 }
 
-.splash-page__toolbar {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 12px 20px;
-  background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.splash-page__title {
+.splash-page__scroll {
   flex: 1;
-  min-width: 0;
-  margin: 0;
-  font-size: 18px;
-}
-
-.splash-page__content {
-  flex: 1;
-  min-width: 0;
+  min-height: 0;
   overflow-y: auto;
-  max-width: 640px;
+  /* A faint teal wash bleeding down from behind the hero — the only "effect" on the page. */
+  background:
+    radial-gradient(58rem 26rem at 50% -9rem, var(--color-accent-soft), transparent 72%),
+    var(--color-bg);
+}
+
+.splash-container {
+  max-width: 960px;
   margin: 0 auto;
-  padding: 28px 20px 80px;
-  display: flex;
-  flex-direction: column;
-  gap: 30px;
-  width: 100%;
+  padding: 0 24px 104px;
 }
 
-.splash-section {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+/* ── shared bits ─────────────────────────────────────────────────────────── */
+
+.splash-eyebrow {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--color-accent);
 }
 
-.splash-section__title {
-  margin: 0;
-  font-size: 15px;
+.splash-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 18px;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
-.splash-section__lede {
-  margin: 0;
-  font-size: 15px;
-  line-height: 1.7;
+.splash-btn--primary {
+  background: var(--color-accent);
+  color: #fff;
+}
+
+.splash-btn--primary:hover {
+  background: var(--color-accent-hover);
+}
+
+.splash-btn--ghost {
+  background: var(--color-surface);
+  border-color: var(--color-border-strong);
   color: var(--color-text);
 }
 
-.splash-section__body {
+.splash-btn--ghost:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+/* ── hero ────────────────────────────────────────────────────────────────── */
+
+.splash-hero {
+  text-align: center;
+  padding: 76px 0 44px;
+}
+
+.splash-hero__title {
   margin: 0;
-  font-size: 13px;
-  line-height: 1.65;
+  font-size: clamp(2.15rem, 5.2vw, 3.1rem);
+  font-weight: 700;
+  letter-spacing: -0.032em;
+  line-height: 1.04;
+  color: var(--color-text);
+}
+
+.splash-hero__sub {
+  margin: 18px auto 0;
+  max-width: 40rem;
+  font-size: 1.05rem;
+  line-height: 1.62;
   color: var(--color-text-secondary);
 }
 
-.splash-section__body em {
+.splash-hero__actions {
+  margin-top: 30px;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ── figure ──────────────────────────────────────────────────────────────── */
+
+.splash-figure {
+  margin: 4px 0 0;
+  padding: 30px 30px 22px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+/* Below ~640px the diagram would shrink its labels to mush — let it keep a readable minimum
+   width and scroll sideways inside the card instead. */
+.splash-figure__svg-wrap {
+  overflow-x: auto;
+}
+
+.splash-figure svg {
+  display: block;
+  width: 100%;
+  min-width: 30rem;
+  height: auto;
+  font-family: var(--font-sans);
+}
+
+.splash-svg__phase text {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  fill: var(--color-text-secondary);
+}
+
+.splash-svg__origin {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  fill: var(--color-accent);
+}
+
+.splash-svg__store-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  fill: var(--color-text-faint);
+}
+
+.splash-svg__app {
+  font-size: 13px;
+  font-weight: 500;
+  fill: var(--color-text);
+}
+
+.splash-figure__caption {
+  margin: 18px auto 0;
+  max-width: 34rem;
+  text-align: center;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--color-text-faint);
+}
+
+/* ── feature cards ───────────────────────────────────────────────────────── */
+
+.splash-features {
+  margin-top: 60px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 16px;
+}
+
+.splash-feature {
+  padding: 22px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.splash-feature__icon {
+  display: inline-flex;
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+}
+
+.splash-feature__icon svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.splash-feature__title {
+  margin: 14px 0 6px;
+  font-size: 0.98rem;
+  font-weight: 700;
   color: var(--color-text);
+}
+
+.splash-feature__body {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+
+/* ── why (Conway) ────────────────────────────────────────────────────────── */
+
+.splash-why {
+  margin-top: 64px;
+  padding: 32px;
+  background: var(--color-surface-sunken);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.splash-why__quote {
+  margin: 14px 0 0;
+  padding-left: 18px;
+  border-left: 3px solid var(--color-accent);
+  font-size: 1.15rem;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--color-text);
+}
+
+.splash-why__cite {
+  margin: 12px 0 0 21px;
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+}
+
+.splash-why__cite em {
   font-style: italic;
 }
 
-.splash-section__body strong {
-  color: var(--color-text);
-}
-
-.splash-section--scope {
-  background: var(--color-surface-sunken);
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-lg);
-  padding: 18px 20px;
-}
-
-.splash-diagram {
-  margin-top: 8px;
-}
-
-.splash-diagram svg {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-
-.splash-cta {
-  flex-direction: row;
-  flex-wrap: wrap;
+.splash-why__prose {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
   gap: 12px;
 }
 
-.splash-cta__link {
-  flex: 1 1 240px;
-  padding: 12px 14px;
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-md);
-  background: var(--color-surface);
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--color-accent);
-  text-align: center;
-  text-decoration: none;
-}
-
-.splash-cta__link:hover {
-  border-color: var(--color-accent);
-  background: var(--color-surface-sunken);
-}
-
-.splash-conway {
-  gap: 8px;
-}
-
-.splash-conway__quote {
+.splash-why__prose p {
   margin: 0;
-  font-size: 14px;
-  line-height: 1.6;
-  color: var(--color-text);
-}
-
-.splash-conway__cite {
-  margin: 0;
-  font-size: 12px;
+  font-size: 0.88rem;
+  line-height: 1.7;
   color: var(--color-text-secondary);
 }
 
-.splash-conway__cite em {
-  font-style: italic;
+/* ── closing CTA band ────────────────────────────────────────────────────── */
+
+.splash-cta-band {
+  margin-top: 56px;
+  padding: 26px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  background: var(--color-text);
+  border-radius: var(--radius-lg);
+}
+
+.splash-cta-band__title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.splash-cta-band__sub {
+  margin: 4px 0 0;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.66);
+}
+
+/* ── responsive ──────────────────────────────────────────────────────────── */
+
+@media (max-width: 720px) {
+  .splash-hero {
+    padding: 48px 0 32px;
+  }
+
+  .splash-why,
+  .splash-figure {
+    padding: 22px;
+  }
+
+  .splash-cta-band {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }

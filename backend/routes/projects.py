@@ -1,7 +1,16 @@
 from flask import Blueprint, jsonify, request
+from sqlalchemy import func
 
 from db import db
-from models import PHASES, ExternalId, Portfolio, Project, ProjectAppLink, ProjectPhaseEvent
+from models import (
+    PHASES,
+    TEAM_TYPES,
+    ExternalId,
+    Portfolio,
+    Project,
+    ProjectAppLink,
+    ProjectPhaseEvent,
+)
 
 bp = Blueprint("projects", __name__, url_prefix="/api/projects")
 # Flat resources for mutating a single external-id/link row, matching Value Stream's
@@ -18,10 +27,24 @@ def _validate_phase(body: dict) -> tuple[dict, int] | None:
     return None
 
 
+def _app_counts() -> dict[str, int]:
+    """How many applications each project connects to — the project-side mirror of an app's
+    `project_count`, and the list's read on which projects are actually wired up."""
+    rows = (
+        db.session.query(ProjectAppLink.project_id, func.count(ProjectAppLink.id))
+        .group_by(ProjectAppLink.project_id)
+        .all()
+    )
+    return {pid: n for pid, n in rows}
+
+
 @bp.get("")
 def list_projects():
     projects = Project.query.order_by(Project.updated_at.desc()).all()
-    return jsonify([p.to_dict(include_links=False) for p in projects])
+    counts = _app_counts()
+    return jsonify(
+        [{**p.to_dict(include_links=False), "app_count": counts.get(p.id, 0)} for p in projects]
+    )
 
 
 @bp.post("")
@@ -82,6 +105,11 @@ def update_project(project_id):
         p.team_notes = body["team_notes"] or None
     if "channels" in body:
         p.channel_list = body["channels"] or None
+    if "team_topology" in body:
+        tt = body["team_topology"] or None
+        if tt is not None and tt not in TEAM_TYPES:
+            return jsonify({"error": f"team_topology must be one of {TEAM_TYPES} or null"}), 400
+        p.team_topology = tt
 
     db.session.commit()
     return jsonify(p.to_dict())

@@ -15,20 +15,20 @@
 .project-detail-page__toolbar {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 12px 20px;
-  background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .project-detail-page__title {
   flex: 1;
-  min-width: 0;
-  font-size: 18px;
+  min-width: 200px;
+  font-size: 1.35rem;
   font-weight: 700;
+  letter-spacing: -0.02em;
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
-  padding: 6px 10px;
+  padding: 4px 8px;
+  margin-left: -8px;
   background: transparent;
 }
 
@@ -46,17 +46,17 @@
   background: var(--color-surface);
   border-radius: var(--radius-sm);
   padding: 8px 10px;
-  font-size: 13px;
+  font-size: 0.8rem;
   font-weight: 600;
 }
 
 .project-detail-page__delete {
   flex-shrink: 0;
   border: 1px solid var(--color-border-strong);
-  background: transparent;
+  background: var(--color-surface);
   border-radius: var(--radius-sm);
-  padding: 8px 12px;
-  font-size: 13px;
+  padding: 8px 14px;
+  font-size: 0.8rem;
   font-weight: 600;
   color: var(--color-text-secondary);
 }
@@ -71,16 +71,19 @@
   flex: 1;
   min-width: 0;
   overflow-y: auto;
-  padding: 24px 20px 80px;
+  max-width: 800px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 28px 20px 96px;
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 16px;
 }
 
 .phase-history {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .phase-history__event {
@@ -88,9 +91,10 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  font-size: 13px;
-  padding: 6px 12px;
+  font-size: 0.84rem;
+  padding: 9px 12px;
   background: var(--color-surface-sunken);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
 }
 
@@ -154,9 +158,9 @@
   gap: 8px;
   align-items: center;
   background: var(--color-surface-sunken);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: 10px;
-  max-width: 640px;
 }
 
 .depot-inline-form--stacked {
@@ -207,11 +211,11 @@
 .thread-block {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  padding: 20px;
 }
 
 .thread-block__row {
@@ -287,13 +291,13 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  max-width: 640px;
 }
 
 .app-link-card {
   background: var(--color-surface-sunken);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  padding: 10px 12px;
+  padding: 12px 14px;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -311,14 +315,8 @@
   font-size: 13px;
 }
 
-.app-link-card__tags {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
-}
-
 .app-link-card__phase {
+  flex-shrink: 0;
   font-size: 9.5px;
   font-weight: 700;
   text-transform: uppercase;
@@ -333,31 +331,6 @@
   font-size: 12px;
   color: var(--color-text-faint);
   font-style: italic;
-}
-
-.app-link-card__status {
-  font-size: 9.5px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  padding: 1px 6px;
-  border-radius: 999px;
-  flex-shrink: 0;
-}
-
-.app-link-card__status--built {
-  background: var(--color-success-soft);
-  color: var(--color-success);
-}
-
-.app-link-card__status--planned {
-  background: var(--color-border);
-  color: var(--color-text-secondary);
-}
-
-.app-link-card__status--external {
-  background: var(--color-wait-soft);
-  color: var(--color-wait);
 }
 
 .app-link-card__ref {
@@ -402,7 +375,6 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  max-width: 640px;
 }
 
 .home-base__field > span {
@@ -413,6 +385,12 @@
   color: var(--color-text-faint);
 }
 
+.home-base__field-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
 .home-base__field textarea {
   border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-sm);
@@ -421,6 +399,15 @@
   font: inherit;
   font-size: 13px;
   resize: vertical;
+}
+
+.home-base__topology {
+  align-self: flex-start;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  padding: 7px 9px;
+  font-size: 13px;
 }
 
 .home-base__channel {

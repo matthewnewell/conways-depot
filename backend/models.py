@@ -26,15 +26,31 @@ from datetime import datetime, timezone
 from db import _uuid, db
 
 PHASES = ("pursuit", "award", "execution", "closeout")
-APP_STATUSES = ("built", "planned", "external")
 TEAM_TYPES = ("stream-aligned", "platform", "enabling", "complicated-subsystem")
-# "project" apps serve one project's lifecycle (WinMax, Value Stream, Costpoint — see
-# Application.phases). "organizational" apps are ISO/IEC/IEEE 15288's Organizational
-# Project-Enabling Processes (6.2) — staffing, HR, contract authoring — capabilities the org
-# maintains for every project at once, not scoped to any single project's phase. Orthogonal to
-# team_type: an enabling *team* can build either kind of app; scope is about who the app
-# serves, not who builds it.
+# "project" apps serve one project's lifecycle (WinMax, Value Stream). "organizational" apps are
+# ISO/IEC/IEEE 15288's Organizational Project-Enabling Processes — staffing, HR, contract
+# authoring — things the org maintains for every project at once. Orthogonal to team_type: an
+# enabling *team* can build either kind of app; scope is about who the app serves, not who
+# builds it.
 APP_SCOPES = ("project", "organizational")
+
+# The registry's browse taxonomy — an app-store "aisle". Stolen from ISO/IEC/IEEE 15288's
+# process groups (the convention the org already runs on), plus a "general" bucket for tools
+# that aren't tied to one lifecycle process:
+#   agreement   — Agreement Processes: Acquisition, Supply (capture/pursuit, prime contracts,
+#                 subcontract SOWs)
+#   enterprise  — Organizational Project-Enabling / Enterprise Processes: portfolio, life-cycle
+#                 model, infrastructure, resource/HR, quality, knowledge (staffing, identity,
+#                 lessons-learned)
+#   project     — Project (Management) Processes: planning, assessment, control, decision, risk,
+#                 configuration, measurement, QA (plans, schedule, cost/EVM, VSM)
+#   technical   — Technical Processes: stakeholder needs through disposal (requirements, design,
+#                 implementation, integration, V&V, operation)
+#   general     — not a 15288 group: serves every process (briefing decks, white-paper writers,
+#                 the project wiki)
+# Coarser than Application.capability, which stays the specific need an app fills *within* its
+# category — the two-tier scheme.
+APP_CATEGORIES = ("agreement", "enterprise", "project", "technical", "general")
 
 
 def _now():
@@ -60,46 +76,34 @@ class Application(db.Model):
     id = db.Column(db.String(36), primary_key=True, default=_uuid)
     name = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=True)
-    status = db.Column(db.String(20), nullable=False, default="planned")  # see APP_STATUSES
     owning_team = db.Column(db.String(200), nullable=True)
     team_type = db.Column(db.String(30), nullable=True)  # see TEAM_TYPES
-    # The lifecycle phase(s) this application is reached for — WinMax at Pursuit only,
-    # Costpoint across Award/Execution/Closeout, and so on. A JSON array of PHASES values,
-    # same "JSON in a Text column" convention BurnedValue already uses for its own
-    # deliverables/milestones fields, rather than a junction table for what's a small fixed
-    # enum. Distinct from ProjectAppLink.phase (which phase a *specific project's* record in
-    # this app belongs to): this is a property of the application itself. Empty/null for an
-    # "organizational" scope app (see APP_SCOPES) — it isn't tied to any project's phase at all.
-    phases = db.Column(db.Text, nullable=True)
+    # NB: an app is NOT tagged with a lifecycle phase. When a project reaches for an app is a
+    # property of that project's link (ProjectAppLink.phase), not of the app — the registry
+    # browses by category (below), the way an app store has aisles, not phases.
     # "project" (default) or "organizational" — see APP_SCOPES above.
     scope = db.Column(db.String(20), nullable=False, default="project")
+    # The 15288-derived browse aisle — see APP_CATEGORIES. Nullable: an app can be uncategorized
+    # (shows under "General" in the UI) until someone files it.
+    category = db.Column(db.String(20), nullable=True)
     capability_id = db.Column(db.String(36), db.ForeignKey("capability.id"), nullable=True)
-    # Base URL if this app is actually reachable somewhere (a real dev/prod URL) — how the
-    # Depot deep-links out to it. Null for external vendor products we don't host and for
-    # planned apps that don't exist yet.
+    # Base URL if this app is actually reachable somewhere (a real dev/prod URL) — a "test
+    # drive" link into the running app, not tied to any project. Null for vendor products we
+    # don't host and for anything not built yet.
     url = db.Column(db.String(500), nullable=True)
     created_at = db.Column(db.DateTime, default=_now, nullable=False)
 
     capability = db.relationship("Capability", back_populates="applications")
-
-    @property
-    def phase_list(self) -> list[str]:
-        return json.loads(self.phases) if self.phases else []
-
-    @phase_list.setter
-    def phase_list(self, value: list[str] | None) -> None:
-        self.phases = json.dumps(list(value)) if value else None
 
     def to_dict(self) -> dict:
         return {
             "id": self.id,
             "name": self.name,
             "description": self.description,
-            "status": self.status,
             "owning_team": self.owning_team,
             "team_type": self.team_type,
-            "phases": self.phase_list,
             "scope": self.scope,
+            "category": self.category,
             "capability_id": self.capability_id,
             "capability_name": self.capability.name if self.capability else None,
             "url": self.url,
@@ -142,12 +146,17 @@ class Project(db.Model):
     portfolio_id = db.Column(db.String(36), db.ForeignKey("portfolio.id"), nullable=True, index=True)
     # Project home base — the PM's working context for THIS project: a free-text team/notes
     # field and a list of comm-channel links ({"label", "url"}). "JSON in a Text column" for the
-    # channel list, same convention as Application.phases, rather than a child table for a short
-    # editable list. This is the project's own metadata, not another application's data — the
-    # project detail page is the home base, so it lives here (this was Launchpad's Workspace
-    # before Launchpad was folded in).
+    # channel list — same convention BurnedValue uses for its own short lists — rather than a
+    # child table for a short editable list. This is the project's own metadata, not another
+    # application's data — the project detail page is the home base, so it lives here (this was
+    # Launchpad's Workspace before Launchpad was folded in).
     team_notes = db.Column(db.Text, nullable=True)
     channels = db.Column(db.Text, nullable=True)
+    # The delivery team's Team Topologies shape — one of TEAM_TYPES, or null if not set. A stub
+    # for now (just the type); interaction modes and a real roster would be a future org-design
+    # app's job. This is where reverse-Conway analysis lives — shape the team to get the
+    # architecture — so it's a property of the project, not of any app.
+    team_topology = db.Column(db.String(30), nullable=True)
     created_at = db.Column(db.DateTime, default=_now, nullable=False)
     updated_at = db.Column(db.DateTime, default=_now, onupdate=_now, nullable=False)
 
@@ -184,6 +193,7 @@ class Project(db.Model):
             "portfolio_name": self.portfolio.name if self.portfolio else None,
             "team_notes": self.team_notes,
             "channels": self.channel_list,
+            "team_topology": self.team_topology,
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
             "external_ids": [e.to_dict() for e in self.external_ids],
@@ -244,6 +254,50 @@ class ProjectPhaseEvent(db.Model):
         }
 
 
+class Person(db.Model):
+    """A demo persona — NOT a user account. There is no password, session, or permission check
+    anywhere behind this model: it exists only to illustrate the "in production a user is on a
+    few projects, not all of them" shape. The nav's persona switcher picks one; list views then
+    default to that person's projects, with an "All" toggle that hides nothing. `is_admin` just
+    means "the everything view" (the Enterprise Architect seat) — it unlocks the ⚙ Admin nav
+    link as signposting, not access control. Real identity/access is registered as a `planned`
+    Capability ("Identity & Project Membership"), because it isn't built."""
+    __tablename__ = "person"
+
+    id = db.Column(db.String(36), primary_key=True, default=_uuid)
+    name = db.Column(db.String(200), nullable=False)
+    title = db.Column(db.String(200), nullable=True)
+    is_admin = db.Column(db.Boolean, nullable=False, default=False)
+    created_at = db.Column(db.DateTime, default=_now, nullable=False)
+
+    memberships = db.relationship(
+        "ProjectMembership", back_populates="person", cascade="all, delete-orphan",
+        lazy="selectin",
+    )
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "name": self.name,
+            "title": self.title,
+            "is_admin": self.is_admin,
+        }
+
+
+class ProjectMembership(db.Model):
+    """Persona ↔ project. `role_label` is a caption ("Program Manager", "Capture Manager"),
+    never checked against anything — see Person's note on why none of this is enforcement."""
+    __tablename__ = "project_membership"
+
+    id = db.Column(db.String(36), primary_key=True, default=_uuid)
+    person_id = db.Column(db.String(36), db.ForeignKey("person.id"), nullable=False, index=True)
+    project_id = db.Column(db.String(36), db.ForeignKey("project.id"), nullable=False, index=True)
+    role_label = db.Column(db.String(100), nullable=True)
+
+    person = db.relationship("Person", back_populates="memberships")
+    project = db.relationship("Project")
+
+
 class ProjectAppLink(db.Model):
     """The golden thread made visible: this project, at this phase, has a record in this
     application. external_ref and link_url are both optional, plain pointers — never a live
@@ -270,7 +324,6 @@ class ProjectAppLink(db.Model):
             "project_id": self.project_id,
             "application_id": self.application_id,
             "application_name": self.application.name if self.application else None,
-            "application_status": self.application.status if self.application else None,
             "phase": self.phase,
             "external_ref": self.external_ref,
             "link_url": self.link_url,

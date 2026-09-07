@@ -6,6 +6,7 @@ import type {
   ChatMessage,
   ChatResult,
   ExternalId,
+  Person,
   Phase,
   Portfolio,
   ProjectAppLink,
@@ -59,7 +60,14 @@ export function useUpdateProject(id: string) {
       data: Partial<
         Pick<
           ProjectSummary,
-          'name' | 'customer' | 'phase' | 'description' | 'portfolio_id' | 'team_notes' | 'channels'
+          | 'name'
+          | 'customer'
+          | 'phase'
+          | 'description'
+          | 'portfolio_id'
+          | 'team_notes'
+          | 'channels'
+          | 'team_topology'
         >
       >,
     ) => api.put<ProjectDetail>(`/projects/${id}`, data),
@@ -138,10 +146,66 @@ export function useApplication(id: string | undefined) {
   })
 }
 
+/** Is this app's URL responding right now — so "Test drive" doesn't hand you a dead tab. */
+export function useAppReachable(id: string, enabled: boolean) {
+  return useQuery({
+    queryKey: ['applications', id, 'reachable'],
+    queryFn: () => api.get<{ url: string | null; reachable: boolean }>(`/applications/${id}/reachable`),
+    enabled,
+    staleTime: 15_000,
+    retry: false,
+  })
+}
+
+/** Everything the "Connected projects" controls on the app detail page touch: the app itself
+ * (project_links / project_count), the whole app list, every project's app set, and the
+ * persona breakdown. */
+function useInvalidateAppConnections(applicationId: string) {
+  const qc = useQueryClient()
+  return () => {
+    qc.invalidateQueries({ queryKey: ['applications', applicationId] })
+    qc.invalidateQueries({ queryKey: ['applications'] })
+    qc.invalidateQueries({ queryKey: ['projects'] })
+    qc.invalidateQueries({ queryKey: ['people'] })
+  }
+}
+
+/** Connect this app to one of the persona's projects — a "quick add": phase defaults to the
+ * project's current phase, nothing else asked. */
+export function useConnectAppToProject(applicationId: string) {
+  const invalidate = useInvalidateAppConnections(applicationId)
+  return useMutation({
+    mutationFn: ({ projectId, phase }: { projectId: string; phase: Phase }) =>
+      api.post<ProjectAppLink>(`/projects/${projectId}/links`, {
+        application_id: applicationId,
+        phase,
+      }),
+    onSuccess: invalidate,
+  })
+}
+
+export function useDisconnectAppFromProject(applicationId: string) {
+  const invalidate = useInvalidateAppConnections(applicationId)
+  return useMutation({
+    mutationFn: (linkId: string) => api.del<void>(`/links/${linkId}`),
+    onSuccess: invalidate,
+  })
+}
+
 export function useCapabilities() {
   return useQuery({
     queryKey: ['capabilities'],
     queryFn: () => api.get<Capability[]>('/capabilities'),
+  })
+}
+
+// ── People (demo personas) ───────────────────────────────────────────────────
+
+export function usePeople() {
+  return useQuery({
+    queryKey: ['people'],
+    queryFn: () => api.get<Person[]>('/people'),
+    staleTime: 5 * 60_000,
   })
 }
 

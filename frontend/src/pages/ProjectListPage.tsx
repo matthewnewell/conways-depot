@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { usePortfolios, useProjects } from '../api/hooks'
 import type { Phase, ProjectSummary } from '../api/types'
 import { PHASES } from '../api/types'
+import { usePersona } from '../lib/persona'
 import './depot-shared.css'
 import './ProjectListPage.css'
 
@@ -21,14 +22,22 @@ const PHASE_ORDER: Record<Phase, number> = Object.fromEntries(
 const NO_PORTFOLIO = 'none' as const
 type PortfolioFilterValue = string | typeof NO_PORTFOLIO
 
-type SortKey = 'phase' | 'name'
+type SortKey = 'phase' | 'name' | 'apps'
 
 export default function ProjectListPage() {
   const { data: projects, isLoading } = useProjects()
   const { data: portfolios } = usePortfolios()
+  const { persona } = usePersona()
   const navigate = useNavigate()
-  const [sortKey, setSortKey] = useState<SortKey>('name')
-  const [sortDesc, setSortDesc] = useState(false)
+  // Default: most wired-up projects first — sort by how many apps each connects to.
+  const [sortKey, setSortKey] = useState<SortKey>('apps')
+  const [sortDesc, setSortDesc] = useState(true)
+  // The persona lens: a limited persona defaults to "just my projects", with an "All" toggle
+  // that filters nothing out of reach — see lib/persona.tsx. The admin persona has no toggle;
+  // it always sees the whole registry.
+  const limitedPersona = persona && !persona.is_admin ? persona : null
+  const [scope, setScope] = useState<'mine' | 'all'>('mine')
+  const mineOnly = !!limitedPersona && scope === 'mine'
   // Portfolio is a filter, not a table column — same pattern as Phase on the Application
   // Registry. Undefined until the portfolio list loads, at which point everything defaults
   // to checked (see the effect below).
@@ -74,12 +83,16 @@ export default function ProjectListPage() {
         return PHASE_ORDER[a.phase] - PHASE_ORDER[b.phase] || a.name.localeCompare(b.name)
       case 'name':
         return a.name.localeCompare(b.name)
+      case 'apps':
+        return (a.app_count ?? 0) - (b.app_count ?? 0) || a.name.localeCompare(b.name)
     }
   }
 
-  const filtered = (projects ?? []).filter((p) =>
-    portfolioFilter === null ? true : portfolioFilter.has(p.portfolio_id ?? NO_PORTFOLIO),
-  )
+  const filtered = (projects ?? [])
+    .filter((p) =>
+      portfolioFilter === null ? true : portfolioFilter.has(p.portfolio_id ?? NO_PORTFOLIO),
+    )
+    .filter((p) => (mineOnly ? limitedPersona!.project_ids.includes(p.id) : true))
   const sorted = [...filtered].sort((a, b) => {
     const cmp = compare(a, b)
     return sortDesc ? -cmp : cmp
@@ -92,15 +105,23 @@ export default function ProjectListPage() {
 
   return (
     <div className="project-list-page">
-      <div className="project-list-page__toolbar">
-        <h1 className="project-list-page__title">Project Registry</h1>
-      </div>
-
       <div className="project-list-page__content">
-        <p className="project-list-page__intro">
-          Every project the Depot tracks — each with its own digital-thread id. Click a row for
-          the full record.
-        </p>
+        {limitedPersona && (
+          <div className="depot-scope-toggle" role="group" aria-label="Which projects to show">
+            <button
+              className={`depot-scope-toggle__option ${scope === 'mine' ? 'depot-scope-toggle__option--active' : ''}`}
+              onClick={() => setScope('mine')}
+            >
+              {limitedPersona.name}'s projects
+            </button>
+            <button
+              className={`depot-scope-toggle__option ${scope === 'all' ? 'depot-scope-toggle__option--active' : ''}`}
+              onClick={() => setScope('all')}
+            >
+              All projects
+            </button>
+          </div>
+        )}
 
         {(portfolios?.length ?? 0) > 0 && (
           <div className="depot-checkbox-filter">
@@ -135,7 +156,11 @@ export default function ProjectListPage() {
         )}
 
         {!isLoading && (projects?.length ?? 0) > 0 && filtered.length === 0 && (
-          <div className="project-list-page__empty">No projects match the selected portfolio(s).</div>
+          <div className="project-list-page__empty">
+            {mineOnly && limitedPersona!.project_ids.length === 0
+              ? `${limitedPersona!.name} isn't on any projects yet — switch to "All projects" to see the registry.`
+              : 'No projects match the current filters.'}
+          </div>
         )}
 
         {!isLoading && filtered.length > 0 && (
@@ -147,6 +172,13 @@ export default function ProjectListPage() {
                 </th>
                 <th className="proj-table__sortable" onClick={() => toggleSort('name')}>
                   Project name{sortIndicator('name')}
+                </th>
+                <th
+                  className="proj-table__sortable proj-table__num-col"
+                  onClick={() => toggleSort('apps')}
+                  title="How many applications this project connects to"
+                >
+                  Apps{sortIndicator('apps')}
                 </th>
                 <th className="proj-table__desc-col">Description</th>
               </tr>
@@ -160,6 +192,13 @@ export default function ProjectListPage() {
                     </span>
                   </td>
                   <td className="proj-table__name">{p.name}</td>
+                  <td className="proj-table__num-col proj-table__count">
+                    {(p.app_count ?? 0) > 0 ? (
+                      p.app_count
+                    ) : (
+                      <span className="proj-table__muted">0</span>
+                    )}
+                  </td>
                   <td className="proj-table__desc-col proj-table__desc">
                     {p.description ?? <span className="proj-table__muted">—</span>}
                   </td>

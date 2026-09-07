@@ -12,50 +12,67 @@ echo "== capabilities seeded =="
 curl -s "$BASE/capabilities" | python3 -c "
 import json, sys
 caps = json.load(sys.stdin)
-assert len(caps) >= 8, f'expected at least 8 seeded capabilities, got {len(caps)}'
+assert len(caps) >= 4, f'expected at least 4 seeded capabilities, got {len(caps)}'
 print(len(caps), 'capabilities')
 "
 
-echo "== applications seeded, with honest status labels =="
+echo "== applications seeded, no status field =="
 curl -s "$BASE/applications" | python3 -c "
 import json, sys
 apps = json.load(sys.stdin)
-by_status = {}
-for a in apps:
-    by_status.setdefault(a['status'], []).append(a['name'])
-for status, names in by_status.items():
-    print(status, ':', ', '.join(names))
-assert 'Value Stream' in by_status.get('built', []), 'Value Stream should be seeded as built'
-assert 'WinMax' in by_status.get('external', []), 'WinMax should be seeded as external'
-assert any('Staffing' in n for n in by_status.get('planned', [])), 'Staffing engine should be a planned placeholder'
+names = sorted(a['name'] for a in apps)
+assert 'Value Stream' in names and 'WinMax' in names, names
+assert all('status' not in a for a in apps), 'apps should carry no status field'
+print(', '.join(names))
 "
 
-echo "== applications carry a phase list (multi-phase allowed), invalid phase rejected =="
+echo "== applications are NOT tagged with a lifecycle phase (that's a link property now) =="
 curl -s "$BASE/applications" | python3 -c "
 import json, sys
 apps = json.load(sys.stdin)
-by_name = {a['name']: a['phases'] for a in apps}
-assert by_name['WinMax'] == ['pursuit'], by_name['WinMax']
-assert by_name['Costpoint'] == ['award', 'execution', 'closeout'], by_name['Costpoint']
-assert by_name['Value Stream'] == ['execution'], by_name['Value Stream']
-print('ok —', by_name)
+assert all('phases' not in a and 'phase' not in a for a in apps), 'no phase field on an app'
+print('ok — no phase on', len(apps), 'apps')
 "
 WV_ID=$(curl -s "$BASE/applications" | python3 -c "
 import json, sys
 print(next(a['id'] for a in json.load(sys.stdin) if a['name'] == 'WinMax'))
 ")
-STATUS=$(curl -s -o /dev/null -w '%{http_code}' -X PUT "$BASE/applications/$WV_ID" \
-  -H 'Content-Type: application/json' -d '{"phases":["bogus"]}')
-[ "$STATUS" = "400" ] && echo "invalid phase correctly rejected: $STATUS" || (echo "expected 400, got $STATUS" && exit 1)
 
-echo "== Organizational Enablers: organizational scope, no phases, all 3 present =="
+echo "== applications are filed under a 15288-derived category, invalid category rejected =="
+curl -s "$BASE/applications" | python3 -c "
+import json, sys
+apps = json.load(sys.stdin)
+cats = {a['name']: a['category'] for a in apps}
+assert cats['WinMax'] == 'agreement', cats
+assert cats['Value Stream'] == 'project', cats
+assert cats['Staffing & Capacity Engine'] == 'enterprise', cats
+print('ok —', cats)
+"
+STATUS=$(curl -s -o /dev/null -w '%{http_code}' -X PUT "$BASE/applications/$WV_ID" \
+  -H 'Content-Type: application/json' -d '{\"category\":\"bogus\"}')
+[ "$STATUS" = "400" ] && echo "invalid category correctly rejected: $STATUS" || (echo "expected 400, got $STATUS" && exit 1)
+
+echo "== Organizational Enablers: organizational scope =="
 curl -s "$BASE/applications" | python3 -c "
 import json, sys
 apps = json.load(sys.stdin)
 org = {a['name']: a for a in apps if a['scope'] == 'organizational'}
-assert set(org) == {'Staffing & Capacity Engine', 'HR & Talent System', 'Contract & Legal Authoring'}, set(org)
-assert all(a['phases'] == [] for a in org.values()), org
+assert {'Staffing & Capacity Engine', 'Contract & Legal Authoring'} <= set(org), set(org)
 print('ok —', sorted(org))
+"
+
+echo "== demo personas seeded (a lens, not auth) =="
+curl -s "$BASE/people" | python3 -c "
+import json, sys
+people = json.load(sys.stdin)
+by_name = {p['name']: p for p in people}
+assert any(p['is_admin'] for p in people), 'expected one admin (see-everything) persona'
+sam = by_name['Sam Ortiz']
+assert not sam['is_admin'] and 0 < len(sam['project_ids']) < 4, sam
+assert len(sam['application_ids']) >= 1, sam
+assert len(sam['projects']) == len(sam['project_ids']), sam
+assert all('application_ids' in p and 'phase' in p for p in sam['projects']), sam
+print('ok —', {p['name']: len(p['projects']) for p in people})
 "
 
 echo "== demo project has the digital-thread crosswalk and phase-scoped links =="
@@ -66,12 +83,12 @@ print(next(p['id'] for p in json.load(sys.stdin) if p['name'].startswith('Demo: 
 curl -s "$BASE/projects/$PID" | python3 -c "
 import json, sys
 d = json.load(sys.stdin)
-assert len(d['external_ids']) == 2, 'expected WinMax + Costpoint crosswalk entries'
+assert len(d['external_ids']) == 1, 'expected the WinMax crosswalk entry'
 phases = {l['phase'] for l in d['app_links']}
-assert phases == {'pursuit', 'award', 'execution', 'closeout'}, f'expected all 4 phases represented, got {phases}'
+assert phases == {'pursuit', 'execution'}, f'expected pursuit + execution links, got {phases}'
 vs_link = next(l for l in d['app_links'] if l['application_name'] == 'Value Stream')
 assert vs_link['link_url'], 'Value Stream link should have a real deep-link URL'
-print('crosswalk + all 4 phases present; Value Stream link:', vs_link['link_url'])
+print('crosswalk + pursuit/execution links present; Value Stream link:', vs_link['link_url'])
 "
 
 echo "== that Value Stream deep link actually resolves (requires Value Stream running on :5173) =="

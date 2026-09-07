@@ -1,0 +1,69 @@
+.info-pop {
+  position: relative;
+  display: inline-flex;
+}
+
+.info-pop__btn {
+  display: grid;
+  place-items: center;
+  width: 15px;
+  height: 15px;
+  padding: 0;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 50%;
+  background: var(--color-surface);
+  color: var(--color-text-faint);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.info-pop__btn:hover,
+.info-pop__btn[aria-expanded='true'] {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.info-pop__panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 50;
+  width: min(30rem, 78vw);
+  padding: 12px 14px 14px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  /* Reset anything inherited from a label the "?" sits inside (uppercase, tracked, bold). */
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 400;
+}
+
+.info-pop__intro {
+  margin: 0 0 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+}
+
+.info-pop__intro em {
+  font-style: italic;
+}
+
+.info-pop__list {
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--color-text-secondary);
+}
+
+.info-pop__list strong {
+  color: var(--color-text);
+}

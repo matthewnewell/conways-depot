@@ -1,26 +1,21 @@
-import { useParams } from 'react-router-dom'
-import { useApplication } from '../api/hooks'
-import type { AppStatus, Phase } from '../api/types'
+import { useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import {
+  useAppReachable,
+  useApplication,
+  useConnectAppToProject,
+  useDisconnectAppFromProject,
+} from '../api/hooks'
+import type { AppProjectLink, Application } from '../api/types'
+import { CATEGORY_LABEL } from '../api/types'
 import { OUTBOUND_TARGET } from '../lib/embed'
+import { usePersona } from '../lib/persona'
 import './depot-shared.css'
 import './ApplicationDetailPage.css'
 
-const STATUS_LABEL: Record<AppStatus, string> = {
-  built: 'Built',
-  planned: 'Planned',
-  external: 'External',
-}
-
-const PHASE_LABEL: Record<Phase, string> = {
-  pursuit: 'Pursuit',
-  award: 'Award',
-  execution: 'Execution',
-  closeout: 'Closeout',
-}
-
 /** The "show page" for one Application — everything the registry list doesn't have room for
- * (full description, ownership, capability, the deep link). Read-only for now; editing an
- * application's registry entry isn't a need yet. */
+ * (which of your projects it's connected to, full description, the registry entry, the deep
+ * link). */
 export default function ApplicationDetailPage() {
   const { applicationId } = useParams<{ applicationId: string }>()
   const { data: app, isLoading } = useApplication(applicationId)
@@ -30,25 +25,13 @@ export default function ApplicationDetailPage() {
 
   return (
     <div className="app-detail-page">
-      <div className="app-detail-page__toolbar">
-        <h1 className="app-detail-page__title">{app.name}</h1>
-        {app.scope === 'organizational' ? (
-          <span className="app-detail-page__phase app-detail-page__phase--organizational">
-            Organization
-          </span>
-        ) : (
-          app.phases.map((p) => (
-            <span key={p} className={`app-detail-page__phase app-detail-page__phase--${p}`}>
-              {PHASE_LABEL[p]}
-            </span>
-          ))
-        )}
-        <span className={`app-detail-page__status app-detail-page__status--${app.status}`}>
-          {STATUS_LABEL[app.status]}
-        </span>
-      </div>
-
       <div className="app-detail-page__content">
+        <div className="app-detail-page__toolbar">
+          <h1 className="app-detail-page__title">{app.name}</h1>
+        </div>
+
+        <ConnectedProjects app={app} />
+
         <section className="depot-section">
           <h2 className="depot-section__title">Description</h2>
           <p className="depot-section__body">
@@ -57,29 +40,21 @@ export default function ApplicationDetailPage() {
         </section>
 
         <section className="depot-section">
-          <h2 className="depot-section__title">Ownership</h2>
+          <h2 className="depot-section__title">Registry entry</h2>
           <div className="app-detail-page__facts">
             <div className="app-detail-page__fact">
-              <span className="app-detail-page__fact-label">Scope</span>
+              <span className="app-detail-page__fact-label">Category</span>
               <span className="app-detail-page__fact-value">
-                {app.scope === 'organizational'
-                  ? 'Organization — serves every project, not one lifecycle'
-                  : 'Project — scoped to a project’s own lifecycle'}
-              </span>
-            </div>
-            <div className="app-detail-page__fact">
-              <span className="app-detail-page__fact-label">Owning team</span>
-              <span className="app-detail-page__fact-value">{app.owning_team ?? '—'}</span>
-            </div>
-            <div className="app-detail-page__fact">
-              <span className="app-detail-page__fact-label">Team type</span>
-              <span className="app-detail-page__fact-value">
-                {app.team_type ?? '— (external product, or unowned)'}
+                {CATEGORY_LABEL[app.category ?? 'general']}
               </span>
             </div>
             <div className="app-detail-page__fact">
               <span className="app-detail-page__fact-label">Capability</span>
               <span className="app-detail-page__fact-value">{app.capability_name ?? '—'}</span>
+            </div>
+            <div className="app-detail-page__fact">
+              <span className="app-detail-page__fact-label">Owning team</span>
+              <span className="app-detail-page__fact-value">{app.owning_team ?? '—'}</span>
             </div>
             <div className="app-detail-page__fact">
               <span className="app-detail-page__fact-label">Projects using it</span>
@@ -93,20 +68,148 @@ export default function ApplicationDetailPage() {
         </section>
 
         <section className="depot-section">
-          <h2 className="depot-section__title">Where it lives</h2>
+          <h2 className="depot-section__title">Test drive</h2>
           {app.url ? (
-            <a className="app-detail-page__link" href={app.url} target={OUTBOUND_TARGET} rel="noreferrer">
-              {app.url} →
-            </a>
+            <TestDrive appId={app.id} url={app.url} />
           ) : (
-            <p className="depot-section__body">
-              No reachable URL on file — {app.status === 'external'
-                ? 'a real external product with no stable local address to link to.'
-                : 'nothing to link to yet.'}
-            </p>
+            <p className="depot-section__body">No demo available yet.</p>
           )}
         </section>
       </div>
     </div>
+  )
+}
+
+/** "Test drive" — a clean button into the running app (demo mode, no project), plus a live
+ * "running / not running" probe so you don't get handed a dead tab. No launching — you start
+ * the app yourself; this just checks whether it's up. */
+function TestDrive({ appId, url }: { appId: string; url: string }) {
+  const { data, isLoading, refetch, isFetching } = useAppReachable(appId, true)
+  const reachable = data?.reachable ?? false
+
+  return (
+    <div className="app-detail-page__testdrive">
+      <p className="depot-section__body">
+        Opens the running app in demo mode — not tied to any project.
+      </p>
+      <div className="app-detail-page__testdrive-row">
+        {reachable ? (
+          <a
+            className="depot-btn depot-btn--primary"
+            href={url}
+            target={OUTBOUND_TARGET}
+            rel="noreferrer"
+          >
+            Test drive →
+          </a>
+        ) : (
+          <span className="app-detail-page__testdrive-off">Test drive →</span>
+        )}
+        <span className="app-detail-page__testdrive-state">
+          {isLoading ? 'checking…' : reachable ? 'running' : 'not running right now'}
+        </span>
+        {!isLoading && !reachable && (
+          <button
+            className="app-detail-page__testdrive-recheck"
+            onClick={() => refetch()}
+            disabled={isFetching}
+          >
+            {isFetching ? 'checking…' : 'check again'}
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
+/** "Connected projects" — the App-Store-style strip up top: which of the active persona's
+ * projects connect this app, with quick add / remove. Admin sees every project. */
+function ConnectedProjects({ app }: { app: Application }) {
+  const { persona } = usePersona()
+  const navigate = useNavigate()
+  const connect = useConnectAppToProject(app.id)
+  const disconnect = useDisconnectAppFromProject(app.id)
+  const [addProjectId, setAddProjectId] = useState('')
+
+  if (!persona) return null
+
+  const myProjectIds = new Set(persona.projects.map((p) => p.id))
+  const connectedHere = (app.project_links ?? []).filter((pl) => myProjectIds.has(pl.project_id))
+  const connectedIds = new Set(connectedHere.map((pl) => pl.project_id))
+  const addable = persona.projects.filter((p) => !connectedIds.has(p.id))
+
+  function handleAdd() {
+    const proj = addable.find((p) => p.id === addProjectId)
+    if (!proj) return
+    connect.mutate(
+      { projectId: proj.id, phase: proj.phase },
+      { onSuccess: () => setAddProjectId('') },
+    )
+  }
+
+  function handleRemove(pl: AppProjectLink) {
+    if (!confirm(`Remove ${app.name} from ${pl.project_name}? It stays in the registry.`)) return
+    disconnect.mutate(pl.link_id)
+  }
+
+  return (
+    <section className="depot-section">
+      <h2 className="depot-section__title">
+        {persona.is_admin ? 'Connected projects' : 'Connected to your projects'}
+      </h2>
+
+      {persona.projects.length === 0 ? (
+        <p className="depot-section__body">You're not on any projects.</p>
+      ) : (
+        <>
+          {connectedHere.length > 0 ? (
+            <div className="app-detail-page__conns">
+              {connectedHere.map((pl) => (
+                <div key={pl.link_id} className="app-detail-page__conn">
+                  <button
+                    className="app-detail-page__conn-name"
+                    onClick={() => navigate(`/projects/${pl.project_id}`)}
+                  >
+                    {pl.project_name}
+                  </button>
+                  <button
+                    className="app-detail-page__conn-remove"
+                    onClick={() => handleRemove(pl)}
+                    disabled={disconnect.isPending}
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="depot-section__body">Not connected to any of your projects yet.</p>
+          )}
+
+          {addable.length > 0 && (
+            <div className="app-detail-page__add">
+              <select
+                value={addProjectId}
+                onChange={(e) => setAddProjectId(e.target.value)}
+              >
+                <option value="">Add to a project…</option>
+                {addable.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+              <button
+                className="app-detail-page__add-btn"
+                onClick={handleAdd}
+                disabled={!addProjectId || connect.isPending}
+              >
+                {connect.isPending ? 'Adding…' : 'Add'}
+              </button>
+            </div>
+          )}
+        </>
+      )}
+    </section>
   )
 }

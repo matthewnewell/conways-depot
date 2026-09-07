@@ -1,8 +1,17 @@
+import httpx
 from flask import Blueprint, jsonify, request
 from sqlalchemy import func
 
 from db import db
-from models import APP_SCOPES, APP_STATUSES, PHASES, TEAM_TYPES, Application, Capability, ProjectAppLink
+from models import (
+    APP_CATEGORIES,
+    APP_SCOPES,
+    TEAM_TYPES,
+    Application,
+    Capability,
+    Project,
+    ProjectAppLink,
+)
 
 bp = Blueprint("applications", __name__, url_prefix="/api/applications")
 capabilities_bp = Blueprint("capabilities", __name__, url_prefix="/api/capabilities")
@@ -24,16 +33,12 @@ def _project_counts() -> dict[str, int]:
 
 
 def _validate(body: dict) -> tuple[dict, int] | None:
-    if "status" in body and body["status"] not in APP_STATUSES:
-        return {"error": f"status must be one of {APP_STATUSES}"}, 400
     if body.get("team_type") is not None and body.get("team_type") not in (*TEAM_TYPES, None):
         return {"error": f"team_type must be one of {TEAM_TYPES} or null"}, 400
     if "scope" in body and body["scope"] not in APP_SCOPES:
         return {"error": f"scope must be one of {APP_SCOPES}"}, 400
-    if "phases" in body:
-        phases = body["phases"]
-        if phases is not None and (not isinstance(phases, list) or any(p not in PHASES for p in phases)):
-            return {"error": f"phases must be a list drawn from {PHASES}, or null"}, 400
+    if body.get("category") is not None and body.get("category") not in APP_CATEGORIES:
+        return {"error": f"category must be one of {APP_CATEGORIES} or null"}, 400
     return None
 
 
@@ -57,14 +62,13 @@ def create_application():
     a = Application(
         name=name,
         description=body.get("description"),
-        status=body.get("status", "planned"),
         owning_team=body.get("owning_team"),
         team_type=body.get("team_type"),
         scope=body.get("scope", "project"),
+        category=body.get("category"),
         capability_id=body.get("capability_id"),
         url=body.get("url"),
     )
-    a.phase_list = body.get("phases")
     db.session.add(a)
     db.session.commit()
     return jsonify(a.to_dict()), 201
@@ -73,7 +77,47 @@ def create_application():
 @bp.get("/<application_id>")
 def get_application(application_id):
     a = Application.query.get_or_404(application_id)
-    return jsonify({**a.to_dict(), "project_count": _project_counts().get(a.id, 0)})
+    # The app-side mirror of a project's app_links: which projects connect this app, with the
+    # link id each connection needs to be removed by. The detail page filters this to the
+    # active persona's projects for the "Connected projects" add/remove controls.
+    rows = (
+        db.session.query(ProjectAppLink, Project.name)
+        .join(Project, Project.id == ProjectAppLink.project_id)
+        .filter(ProjectAppLink.application_id == a.id)
+        .order_by(Project.name)
+        .all()
+    )
+    project_links = [
+        {"link_id": link.id, "project_id": link.project_id, "project_name": name, "phase": link.phase}
+        for link, name in rows
+    ]
+    return jsonify(
+        {
+            **a.to_dict(),
+            "project_count": _project_counts().get(a.id, 0),
+            "project_links": project_links,
+        }
+    )
+
+
+@bp.get("/<application_id>/reachable")
+def application_reachable(application_id):
+    """Is this app's `url` responding right now? A 1-ish-second probe so the "Test drive" button
+    can tell the truth instead of handing you a dead tab. No process management — you launch the
+    app yourself; this just checks. Cheap enough to poll (the frontend caches it ~15s)."""
+    a = Application.query.get_or_404(application_id)
+    if not a.url:
+        return jsonify({"url": None, "reachable": False})
+
+    reachable = False
+    for method in (httpx.head, httpx.get):
+        try:
+            r = method(a.url, timeout=1.2, follow_redirects=True)
+            reachable = r.status_code < 500
+            break
+        except httpx.HTTPError:
+            continue
+    return jsonify({"url": a.url, "reachable": reachable})
 
 
 @bp.put("/<application_id>")
@@ -84,11 +128,12 @@ def update_application(application_id):
     if err:
         return jsonify(err[0]), err[1]
 
-    for field in ("name", "description", "status", "owning_team", "team_type", "scope", "capability_id", "url"):
+    for field in (
+        "name", "description", "owning_team", "team_type", "scope",
+        "category", "capability_id", "url",
+    ):
         if field in body:
             setattr(a, field, body[field])
-    if "phases" in body:
-        a.phase_list = body["phases"]
 
     db.session.commit()
     return jsonify(a.to_dict())

@@ -11,8 +11,9 @@ import {
   useProject,
   useUpdateProject,
 } from '../api/hooks'
-import type { ChannelLink, Phase, ProjectDetail } from '../api/types'
-import { PHASES } from '../api/types'
+import type { ChannelLink, Phase, ProjectDetail, TeamTopology } from '../api/types'
+import { PHASES, TEAM_TOPOLOGIES, TEAM_TOPOLOGY_INFO } from '../api/types'
+import InfoPopover from '../components/InfoPopover'
 import { OUTBOUND_TARGET } from '../lib/embed'
 import './depot-shared.css'
 import './ProjectDetailPage.css'
@@ -50,37 +51,37 @@ export default function ProjectDetailPage() {
 
   return (
     <div className="project-detail-page">
-      <div className="project-detail-page__toolbar">
-        <input
-          className="project-detail-page__title"
-          value={project.name}
-          onChange={(e) => updateProject.mutate({ name: e.target.value })}
-        />
-        <select
-          className="project-detail-page__portfolio-select"
-          value={project.portfolio_id ?? ''}
-          onChange={(e) => updateProject.mutate({ portfolio_id: e.target.value || null })}
-        >
-          <option value="">No portfolio</option>
-          <Portfolios />
-        </select>
-        <select
-          className="project-detail-page__phase-select"
-          value={project.phase}
-          onChange={(e) => updateProject.mutate({ phase: e.target.value as Phase })}
-        >
-          {PHASES.map((ph) => (
-            <option key={ph} value={ph}>
-              {PHASE_LABEL[ph]}
-            </option>
-          ))}
-        </select>
-        <button className="project-detail-page__delete" onClick={handleDelete}>
-          Delete
-        </button>
-      </div>
-
       <div className="project-detail-page__content">
+        <div className="project-detail-page__toolbar">
+          <input
+            className="project-detail-page__title"
+            value={project.name}
+            onChange={(e) => updateProject.mutate({ name: e.target.value })}
+          />
+          <select
+            className="project-detail-page__portfolio-select"
+            value={project.portfolio_id ?? ''}
+            onChange={(e) => updateProject.mutate({ portfolio_id: e.target.value || null })}
+          >
+            <option value="">No portfolio</option>
+            <Portfolios />
+          </select>
+          <select
+            className="project-detail-page__phase-select"
+            value={project.phase}
+            onChange={(e) => updateProject.mutate({ phase: e.target.value as Phase })}
+          >
+            {PHASES.map((ph) => (
+              <option key={ph} value={ph}>
+                {PHASE_LABEL[ph]}
+              </option>
+            ))}
+          </select>
+          <button className="project-detail-page__delete" onClick={handleDelete}>
+            Delete
+          </button>
+        </div>
+
         <ThreadBlock project={project} onCustomer={(v) => updateProject.mutate({ customer: v })} />
 
         <ConnectedApps project={project} />
@@ -243,14 +244,7 @@ function ConnectedApps({ project }: { project: ProjectDetail }) {
           <div key={l.id} className="app-link-card">
             <div className="app-link-card__top">
               <span className="app-link-card__name">{l.application_name}</span>
-              <span className="app-link-card__tags">
-                {l.application_status && (
-                  <span className={`app-link-card__status app-link-card__status--${l.application_status}`}>
-                    {l.application_status}
-                  </span>
-                )}
-                <span className="app-link-card__phase">{PHASE_LABEL[l.phase]}</span>
-              </span>
+              <span className="app-link-card__phase">{PHASE_LABEL[l.phase]}</span>
             </div>
             {l.external_ref && <div className="app-link-card__ref">{l.external_ref}</div>}
             {l.notes && <div className="app-link-card__notes">{l.notes}</div>}
@@ -281,7 +275,7 @@ function ConnectedApps({ project }: { project: ProjectDetail }) {
             <option value="">Select application…</option>
             {connectable.map((a) => (
               <option key={a.id} value={a.id}>
-                {a.name} ({a.status})
+                {a.name}
               </option>
             ))}
           </select>
@@ -371,11 +365,12 @@ function HomeBase({ project }: { project: ProjectDetail }) {
   const updateProject = useUpdateProject(project.id)
   const [notes, setNotes] = useState(project.team_notes ?? '')
   const [channels, setChannels] = useState<ChannelLink[]>(project.channels ?? [])
+  const [topology, setTopology] = useState<TeamTopology | ''>(project.team_topology ?? '')
   const [dirty, setDirty] = useState(false)
 
   function save() {
     updateProject.mutate(
-      { team_notes: notes || null, channels },
+      { team_notes: notes || null, channels, team_topology: topology || null },
       { onSuccess: () => setDirty(false) },
     )
   }
@@ -398,6 +393,40 @@ function HomeBase({ project }: { project: ProjectDetail }) {
       <p className="depot-section__subtitle">
         The working context for this project's team — who's on it, where they talk.
       </p>
+
+      <div className="home-base__field">
+        <span className="home-base__field-label">
+          Team topology
+          <InfoPopover label="Team Topologies team types">
+            <p className="info-pop__intro">
+              The four team shapes from <em>Team Topologies</em> (Skelton &amp; Pais) — pick the
+              one that best fits this project's delivery team.
+            </p>
+            <ul className="info-pop__list">
+              {TEAM_TOPOLOGIES.map((t) => (
+                <li key={t}>
+                  <strong>{TEAM_TOPOLOGY_INFO[t].label}</strong> — {TEAM_TOPOLOGY_INFO[t].blurb}
+                </li>
+              ))}
+            </ul>
+          </InfoPopover>
+        </span>
+        <select
+          className="home-base__topology"
+          value={topology}
+          onChange={(e) => {
+            setTopology(e.target.value as TeamTopology | '')
+            setDirty(true)
+          }}
+        >
+          <option value="">— not set —</option>
+          {TEAM_TOPOLOGIES.map((t) => (
+            <option key={t} value={t}>
+              {TEAM_TOPOLOGY_INFO[t].label}
+            </option>
+          ))}
+        </select>
+      </div>
 
       <label className="home-base__field">
         <span>Team / notes</span>
