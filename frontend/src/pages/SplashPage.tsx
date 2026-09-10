@@ -68,9 +68,8 @@ export default function SplashPage() {
           <header className="splash-hero">
             <h1 className="splash-hero__title">An app store for projects</h1>
             <p className="splash-hero__sub">
-              A project is like a phone, and the tools it runs on are apps. Conway's Depot puts
-              your organization's applications — established systems and newer AI-native tools —
-              in one store. You install the ones that fit the work.
+              Conway's Depot puts your organization's applications — established systems and
+              newer AI-native tools — in one store. You install the ones that fit the work.
             </p>
             <div className="splash-hero__actions">
               <Link className="splash-btn splash-btn--primary" to="/admin">
