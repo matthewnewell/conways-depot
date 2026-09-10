@@ -26,27 +26,23 @@ export default function ApplicationDetailPage() {
   return (
     <div className="app-detail-page">
       <div className="app-detail-page__content">
-        <div className="app-detail-page__toolbar">
-          <h1 className="app-detail-page__title">{app.name}</h1>
-        </div>
-
-        <section className="depot-section">
-          <h2 className="depot-section__title">Test drive</h2>
-          {app.url ? (
-            <TestDrive appId={app.id} url={app.url} />
-          ) : (
-            <p className="depot-section__body">No demo available yet.</p>
-          )}
-        </section>
+        <header className="app-detail-page__header">
+          <div className="app-detail-page__headline">
+            <h1 className="app-detail-page__title">{app.name}</h1>
+            <p className="app-detail-page__lede">
+              {app.description || 'No description recorded.'}
+            </p>
+          </div>
+          <div className="app-detail-page__header-action">
+            {app.url ? (
+              <TestDrive appId={app.id} url={app.url} />
+            ) : (
+              <span className="app-detail-page__testdrive-off">No demo yet</span>
+            )}
+          </div>
+        </header>
 
         <ConnectedProjects app={app} />
-
-        <section className="depot-section">
-          <h2 className="depot-section__title">Description</h2>
-          <p className="depot-section__body">
-            {app.description || 'No description recorded.'}
-          </p>
-        </section>
 
         <section className="depot-section">
           <h2 className="depot-section__title">Registry entry</h2>
@@ -89,24 +85,21 @@ function TestDrive({ appId, url }: { appId: string; url: string }) {
 
   return (
     <div className="app-detail-page__testdrive">
-      <p className="depot-section__body">
-        Opens the running app in demo mode — not tied to any project.
-      </p>
-      <div className="app-detail-page__testdrive-row">
-        {reachable ? (
-          <a
-            className="depot-btn depot-btn--primary"
-            href={url}
-            target={OUTBOUND_TARGET}
-            rel="noreferrer"
-          >
-            Test drive →
-          </a>
-        ) : (
-          <span className="app-detail-page__testdrive-off">Test drive →</span>
-        )}
+      {reachable ? (
+        <a
+          className="depot-btn depot-btn--primary"
+          href={url}
+          target={OUTBOUND_TARGET}
+          rel="noreferrer"
+        >
+          Test drive →
+        </a>
+      ) : (
+        <span className="app-detail-page__testdrive-off">Test drive →</span>
+      )}
+      <div className="app-detail-page__testdrive-meta">
         <span className="app-detail-page__testdrive-state">
-          {isLoading ? 'checking…' : reachable ? 'running' : 'not running right now'}
+          {isLoading ? 'checking…' : reachable ? 'running' : 'not running'}
         </span>
         {!isLoading && !reachable && (
           <button

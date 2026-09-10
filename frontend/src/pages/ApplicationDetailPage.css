@@ -12,46 +12,74 @@
   color: var(--color-text-faint);
 }
 
-.app-detail-page__toolbar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.app-detail-page__title {
-  flex: 1;
-  min-width: 200px;
-  margin: 0;
-  font-size: 1.35rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-}
-
 .app-detail-page__content {
   flex: 1;
   min-width: 0;
   overflow-y: auto;
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 28px 20px 96px;
+  /* Left-aligned with the nav (its 20px gutter), not centered, so the body lines up with the
+     navbar instead of floating in a narrow column. Capped so it doesn't sprawl on wide screens. */
+  max-width: 1180px;
+  margin: 0;
+  padding: 32px 20px 96px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
   width: 100%;
 }
 
+/* ── Header: name + description + Test drive, one row ─────────────────────────── */
+.app-detail-page__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 32px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.app-detail-page__headline {
+  min-width: 0;
+}
+
+.app-detail-page__title {
+  margin: 0 0 8px;
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.app-detail-page__lede {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+  max-width: 62ch;
+}
+
+.app-detail-page__header-action {
+  flex-shrink: 0;
+}
+
+@media (max-width: 720px) {
+  .app-detail-page__header {
+    flex-direction: column;
+    gap: 16px;
+  }
+}
+
+/* ── Registry entry: a row of compact facts, not a stack ─────────────────────── */
 .app-detail-page__facts {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .app-detail-page__fact {
   display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 9px 12px;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1 1 150px;
+  padding: 10px 12px;
   background: var(--color-surface-sunken);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
@@ -60,11 +88,11 @@
 
 .app-detail-page__fact-label {
   color: var(--color-text-faint);
+  font-size: 0.76rem;
 }
 
 .app-detail-page__fact-value {
   font-weight: 600;
-  text-align: right;
 }
 
 .app-detail-page__link {
@@ -73,18 +101,24 @@
   word-break: break-all;
 }
 
-/* ── "Test drive" ────────────────────────────────────────────────────────────── */
+/* ── "Test drive" — the header's right-hand action ───────────────────────────── */
 .app-detail-page__testdrive {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  align-items: flex-end;
+  gap: 6px;
 }
 
-.app-detail-page__testdrive-row {
+@media (max-width: 720px) {
+  .app-detail-page__testdrive {
+    align-items: flex-start;
+  }
+}
+
+.app-detail-page__testdrive-meta {
   display: flex;
   align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .app-detail-page__testdrive-off {
