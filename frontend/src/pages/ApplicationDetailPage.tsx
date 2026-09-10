@@ -30,6 +30,15 @@ export default function ApplicationDetailPage() {
           <h1 className="app-detail-page__title">{app.name}</h1>
         </div>
 
+        <section className="depot-section">
+          <h2 className="depot-section__title">Test drive</h2>
+          {app.url ? (
+            <TestDrive appId={app.id} url={app.url} />
+          ) : (
+            <p className="depot-section__body">No demo available yet.</p>
+          )}
+        </section>
+
         <ConnectedProjects app={app} />
 
         <section className="depot-section">
@@ -65,15 +74,6 @@ export default function ApplicationDetailPage() {
               </span>
             </div>
           </div>
-        </section>
-
-        <section className="depot-section">
-          <h2 className="depot-section__title">Test drive</h2>
-          {app.url ? (
-            <TestDrive appId={app.id} url={app.url} />
-          ) : (
-            <p className="depot-section__body">No demo available yet.</p>
-          )}
         </section>
       </div>
     </div>
