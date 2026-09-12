@@ -21,3 +21,7 @@ frontend/.vite/
 # OS / editor
 .DS_Store
 Thumbs.db
+
+# scripts/start-all.sh runtime state — pid files and per-app logs, not source
+.run/
+logs/
