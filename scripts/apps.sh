@@ -15,8 +15,9 @@ APPS=(
   "the-fixer-backend|8092|/home/matthew/the-fixer/backend|.venv/bin/python app.py"
   "the-fixer-frontend|5177|/home/matthew/the-fixer/frontend|source ~/.nvm/nvm.sh && npm run dev -- --host 0.0.0.0"
   "demo-shell|5180|/home/matthew/demo-shell|python3 -m http.server 5180 --bind 0.0.0.0"
-  "burned-value|5000|/home/matthew/BurnedValue|.venv/bin/python app.py"
 )
+# BurnedValue (port 5000) removed 2026-09-12 - being retired in favor of a new PM app
+# ("Dead Reckoning"/"Reckon", not started yet). Add its replacement here once it exists.
 
 RUN_DIR="$(dirname "${BASH_SOURCE[0]}")/../.run"
 LOG_DIR="$(dirname "${BASH_SOURCE[0]}")/../logs"
