@@ -131,7 +131,7 @@ def seed_if_empty():
     )
     app_contract_authoring = Application(
         name="Contract & Legal Authoring",
-        description="Shared contract templates and legal review, used to write any project's prime contract or subcontract — not the same as tracking one project's active SOWs.",
+        description="Ron's Contract and Legal Authoring",
         owning_team="Legal / Contracts",
         team_type=None,
         scope="organizational",
@@ -139,9 +139,24 @@ def seed_if_empty():
         capability=cap_contract_authoring,
         url=None,
     )
+    cap_manufacturing_status = Capability(
+        name="Manufacturing Status Visibility",
+        description="Where a part actually is on the shop floor, how long it's been there, and a shared way to flag it for expedite.",
+    )
+    db.session.add(cap_manufacturing_status)
+    db.session.flush()
+    app_dwmp = Application(
+        name="Dude, Where's My Part?",
+        description="Shop-floor part status and expedite visibility, over an on-demand S4 extract — not a new system of record.",
+        owning_team="Matt (informal enabling team)",
+        team_type="enabling",
+        category="technical",  # 15288 Technical Processes — Implementation (6.4.7) execution visibility
+        capability=cap_manufacturing_status,
+        url="http://localhost:5176",
+    )
     db.session.add_all([
         app_value_stream, app_winmax,
-        app_staffing, app_people_directory, app_contract_authoring,
+        app_staffing, app_people_directory, app_contract_authoring, app_dwmp,
     ])
     db.session.flush()
 

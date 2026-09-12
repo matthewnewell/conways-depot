@@ -57,6 +57,27 @@ def _run_migrations(app):
                     conn.execute(text(alter_sql))
 
 
+# A genuinely destructive migration, unlike everything above — the one exception the module
+# docstring's "no Alembic, additive-only" rule allows for. `application.status` predates the
+# current model (it was replaced by prose + the presence/absence of `url`, per seed.py's own
+# comment: "There's no `status` field distinguishing these"), but the column itself was never
+# dropped when the model changed, and it's NOT NULL with no default — so any fresh
+# `POST /api/applications` insert has been failing with an IntegrityError ever since, silently,
+# because seeding only ever ran once against a schema that still had it. SQLite (3.35+) can
+# drop a plain column directly, no table-rebuild dance needed.
+def _drop_dead_columns(app):
+    with app.app_context():
+        inspector = inspect(db.engine)
+        if "application" not in set(inspector.get_table_names()):
+            return
+        cols = {c["name"] for c in inspector.get_columns("application")}
+        with db.engine.begin() as conn:
+            if "status" in cols:
+                conn.execute(text("ALTER TABLE application DROP COLUMN status"))
+            if "phases" in cols:
+                conn.execute(text("ALTER TABLE application DROP COLUMN phases"))
+
+
 def init_db(app):
     db_path = get_db_path(app)
     app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
@@ -69,3 +90,4 @@ def init_db(app):
         db.create_all()
 
     _run_migrations(app)
+    _drop_dead_columns(app)
