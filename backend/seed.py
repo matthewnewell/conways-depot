@@ -101,18 +101,78 @@ def seed_if_empty():
     #    scope="organizational": these serve every project at once. Value Stream's own template
     #    library left this 15288 category out because it didn't fit a per-project value stream;
     #    it fits *here*, at the portfolio level, on purpose. ──
-    app_staffing = Application(
-        name="Staffing & Capacity Engine",
+    app_good_plan = Application(
+        name="Good Plan",
         description=(
-            "Not yet built — the labor demand/utilization/pipeline-modeling app. Deliberately "
-            "a registry entry and nothing more for now: a real, hard problem worth a project of "
-            "its own, not a bolt-on to something else."
+            "A single project defines its own labor demand — role, FTE, and dates — before "
+            "anyone commits a real person to it. Project-scoped: one project's demand, not "
+            "the organization's supply. The organizational counterpart is Big Plan."
+        ),
+        owning_team="Matt (informal enabling team)",
+        team_type="enabling",
+        scope="project",
+        category="project",
+        capability=cap_staffing,
+        url="http://localhost:5178",
+    )
+    app_big_plan = Application(
+        name="Big Plan",
+        description=(
+            "Not yet built — where a functional/resource manager commits actual capacity, "
+            "organization-wide, against the labor demand every project declares in Good "
+            "Plan. Organization-scoped: aggregate labor supply and demand across all "
+            "projects, not one project's own request. 15288 Organizational "
+            "Project-Enabling: Human Resource Management (6.2.4)."
         ),
         owning_team=None,
         team_type=None,
         scope="organizational",
         category="enterprise",  # 15288 Organizational Project-Enabling — Resource Management
         capability=cap_staffing,
+        url=None,
+    )
+    cap_qms = Capability(
+        name="Quality Management",
+        description="The organization's quality policy, objectives, and management system — distinct from a single project's own quality control activities.",
+    )
+    cap_portfolio_mgmt = Capability(
+        name="Portfolio Management",
+        description="Authorizing, monitoring, and controlling the organization's ongoing projects as a set — deciding what continues, what changes, and what stops.",
+    )
+    db.session.add_all([cap_qms, cap_portfolio_mgmt])
+    db.session.flush()
+    app_qms = Application(
+        name="QMS",
+        description="Not yet built — the organization's quality management system. 15288 Organizational Project-Enabling: Quality Management (6.2.5).",
+        owning_team=None,
+        team_type=None,
+        scope="organizational",
+        category="enterprise",
+        capability=cap_qms,
+        url=None,
+    )
+    app_lham = Application(
+        name="Let's Have a Meeting",
+        description="Not yet built — summons projects to report to the organization on a cadence. 15288 Organizational Project-Enabling: Portfolio Management (6.2.3).",
+        owning_team=None,
+        team_type=None,
+        scope="organizational",
+        category="enterprise",
+        capability=cap_portfolio_mgmt,
+        url=None,
+    )
+    app_portfolio_manager = Application(
+        name="Portfolio Manager",
+        description=(
+            "Not yet built — the oversight view a business area lead uses to see every one "
+            "of their projects at once. 15288 Organizational Project-Enabling: Portfolio "
+            "Management (6.2.3)."
+        ),
+        owning_team=None,
+        team_type=None,
+        scope="organizational",
+        category="enterprise",
+        capability=cap_portfolio_mgmt,
         url=None,
     )
     app_people_directory = Application(
@@ -171,7 +231,8 @@ def seed_if_empty():
     )
     db.session.add_all([
         app_value_stream, app_winmax,
-        app_staffing, app_people_directory, app_contract_authoring, app_dwmp, app_fixer,
+        app_good_plan, app_big_plan, app_qms, app_lham, app_portfolio_manager,
+        app_people_directory, app_contract_authoring, app_dwmp, app_fixer,
     ])
     db.session.flush()
 

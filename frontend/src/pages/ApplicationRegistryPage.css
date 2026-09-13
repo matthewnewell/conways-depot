@@ -293,6 +293,11 @@
   white-space: nowrap;
 }
 
+.app-table__category {
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
 /* Project-count column — a narrow numeric column, right-aligned so the digits line up. */
 .app-table__num-col {
   text-align: right;

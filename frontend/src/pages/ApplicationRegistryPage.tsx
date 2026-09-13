@@ -15,7 +15,7 @@ const PHASE_LABEL: Record<Phase, string> = {
   closeout: 'Closeout',
 }
 
-type SortKey = 'name' | 'capability' | 'projects'
+type SortKey = 'name' | 'category' | 'capability' | 'projects'
 
 /** The "?" beside the Category filter — a legend mapping each aisle to its 15288 process group
  * and the kind of tool that lives there. */
@@ -100,6 +100,11 @@ export default function ApplicationRegistryPage() {
     switch (sortKey) {
       case 'name':
         return a.name.localeCompare(b.name)
+      case 'category':
+        return (
+          CATEGORY_LABEL[a.category ?? 'general'].localeCompare(CATEGORY_LABEL[b.category ?? 'general']) ||
+          a.name.localeCompare(b.name)
+        )
       case 'capability':
         return (
           (a.capability_name ?? '').localeCompare(b.capability_name ?? '') ||
@@ -243,6 +248,9 @@ export default function ApplicationRegistryPage() {
                 <th className="app-table__sortable" onClick={() => toggleSort('name')}>
                   Name{sortIndicator('name')}
                 </th>
+                <th className="app-table__sortable" onClick={() => toggleSort('category')}>
+                  Category{sortIndicator('category')}
+                </th>
                 <th
                   className="app-table__sortable app-table__desc-col"
                   onClick={() => toggleSort('capability')}
@@ -262,6 +270,7 @@ export default function ApplicationRegistryPage() {
               {allSorted.map((a: Application) => (
                 <tr key={a.id} onClick={() => navigate(`/applications/${a.id}`)}>
                   <td className="app-table__name">{a.name}</td>
+                  <td className="app-table__category">{CATEGORY_LABEL[a.category ?? 'general']}</td>
                   <td className="app-table__desc-col app-table__capability">
                     {a.capability_name ?? <span className="app-table__muted">—</span>}
                   </td>
