@@ -271,10 +271,53 @@ def seed_if_empty():
         capability=cap_procurement,
         url="http://localhost:5182",
     )
+    cap_scope = Capability(
+        name="Scope Definition & Progress Tracking",
+        description="A project's work breakdown — a plain WBS, nested as deep as it needs to be — and an honest, judgment-based record of how complete each piece actually is.",
+    )
+    db.session.add(cap_scope)
+    db.session.flush()
+    app_scope_manager = Application(
+        name="Scope Manager",
+        description=(
+            "A minimal work breakdown structure, not Azure Boards or Jira. Percent complete "
+            "is always a recorded judgment call — never computed from a GitHub or Azure "
+            "Boards issue count."
+        ),
+        owning_team="Matt (informal enabling team)",
+        team_type="enabling",
+        scope="project",
+        category="project",
+        capability=cap_scope,
+        url="http://localhost:5183",
+    )
+    cap_performance = Capability(
+        name="Cost & Schedule Performance",
+        description="Earned value against real actuals — BCWS, BCWP, and ACWP per charge number — read from Good Plan's budget, Scope Manager's progress, and an S4 actuals feed.",
+    )
+    db.session.add(cap_performance)
+    db.session.flush()
+    app_reckon = Application(
+        name="Reckon",
+        description=(
+            "Not yet built — a project-execution dashboard computing real cost and schedule "
+            "performance per charge number, read-only across Good Plan, Scope Manager, and a "
+            "mocked S4 actuals feed. The first app here whose whole job is reading across the "
+            "others, never a shared database."
+        ),
+        owning_team="Matt (informal enabling team)",
+        team_type="enabling",
+        scope="project",
+        category="project",
+        capability=cap_performance,
+        url=None,
+    )
+
     db.session.add_all([
         app_value_stream, app_winmax,
         app_good_plan, app_big_plan, app_qms, app_lham, app_portfolio_manager,
         app_contract_authoring, app_dwmp, app_fixer, app_scan_me, app_org_charts, app_dwmo,
+        app_scope_manager, app_reckon,
     ])
     db.session.flush()
 

@@ -22,6 +22,8 @@ APPS=(
   "org-charts-frontend|5181|/home/matthew/org-charts/frontend|source ~/.nvm/nvm.sh && npm run dev -- --host 0.0.0.0"
   "dwmo-backend|8096|/home/matthew/dude-wheres-my-order/backend|source .venv/bin/activate && DATA_DIR=/home/matthew/dude-wheres-my-order/data python app.py"
   "dwmo-frontend|5182|/home/matthew/dude-wheres-my-order/frontend|source ~/.nvm/nvm.sh && npm run dev -- --host 0.0.0.0"
+  "scope-manager-backend|8097|/home/matthew/scope-manager/backend|.venv/bin/python app.py"
+  "scope-manager-frontend|5183|/home/matthew/scope-manager/frontend|source ~/.nvm/nvm.sh && npm run dev -- --host 0.0.0.0"
   "demo-shell|5180|/home/matthew/demo-shell|python3 -m http.server 5180 --bind 0.0.0.0"
 )
 # BurnedValue (port 5000) removed 2026-09-12 - being retired in favor of "Good Plan" (labor
