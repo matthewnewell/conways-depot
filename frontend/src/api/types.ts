@@ -42,15 +42,15 @@ export type AppScope = 'project' | 'organizational'
 export type AppCategory = 'agreement' | 'enterprise' | 'project' | 'technical' | 'general'
 export const APP_CATEGORIES: AppCategory[] = [
   'agreement',
-  'enterprise',
   'project',
   'technical',
+  'enterprise',
   'general',
 ]
 export const CATEGORY_LABEL: Record<AppCategory, string> = {
-  agreement: 'Agreement',
-  enterprise: 'Enterprise',
-  project: 'Project',
+  agreement: 'Agreements',
+  enterprise: 'Organizational',
+  project: 'Projects',
   technical: 'Technical',
   general: 'General',
 }
