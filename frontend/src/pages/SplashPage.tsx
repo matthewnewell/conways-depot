@@ -195,21 +195,14 @@ export default function SplashPage() {
             <p className="splash-why__cite">
               Melvin E. Conway · <em>How Do Committees Invent?</em> · 1968
             </p>
-            <div className="splash-why__prose">
-              <p>
-                Every system an organization builds — including its operational software —
-                mirrors how its teams communicate. When BD, Contracts, and Execution work across
-                organizational seams, their tools become siloed, and that's where cost, delay,
-                and rework collect.
+            <div className="splash-theory">
+              <p className="splash-theory__body">
+                Conway's Depot puts this into practice — the full picture, simplified for
+                leadership.
               </p>
-              <p>
-                The seam doesn't close on its own — but the groups on either side can share one
-                reference. That's what Conway's Depot is: a project's id, and a live map of which
-                app holds which piece — the way an app store lets independent developers ship to
-                one phone without ever coordinating. Teams with different roadmaps and
-                vocabularies still line up around the same project, and nobody has to reorganize
-                to make it happen.
-              </p>
+              <Link className="splash-btn splash-btn--ghost" to="/theory-of-operations">
+                Theory of Operations →
+              </Link>
             </div>
           </section>
 
@@ -220,18 +213,6 @@ export default function SplashPage() {
             </div>
             <Link className="splash-btn splash-btn--primary" to="/admin">
               Create a project →
-            </Link>
-          </section>
-
-          <section className="splash-why splash-theory">
-            <div className="splash-theory__text">
-              <span className="splash-eyebrow">Theory of Operations</span>
-              <p className="splash-theory__body">
-                Why Conway's Depot is built the way it is — explained simply, for leadership.
-              </p>
-            </div>
-            <Link className="splash-btn splash-btn--ghost" to="/theory-of-operations">
-              View the presentation →
             </Link>
           </section>
         </div>

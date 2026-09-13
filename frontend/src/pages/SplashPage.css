@@ -271,11 +271,14 @@
   color: rgba(255, 255, 255, 0.66);
 }
 
-/* ── Theory of Operations — same tile/eyebrow treatment as the Conway's Law
-   section above it (reuses .splash-why), same row alignment as the CTA band:
-   text on the left, action on the right, one row. ───────────────────────── */
+/* ── Theory of Operations — folded into the same Conway's Law tile instead of
+   a separate one, as a closing row: lead-in on the left, link on the right,
+   same row alignment as the CTA band below it. ───────────────────────────── */
 
 .splash-theory {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--color-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -283,12 +286,9 @@
   flex-wrap: wrap;
 }
 
-.splash-theory__text {
-  min-width: 0;
-}
-
 .splash-theory__body {
-  margin: 6px 0 0;
+  margin: 0;
+  min-width: 0;
   font-size: 0.88rem;
   line-height: 1.7;
   color: var(--color-text-secondary);
