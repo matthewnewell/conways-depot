@@ -257,10 +257,9 @@ export default function TheoryOfOperationsPage() {
             handoffs of the team using it.
           </p>
           <p>
-            Grounding our Theory of Operations in Conway&rsquo;s Law inverts that. Designing
-            AI&#8209;augmented workflows around actual human communication boundaries — instead of
-            forcing a rigid software model onto legacy operations — is what turns isolated AI
-            experiments into capabilities that hold up at enterprise scale.
+            Designing AI&#8209;augmented workflows around actual human communication boundaries —
+            instead of forcing a rigid software model onto legacy operations — is what turns
+            isolated AI experiments into capabilities that hold up at enterprise scale.
           </p>
         </section>
 
