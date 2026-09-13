@@ -197,8 +197,8 @@ export default function SplashPage() {
             </p>
             <div className="splash-theory">
               <p className="splash-theory__body">
-                Conway's Depot accepts this law and is built to let systems, apps, and
-                communication thrive across the organization — even as it evolves and matures.
+                Conway's Depot is built to let systems, apps, and communication thrive across
+                the organization — even as it evolves and matures.
               </p>
               <Link className="splash-btn splash-btn--ghost" to="/theory-of-operations">
                 Theory of Operations →
