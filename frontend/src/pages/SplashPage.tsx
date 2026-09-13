@@ -224,10 +224,12 @@ export default function SplashPage() {
           </section>
 
           <section className="splash-why splash-theory">
-            <span className="splash-eyebrow">Theory of Operations</span>
-            <p className="splash-theory__body">
-              Why Conway's Depot is built the way it is — explained simply, for leadership.
-            </p>
+            <div className="splash-theory__text">
+              <span className="splash-eyebrow">Theory of Operations</span>
+              <p className="splash-theory__body">
+                Why Conway's Depot is built the way it is — explained simply, for leadership.
+              </p>
+            </div>
             <a
               className="splash-btn splash-btn--ghost"
               href="https://claude.ai/code/artifact/ed6bd500-1e73-4fd4-9ab6-2ea6bca40d95"
