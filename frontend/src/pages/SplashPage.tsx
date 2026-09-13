@@ -174,10 +174,6 @@ export default function SplashPage() {
               ))}
             </svg>
             </div>
-            <figcaption className="splash-figure__caption">
-              The project picks which apps plug into its thread. The id stays the same the whole
-              way through — and keeps every record attributed.
-            </figcaption>
           </figure>
 
           <section className="splash-features">

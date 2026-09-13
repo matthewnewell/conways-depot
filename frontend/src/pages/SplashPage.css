@@ -151,15 +151,6 @@
   fill: var(--color-text);
 }
 
-.splash-figure__caption {
-  margin: 18px auto 0;
-  max-width: 34rem;
-  text-align: center;
-  font-size: 0.8rem;
-  line-height: 1.5;
-  color: var(--color-text-faint);
-}
-
 /* ── feature cards ───────────────────────────────────────────────────────── */
 
 .splash-features {
