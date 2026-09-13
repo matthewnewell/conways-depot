@@ -13,15 +13,17 @@ import { usePersona } from '../lib/persona'
 import './depot-shared.css'
 import './ApplicationDetailPage.css'
 
-/** The "show page" for one Application — everything the registry list doesn't have room for
- * (which of your projects it's connected to, full description, the registry entry, the deep
- * link). */
+/** The "show page" for one Application — an app-store product page: name, category, a Test
+ * Drive / Add-to-project action pair up top, a compact one-line Registry strip under that, and
+ * the connected-projects list below. */
 export default function ApplicationDetailPage() {
   const { applicationId } = useParams<{ applicationId: string }>()
   const { data: app, isLoading } = useApplication(applicationId)
 
   if (!applicationId) return null
   if (isLoading || !app) return <div className="app-detail-page__loading">Loading…</div>
+
+  const categories = app.categories?.length ? app.categories : [app.category ?? 'general']
 
   return (
     <div className="app-detail-page">
@@ -33,7 +35,8 @@ export default function ApplicationDetailPage() {
               {app.description || 'No description recorded.'}
             </p>
           </div>
-          <div className="app-detail-page__header-action">
+          <div className="app-detail-page__header-actions">
+            <AddToProjectControl app={app} />
             {app.url ? (
               <TestDrive appId={app.id} url={app.url} />
             ) : (
@@ -42,39 +45,33 @@ export default function ApplicationDetailPage() {
           </div>
         </header>
 
-        <ConnectedProjects app={app} />
+        <div className="app-detail-page__registry">
+          <span className="app-detail-page__registry-eyebrow">Registry</span>
+          <RegistryFact label="Category" value={categories.map((c) => CATEGORY_LABEL[c]).join(', ')} />
+          <RegistryFact label="Capability" value={app.capability_name ?? '—'} />
+          <RegistryFact label="Owning team" value={app.owning_team ?? '—'} />
+          <RegistryFact
+            label="Projects using it"
+            value={
+              app.project_count === 0
+                ? 'None yet'
+                : `${app.project_count} project${app.project_count === 1 ? '' : 's'}`
+            }
+          />
+        </div>
 
-        <section className="depot-section">
-          <h2 className="depot-section__title">Registry entry</h2>
-          <div className="app-detail-page__facts">
-            <div className="app-detail-page__fact">
-              <span className="app-detail-page__fact-label">Category</span>
-              <span className="app-detail-page__fact-value">
-                {(app.categories?.length ? app.categories : [app.category ?? 'general'])
-                  .map((c) => CATEGORY_LABEL[c])
-                  .join(', ')}
-              </span>
-            </div>
-            <div className="app-detail-page__fact">
-              <span className="app-detail-page__fact-label">Capability</span>
-              <span className="app-detail-page__fact-value">{app.capability_name ?? '—'}</span>
-            </div>
-            <div className="app-detail-page__fact">
-              <span className="app-detail-page__fact-label">Owning team</span>
-              <span className="app-detail-page__fact-value">{app.owning_team ?? '—'}</span>
-            </div>
-            <div className="app-detail-page__fact">
-              <span className="app-detail-page__fact-label">Projects using it</span>
-              <span className="app-detail-page__fact-value">
-                {app.project_count === 0
-                  ? 'None yet'
-                  : `${app.project_count} project${app.project_count === 1 ? '' : 's'}`}
-              </span>
-            </div>
-          </div>
-        </section>
+        <ConnectedProjects app={app} />
       </div>
     </div>
+  )
+}
+
+function RegistryFact({ label, value }: { label: string; value: string }) {
+  return (
+    <span className="app-detail-page__registry-item">
+      <span className="app-detail-page__registry-label">{label}</span>
+      <span className="app-detail-page__registry-value">{value}</span>
+    </span>
   )
 }
 
@@ -117,21 +114,23 @@ function TestDrive({ appId, url }: { appId: string; url: string }) {
   )
 }
 
-/** "Connected projects" — the App-Store-style strip up top: which of the active persona's
- * projects connect this app, with quick add / remove. Admin sees every project. */
-function ConnectedProjects({ app }: { app: Application }) {
+/** The header's other action — "Add to project", a compact select + button pair living next to
+ * Test Drive instead of buried in its own full-width card. Renders nothing once there's nothing
+ * left to add (no persona yet, persona is on no projects, or every one of them is connected). */
+function AddToProjectControl({ app }: { app: Application }) {
   const { persona } = usePersona()
-  const navigate = useNavigate()
   const connect = useConnectAppToProject(app.id)
-  const disconnect = useDisconnectAppFromProject(app.id)
   const [addProjectId, setAddProjectId] = useState('')
 
-  if (!persona) return null
+  if (!persona || persona.projects.length === 0) return null
 
-  const myProjectIds = new Set(persona.projects.map((p) => p.id))
-  const connectedHere = (app.project_links ?? []).filter((pl) => myProjectIds.has(pl.project_id))
-  const connectedIds = new Set(connectedHere.map((pl) => pl.project_id))
+  const connectedIds = new Set(
+    (app.project_links ?? [])
+      .filter((pl) => persona.projects.some((p) => p.id === pl.project_id))
+      .map((pl) => pl.project_id),
+  )
   const addable = persona.projects.filter((p) => !connectedIds.has(p.id))
+  if (addable.length === 0) return null
 
   function handleAdd() {
     const proj = addable.find((p) => p.id === addProjectId)
@@ -141,6 +140,40 @@ function ConnectedProjects({ app }: { app: Application }) {
       { onSuccess: () => setAddProjectId('') },
     )
   }
+
+  return (
+    <div className="app-detail-page__add">
+      <select value={addProjectId} onChange={(e) => setAddProjectId(e.target.value)}>
+        <option value="">Add to a project…</option>
+        {addable.map((p) => (
+          <option key={p.id} value={p.id}>
+            {p.name}
+          </option>
+        ))}
+      </select>
+      <button
+        className="app-detail-page__add-btn"
+        onClick={handleAdd}
+        disabled={!addProjectId || connect.isPending}
+      >
+        {connect.isPending ? 'Adding…' : 'Add'}
+      </button>
+    </div>
+  )
+}
+
+/** "Connected projects" — which of the active persona's projects connect this app, as chips
+ * with a quick remove. The add control lives in the header now (see AddToProjectControl); this
+ * section is read/remove only. Admin sees every project. */
+function ConnectedProjects({ app }: { app: Application }) {
+  const { persona } = usePersona()
+  const navigate = useNavigate()
+  const disconnect = useDisconnectAppFromProject(app.id)
+
+  if (!persona) return null
+
+  const myProjectIds = new Set(persona.projects.map((p) => p.id))
+  const connectedHere = (app.project_links ?? []).filter((pl) => myProjectIds.has(pl.project_id))
 
   function handleRemove(pl: AppProjectLink) {
     if (!confirm(`Remove ${app.name} from ${pl.project_name}? It stays in the registry.`)) return
@@ -155,55 +188,29 @@ function ConnectedProjects({ app }: { app: Application }) {
 
       {persona.projects.length === 0 ? (
         <p className="depot-section__body">You're not on any projects.</p>
-      ) : (
-        <>
-          {connectedHere.length > 0 ? (
-            <div className="app-detail-page__conns">
-              {connectedHere.map((pl) => (
-                <div key={pl.link_id} className="app-detail-page__conn">
-                  <button
-                    className="app-detail-page__conn-name"
-                    onClick={() => navigate(`/projects/${pl.project_id}`)}
-                  >
-                    {pl.project_name}
-                  </button>
-                  <button
-                    className="app-detail-page__conn-remove"
-                    onClick={() => handleRemove(pl)}
-                    disabled={disconnect.isPending}
-                  >
-                    Remove
-                  </button>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="depot-section__body">Not connected to any of your projects yet.</p>
-          )}
-
-          {addable.length > 0 && (
-            <div className="app-detail-page__add">
-              <select
-                value={addProjectId}
-                onChange={(e) => setAddProjectId(e.target.value)}
-              >
-                <option value="">Add to a project…</option>
-                {addable.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
+      ) : connectedHere.length > 0 ? (
+        <div className="app-detail-page__conns">
+          {connectedHere.map((pl) => (
+            <div key={pl.link_id} className="app-detail-page__conn-chip">
               <button
-                className="app-detail-page__add-btn"
-                onClick={handleAdd}
-                disabled={!addProjectId || connect.isPending}
+                className="app-detail-page__conn-name"
+                onClick={() => navigate(`/projects/${pl.project_id}`)}
               >
-                {connect.isPending ? 'Adding…' : 'Add'}
+                {pl.project_name}
+              </button>
+              <button
+                className="app-detail-page__conn-remove"
+                onClick={() => handleRemove(pl)}
+                disabled={disconnect.isPending}
+                title={`Remove from ${pl.project_name}`}
+              >
+                ✕
               </button>
             </div>
-          )}
-        </>
+          ))}
+        </div>
+      ) : (
+        <p className="depot-section__body">Not connected to any of your projects yet.</p>
       )}
     </section>
   )
