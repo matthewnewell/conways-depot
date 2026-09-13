@@ -114,17 +114,17 @@ def seed_if_empty():
     app_labor_supply_demand = Application(
         name="Labor Supply & Demand",
         description=(
-            "Not yet built — where a functional/resource manager sees labor demand rolled up "
-            "across every project (read live from Good Plan) and commits real people or "
-            "headcount against it. Staffing only — not a general organizational dashboard. "
-            "15288 Organizational Project-Enabling: Human Resource Management (6.2.4)."
+            "Where a functional/resource manager sees labor demand rolled up across every "
+            "project (read live from Good Plan) and commits real people or headcount against "
+            "it. Staffing only — not a general organizational dashboard. 15288 Organizational "
+            "Project-Enabling: Human Resource Management (6.2.4)."
         ),
-        owning_team=None,
-        team_type=None,
+        owning_team="Matt (informal enabling team)",
+        team_type="enabling",
         scope="organizational",
         category="enterprise",  # 15288 Organizational Project-Enabling — Resource Management
         capability=cap_staffing,
-        url=None,
+        url="http://localhost:5184",
     )
     cap_qms = Capability(
         name="Quality Management",

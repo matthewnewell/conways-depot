@@ -24,6 +24,8 @@ APPS=(
   "dwmo-frontend|5182|/home/matthew/dude-wheres-my-order/frontend|source ~/.nvm/nvm.sh && npm run dev -- --host 0.0.0.0"
   "scope-manager-backend|8097|/home/matthew/scope-manager/backend|.venv/bin/python app.py"
   "scope-manager-frontend|5183|/home/matthew/scope-manager/frontend|source ~/.nvm/nvm.sh && npm run dev -- --host 0.0.0.0"
+  "labor-supply-demand-backend|8098|/home/matthew/labor-supply-demand/backend|.venv/bin/python app.py"
+  "labor-supply-demand-frontend|5184|/home/matthew/labor-supply-demand/frontend|source ~/.nvm/nvm.sh && npm run dev -- --host 0.0.0.0"
   "demo-shell|5180|/home/matthew/demo-shell|python3 -m http.server 5180 --bind 0.0.0.0"
 )
 # BurnedValue (port 5000) removed 2026-09-12 - being retired in favor of "Good Plan" (labor
