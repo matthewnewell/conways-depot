@@ -252,9 +252,8 @@ export default function TheoryOfOperationsPage() {
             </li>
           </ul>
           <p>
-            Conway&rsquo;s Law says an organization&rsquo;s structure inevitably shapes the systems it
-            produces. When an AI tool fails, it&rsquo;s rarely the model&rsquo;s underlying performance —
-            it&rsquo;s that the tool was built without mapping to the real communication paths and
+            When an AI tool fails, it&rsquo;s rarely the model&rsquo;s underlying performance — it&rsquo;s
+            that the tool was built without mapping to the real communication paths and
             handoffs of the team using it.
           </p>
           <p>
