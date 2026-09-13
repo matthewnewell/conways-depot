@@ -148,11 +148,11 @@ def seed_if_empty():
     )
     app_lham = Application(
         name="Let's Have a Meeting",
-        description="Not yet built — summons projects to report to the organization on a cadence. 15288 Organizational Project-Enabling: Portfolio Management (6.2.3).",
+        description="Summon projects for review",
         owning_team=None,
         team_type=None,
         scope="organizational",
-        category="enterprise",
+        category="enterprise,project",  # 15288 Organizational Project-Enabling: Portfolio Management (6.2.3)
         capability=cap_portfolio_mgmt,
         url=None,
     )
