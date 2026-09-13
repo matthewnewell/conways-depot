@@ -222,6 +222,25 @@ export default function SplashPage() {
               Create a project →
             </Link>
           </section>
+
+          <section className="splash-theory">
+            <h2 className="splash-theory__title">Theory of Operations</h2>
+            <p className="splash-theory__body">
+              A few ideas explain why it's built this way — Conway's Law (org shape becomes
+              system shape), one digital thread per project, apps that stay separate and
+              solution-agnostic, everything tied together and AI-enabled, and communication
+              built to flow cleanly across departments, projects, portfolios, and the
+              organization.
+            </p>
+            <a
+              className="splash-btn splash-btn--ghost"
+              href="https://claude.ai/code/artifact/ed6bd500-1e73-4fd4-9ab6-2ea6bca40d95"
+              target="_blank"
+              rel="noreferrer"
+            >
+              View the presentation →
+            </a>
+          </section>
         </div>
       </div>
     </div>

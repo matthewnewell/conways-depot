@@ -271,6 +271,34 @@
   color: rgba(255, 255, 255, 0.66);
 }
 
+/* ── Theory of Operations — a quiet closing footnote, not another CTA ─────── */
+
+.splash-theory {
+  margin-top: 40px;
+  padding-top: 28px;
+  border-top: 1px solid var(--color-border);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.splash-theory__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.splash-theory__body {
+  margin: 0;
+  max-width: 62ch;
+  font-size: 0.85rem;
+  line-height: 1.65;
+  color: var(--color-text-secondary);
+}
+
 /* ── responsive ──────────────────────────────────────────────────────────── */
 
 @media (max-width: 720px) {
