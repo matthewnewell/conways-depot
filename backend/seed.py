@@ -251,10 +251,30 @@ def seed_if_empty():
         capability=cap_org_structure,
         url="http://localhost:5181",
     )
+    cap_procurement = Capability(
+        name="Procurement Status Visibility",
+        description="Where a purchase order actually is on the way in — material master, PR, PO, received, inspected, in inventory, assigned to demand — and a shared way to flag it for expedite. The procurement-side counterpart to Manufacturing Status Visibility.",
+    )
+    db.session.add(cap_procurement)
+    db.session.flush()
+    app_dwmo = Application(
+        name="Dude, Where's My Order?",
+        description=(
+            "Every order line, from material master to assigned-to-demand, over an on-demand "
+            "S4 procurement extract — not a new system of record. The procurement-side sibling "
+            "of Dude, Where's My Part?"
+        ),
+        owning_team="Matt (informal enabling team)",
+        team_type="enabling",
+        scope="project",
+        category="project,agreement",
+        capability=cap_procurement,
+        url="http://localhost:5182",
+    )
     db.session.add_all([
         app_value_stream, app_winmax,
         app_good_plan, app_big_plan, app_qms, app_lham, app_portfolio_manager,
-        app_contract_authoring, app_dwmp, app_fixer, app_scan_me, app_org_charts,
+        app_contract_authoring, app_dwmp, app_fixer, app_scan_me, app_org_charts, app_dwmo,
     ])
     db.session.flush()
 

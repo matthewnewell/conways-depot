@@ -20,6 +20,8 @@ APPS=(
   "scan-me-frontend|5179|/home/matthew/scan-me/frontend|source ~/.nvm/nvm.sh && npm run dev -- --host 0.0.0.0"
   "org-charts-backend|8095|/home/matthew/org-charts/backend|source .venv/bin/activate && DATA_DIR=/home/matthew/org-charts/data python app.py"
   "org-charts-frontend|5181|/home/matthew/org-charts/frontend|source ~/.nvm/nvm.sh && npm run dev -- --host 0.0.0.0"
+  "dwmo-backend|8096|/home/matthew/dude-wheres-my-order/backend|source .venv/bin/activate && DATA_DIR=/home/matthew/dude-wheres-my-order/data python app.py"
+  "dwmo-frontend|5182|/home/matthew/dude-wheres-my-order/frontend|source ~/.nvm/nvm.sh && npm run dev -- --host 0.0.0.0"
   "demo-shell|5180|/home/matthew/demo-shell|python3 -m http.server 5180 --bind 0.0.0.0"
 )
 # BurnedValue (port 5000) removed 2026-09-12 - being retired in favor of "Good Plan" (labor
