@@ -255,6 +255,29 @@
   text-underline-offset: 2px;
 }
 
+/* Source citation — a small, quiet tag after the sentence it backs, not a link woven into the
+   sentence itself. Reuses the page's mono/label voice (see .theory-entry__term em). */
+.theory-matters a.theory-matters__source {
+  display: inline-block;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--ink-faint);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.theory-matters a.theory-matters__source::before {
+  content: '— ';
+}
+
+.theory-matters a.theory-matters__source:hover {
+  color: var(--teal);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .theory-matters__stats {
   list-style: none;
   margin: 18px 0;

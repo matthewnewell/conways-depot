@@ -222,33 +222,42 @@ export default function TheoryOfOperationsPage() {
           <ul className="theory-matters__stats">
             <li>
               <span className="theory-matters__stat-label">High project failure rates</span>
-              Independent studies (such as{' '}
-              <a href="https://www.rand.org/pubs/research_reports/RRA2680-1.html" target="_blank" rel="noopener noreferrer">
-                RAND Corporation benchmarking
+              Roughly 80% of enterprise AI implementations fail — nearly double the failure
+              rate of standard non&#8209;AI IT deployments.{' '}
+              <a
+                className="theory-matters__source"
+                href="https://www.rand.org/pubs/research_reports/RRA2680-1.html"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                RAND Corporation
               </a>
-              ) indicate that roughly 80% of enterprise AI implementations fail — nearly double
-              the failure rate of standard non&#8209;AI IT deployments.
             </li>
             <li>
               <span className="theory-matters__stat-label">Pilot purgatory</span>
-              Research from the{' '}
-              <a href="https://nanda.media.mit.edu/ai_report_2025.pdf" target="_blank" rel="noopener noreferrer">
+              95% of generative&#8209;AI pilot programs never reach enterprise&#8209;scale
+              production or meaningful revenue impact.{' '}
+              <a
+                className="theory-matters__source"
+                href="https://nanda.media.mit.edu/ai_report_2025.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 MIT NANDA Initiative
-              </a>{' '}
-              shows that 95% of generative&#8209;AI pilot programs never reach enterprise&#8209;scale
-              production or meaningful revenue impact.
+              </a>
             </li>
             <li>
               <span className="theory-matters__stat-label">Wasted capital, scrapped initiatives</span>
+              42% of AI initiatives are abandoned mid&#8209;stream — primarily from workflow and
+              integration bottlenecks, not raw algorithmic limits.{' '}
               <a
+                className="theory-matters__source"
                 href="https://www.spglobal.com/market-intelligence/en/news-insights/research/2025/10/generative-ai-shows-rapid-growth-but-yields-mixed-results"
                 target="_blank"
                 rel="noopener noreferrer"
               >
                 S&amp;P Global Market Intelligence
-              </a>{' '}
-              reports that 42% of AI initiatives are abandoned mid&#8209;stream — primarily from
-              workflow and integration bottlenecks, not raw algorithmic limits.
+              </a>
             </li>
           </ul>
           <p>
