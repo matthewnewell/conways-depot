@@ -218,7 +218,6 @@
   font-size: 0.98rem;
   line-height: 1.65;
   color: var(--ink-soft);
-  max-width: 60ch;
 }
 
 @media (max-width: 560px) {
