@@ -29,12 +29,10 @@ export default function TheoryOfOperationsPage() {
   return (
     <div className="theory-page">
       <div className="theory-page__inner">
-        <Link className="theory-back" to="/about">
-          ← Conway&rsquo;s Depot
-        </Link>
-
         <header className="theory-masthead">
-          <span className="theory-eyebrow">Conway&rsquo;s Depot</span>
+          <Link className="theory-eyebrow" to="/about">
+            ← Conway&rsquo;s Depot
+          </Link>
           <h1>Theory of Operations</h1>
           <p className="theory-masthead__thesis">
             A system ends up shaped like the organization that built it.

@@ -77,31 +77,25 @@
 
 /* ── back link ──────────────────────────────────────────────────────────── */
 
-.theory-back {
-  display: inline-block;
-  margin-bottom: 28px;
-  font-family: 'IBM Plex Mono', ui-monospace, monospace;
-  font-size: 0.76rem;
-  font-weight: 500;
-  color: var(--ink-faint);
-  text-decoration: none;
-}
-
-.theory-back:hover {
-  color: var(--teal);
-}
-
 /* ── masthead ───────────────────────────────────────────────────────────── */
 
+/* Doubles as the back link — no separate "← Conway's Depot" line above it,
+   which just repeated the same words a second time. */
 .theory-eyebrow {
-  display: block;
+  display: inline-block;
   font-family: 'IBM Plex Mono', ui-monospace, monospace;
   font-size: 0.72rem;
   font-weight: 500;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--teal);
+  text-decoration: none;
   margin-bottom: 14px;
+}
+
+.theory-eyebrow:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .theory-masthead h1 {
