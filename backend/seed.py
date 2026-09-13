@@ -68,12 +68,8 @@ def seed_if_empty():
         name="Contract & Legal Authoring",
         description="Shared templates, clause libraries, and legal review used to write any contract — distinct from tracking one project's specific SOWs.",
     )
-    cap_identity = Capability(
-        name="Identity & Project Membership",
-        description="Who is on which project — the roster every app's 'my work' view filters against. The nav persona switcher is a demo stand-in; the real thing isn't built.",
-    )
     db.session.add_all([
-        cap_capture, cap_vsm, cap_staffing, cap_contract_authoring, cap_identity,
+        cap_capture, cap_vsm, cap_staffing, cap_contract_authoring,
     ])
     db.session.flush()
 
@@ -104,9 +100,9 @@ def seed_if_empty():
     app_good_plan = Application(
         name="Good Plan",
         description=(
-            "A single project defines its own labor demand — role, FTE, and dates — before "
-            "anyone commits a real person to it. Project-scoped: one project's demand, not "
-            "the organization's supply. The organizational counterpart is Big Plan."
+            "For projects: a project defines its own labor demand — role, FTE, and dates — "
+            "before anyone commits a real person to it. The organizational counterpart is "
+            "Big Plan."
         ),
         owning_team="Matt (informal enabling team)",
         team_type="enabling",
@@ -118,11 +114,10 @@ def seed_if_empty():
     app_big_plan = Application(
         name="Big Plan",
         description=(
-            "Not yet built — where a functional/resource manager commits actual capacity, "
-            "organization-wide, against the labor demand every project declares in Good "
-            "Plan. Organization-scoped: aggregate labor supply and demand across all "
-            "projects, not one project's own request. 15288 Organizational "
-            "Project-Enabling: Human Resource Management (6.2.4)."
+            "Not yet built — organizational labor supply and demand: where a functional/"
+            "resource manager commits actual capacity, org-wide, against the labor demand "
+            "every project declares in Good Plan. 15288 Organizational Project-Enabling: "
+            "Human Resource Management (6.2.4)."
         ),
         owning_team=None,
         team_type=None,
@@ -175,20 +170,6 @@ def seed_if_empty():
         capability=cap_portfolio_mgmt,
         url=None,
     )
-    app_people_directory = Application(
-        name="People & Access Directory",
-        description=(
-            "Not yet built — the roster of who's on which project, and the access rules that "
-            "would follow from it. The persona switcher in the nav is a demo illustration of "
-            "the capability, not the real system."
-        ),
-        owning_team=None,
-        team_type=None,
-        scope="organizational",
-        category="enterprise",  # 15288 Organizational Project-Enabling — Resource / HR Management
-        capability=cap_identity,
-        url=None,
-    )
     app_contract_authoring = Application(
         name="Contract & Legal Authoring",
         description="Ron's Contract and Legal Authoring",
@@ -232,7 +213,7 @@ def seed_if_empty():
     db.session.add_all([
         app_value_stream, app_winmax,
         app_good_plan, app_big_plan, app_qms, app_lham, app_portfolio_manager,
-        app_people_directory, app_contract_authoring, app_dwmp, app_fixer,
+        app_contract_authoring, app_dwmp, app_fixer,
     ])
     db.session.flush()
 
