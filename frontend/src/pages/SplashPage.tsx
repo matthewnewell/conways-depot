@@ -223,14 +223,10 @@ export default function SplashPage() {
             </Link>
           </section>
 
-          <section className="splash-theory">
-            <h2 className="splash-theory__title">Theory of Operations</h2>
+          <section className="splash-why splash-theory">
+            <span className="splash-eyebrow">Theory of Operations</span>
             <p className="splash-theory__body">
-              A few ideas explain why it's built this way — Conway's Law (org shape becomes
-              system shape), one digital thread per project, apps that stay separate and
-              solution-agnostic, everything tied together and AI-enabled, and communication
-              built to flow cleanly across departments, projects, portfolios, and the
-              organization.
+              Why Conway's Depot is built the way it is — explained simply, for leadership.
             </p>
             <a
               className="splash-btn splash-btn--ghost"
