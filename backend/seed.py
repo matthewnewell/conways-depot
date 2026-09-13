@@ -154,9 +154,24 @@ def seed_if_empty():
         capability=cap_manufacturing_status,
         url="http://localhost:5176",
     )
+    cap_rca_capa = Capability(
+        name="Root Cause Analysis / CAPA",
+        description="Investigating why something failed and tracking the corrective and preventive action taken so it does not happen again.",
+    )
+    db.session.add(cap_rca_capa)
+    db.session.flush()
+    app_fixer = Application(
+        name="The Fixer",
+        description="Root cause analysis (5 Whys) and CAPA, guided as you work - with an AI-guided documented plan and journal evidence, not a paperwork exercise after the fact.",
+        owning_team="Matt (informal enabling team)",
+        team_type="enabling",
+        category="technical",  # 15288 Technical Management — closest to Quality Assurance (6.3.8); no dedicated category exists
+        capability=cap_rca_capa,
+        url="http://localhost:5177",
+    )
     db.session.add_all([
         app_value_stream, app_winmax,
-        app_staffing, app_people_directory, app_contract_authoring, app_dwmp,
+        app_staffing, app_people_directory, app_contract_authoring, app_dwmp, app_fixer,
     ])
     db.session.flush()
 
