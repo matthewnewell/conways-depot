@@ -120,7 +120,7 @@ export default function TheoryOfOperationsPage() {
         <section className="theory-glossary">
           <div className="theory-entry">
             <p className="theory-entry__term">
-              Org Shape = System Shape
+              Organization Shape = System Shape
               <em>Conway&rsquo;s Law</em>
             </p>
             <p className="theory-entry__def">
