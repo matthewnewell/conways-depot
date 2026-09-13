@@ -213,15 +213,15 @@ export default function TheoryOfOperationsPage() {
         </section>
 
         <section className="theory-matters">
-          <h2>Why this matters to leadership</h2>
+          <h2>Why this matters</h2>
           <p>
-            None of this is really about the apps. It&rsquo;s about closing the gap between
-            departments — so a decision made in one place doesn&rsquo;t have to be re-discovered,
-            re-entered, or re-argued somewhere else.
+            It&rsquo;s not about the apps. It&rsquo;s about closing the gap between departments — so a
+            decision made in one place doesn&rsquo;t have to be re-discovered, re-entered, or
+            re-argued somewhere else.
           </p>
           <p>
-            The organization can keep reorganizing, and the vendors can keep changing. The
-            thread — and the communication it carries — is what stays.
+            The organization will keep reorganizing, vendors will come and go, and data lakes
+            will mature. The thread — and the communication it carries — is what stays.
           </p>
         </section>
 
