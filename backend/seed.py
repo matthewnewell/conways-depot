@@ -191,7 +191,7 @@ def seed_if_empty():
         description="Shop-floor part status and expedite visibility, over an on-demand S4 extract — not a new system of record.",
         owning_team="Matt (informal enabling team)",
         team_type="enabling",
-        category="technical",  # 15288 Technical Processes — Implementation (6.4.7) execution visibility
+        category="project",  # 15288 Project Processes — Implementation (6.4.7) execution visibility
         capability=cap_manufacturing_status,
         url="http://localhost:5176",
     )
@@ -206,7 +206,7 @@ def seed_if_empty():
         description="Root cause analysis (5 Whys) and CAPA, guided as you work - with an AI-guided documented plan and journal evidence, not a paperwork exercise after the fact.",
         owning_team="Matt (informal enabling team)",
         team_type="enabling",
-        category="technical",  # 15288 Technical Management — closest to Quality Assurance (6.3.8); no dedicated category exists
+        category="project",  # 15288 Project Processes — closest to Quality Assurance (6.3.8); no dedicated category exists
         capability=cap_rca_capa,
         url="http://localhost:5177",
     )
