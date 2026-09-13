@@ -52,7 +52,6 @@ export default function ApplicationDetailPage() {
             </p>
 
             <div className="app-detail-page__registry-tile">
-              <h2 className="app-detail-page__registry-heading">Registry</h2>
               <RegistryRow label="Category" value={categories.map((c) => CATEGORY_LABEL[c]).join(', ')} />
               <RegistryRow label="Capability" value={app.capability_name ?? '—'} />
               <RegistryRow label="Owning team" value={app.owning_team ?? '—'} />
@@ -94,11 +93,12 @@ function TestDrive({ appId, url }: { appId: string; url: string }) {
       ) : (
         <span className="app-detail-page__testdrive-off">Test drive →</span>
       )}
-      <div className="app-detail-page__testdrive-meta">
-        <span className="app-detail-page__testdrive-state">
-          {isLoading ? 'checking…' : reachable ? 'running' : 'not running'}
-        </span>
-        {!isLoading && !reachable && (
+      {/* The button itself already says whether it's live (primary + clickable) or not
+          (muted, off) — this row only needs to appear when it's NOT running, to explain why
+          and offer a recheck. Nothing to add when it is running. */}
+      {!isLoading && !reachable && (
+        <div className="app-detail-page__testdrive-meta">
+          <span className="app-detail-page__testdrive-state">not running</span>
           <button
             className="app-detail-page__testdrive-recheck"
             onClick={() => refetch()}
@@ -106,8 +106,8 @@ function TestDrive({ appId, url }: { appId: string; url: string }) {
           >
             {isFetching ? 'checking…' : 'check again'}
           </button>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   )
 }

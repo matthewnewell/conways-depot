@@ -105,15 +105,6 @@
   border-radius: var(--radius-md);
 }
 
-.app-detail-page__registry-heading {
-  margin: 0;
-  font-size: 0.68rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--color-text-faint);
-}
-
 .app-detail-page__registry-row {
   display: flex;
   flex-direction: column;
