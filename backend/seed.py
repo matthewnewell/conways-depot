@@ -102,7 +102,7 @@ def seed_if_empty():
         description=(
             "For projects: a project defines its own labor demand — role, FTE, and dates — "
             "before anyone commits a real person to it. The organizational counterpart is "
-            "Big Plan."
+            "Labor Supply & Demand."
         ),
         owning_team="Matt (informal enabling team)",
         team_type="enabling",
@@ -111,13 +111,13 @@ def seed_if_empty():
         capability=cap_staffing,
         url="http://localhost:5178",
     )
-    app_big_plan = Application(
-        name="Big Plan",
+    app_labor_supply_demand = Application(
+        name="Labor Supply & Demand",
         description=(
-            "Not yet built — organizational labor supply and demand: where a functional/"
-            "resource manager commits actual capacity, org-wide, against the labor demand "
-            "every project declares in Good Plan. 15288 Organizational Project-Enabling: "
-            "Human Resource Management (6.2.4)."
+            "Not yet built — where a functional/resource manager sees labor demand rolled up "
+            "across every project (read live from Good Plan) and commits real people or "
+            "headcount against it. Staffing only — not a general organizational dashboard. "
+            "15288 Organizational Project-Enabling: Human Resource Management (6.2.4)."
         ),
         owning_team=None,
         team_type=None,
@@ -300,22 +300,23 @@ def seed_if_empty():
     app_reckon = Application(
         name="Reckon",
         description=(
-            "Not yet built — a project-execution dashboard computing real cost and schedule "
-            "performance per charge number, read-only across Good Plan, Scope Manager, and a "
-            "mocked S4 actuals feed. The first app here whose whole job is reading across the "
-            "others, never a shared database."
+            "Not yet built — a cost and schedule performance dashboard, read-only across "
+            "Good Plan, Scope Manager, and a mocked S4 actuals feed, computing real earned "
+            "value per charge number. Scales from a single project's own view up to an "
+            "organization-wide/portfolio rollup — the same underlying data, just aggregated "
+            "differently."
         ),
         owning_team="Matt (informal enabling team)",
         team_type="enabling",
         scope="project",
-        category="project",
+        category="project,enterprise",
         capability=cap_performance,
         url=None,
     )
 
     db.session.add_all([
         app_value_stream, app_winmax,
-        app_good_plan, app_big_plan, app_qms, app_lham, app_portfolio_manager,
+        app_good_plan, app_labor_supply_demand, app_qms, app_lham, app_portfolio_manager,
         app_contract_authoring, app_dwmp, app_fixer, app_scan_me, app_org_charts, app_dwmo,
         app_scope_manager, app_reckon,
     ])
