@@ -249,6 +249,40 @@
   margin-top: 12px;
 }
 
+.theory-matters a {
+  color: var(--teal);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.theory-matters__stats {
+  list-style: none;
+  margin: 18px 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.theory-matters__stats li {
+  padding-left: 18px;
+  border-left: 2px solid var(--line);
+  font-size: 1rem;
+  line-height: 1.65;
+  color: var(--ink-soft);
+}
+
+.theory-matters__stat-label {
+  display: block;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 4px;
+}
+
 /* ── footer ─────────────────────────────────────────────────────────────── */
 
 .theory-footer {

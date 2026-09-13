@@ -215,13 +215,53 @@ export default function TheoryOfOperationsPage() {
         <section className="theory-matters">
           <h2>Why this matters</h2>
           <p>
-            It&rsquo;s not about the apps. It&rsquo;s about closing the gap between departments — so a
-            decision made in one place doesn&rsquo;t have to be re-discovered, re-entered, or
-            re-argued somewhere else.
+            Implementations of workplace technology can be difficult because organizations treat
+            software as an external artifact dropped onto an existing structure. Across the
+            enterprise landscape, the cost of that mismatch is stark:
+          </p>
+          <ul className="theory-matters__stats">
+            <li>
+              <span className="theory-matters__stat-label">High project failure rates</span>
+              Independent studies (such as{' '}
+              <a href="https://www.rand.org/pubs/research_reports/RRA2680-1.html" target="_blank" rel="noopener noreferrer">
+                RAND Corporation benchmarking
+              </a>
+              ) indicate that roughly 80% of enterprise AI implementations fail — nearly double
+              the failure rate of standard non&#8209;AI IT deployments.
+            </li>
+            <li>
+              <span className="theory-matters__stat-label">Pilot purgatory</span>
+              Research from the{' '}
+              <a href="https://nanda.media.mit.edu/ai_report_2025.pdf" target="_blank" rel="noopener noreferrer">
+                MIT NANDA Initiative
+              </a>{' '}
+              shows that 95% of generative&#8209;AI pilot programs never reach enterprise&#8209;scale
+              production or meaningful revenue impact.
+            </li>
+            <li>
+              <span className="theory-matters__stat-label">Wasted capital, scrapped initiatives</span>
+              <a
+                href="https://www.spglobal.com/market-intelligence/en/news-insights/research/2025/10/generative-ai-shows-rapid-growth-but-yields-mixed-results"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                S&amp;P Global Market Intelligence
+              </a>{' '}
+              reports that 42% of AI initiatives are abandoned mid&#8209;stream — primarily from
+              workflow and integration bottlenecks, not raw algorithmic limits.
+            </li>
+          </ul>
+          <p>
+            Conway&rsquo;s Law says an organization&rsquo;s structure inevitably shapes the systems it
+            produces. When an AI tool fails, it&rsquo;s rarely the model&rsquo;s underlying performance —
+            it&rsquo;s that the tool was built without mapping to the real communication paths and
+            handoffs of the team using it.
           </p>
           <p>
-            The organization will keep reorganizing, vendors will come and go, and data lakes
-            will mature. The thread — and the communication it carries — is what stays.
+            Grounding our Theory of Operations in Conway&rsquo;s Law inverts that. Designing
+            AI&#8209;augmented workflows around actual human communication boundaries — instead of
+            forcing a rigid software model onto legacy operations — is what turns isolated AI
+            experiments into capabilities that hold up at enterprise scale.
           </p>
         </section>
 
