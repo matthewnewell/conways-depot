@@ -27,18 +27,20 @@
   width: 100%;
 }
 
-/* ── Header: name + description + Test drive, one row ─────────────────────────── */
+/* ── Header: description on the left, a fixed-width action rail on the right ─────────────── */
 .app-detail-page__header {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 32px;
+  gap: 20px 32px;
   padding-bottom: 20px;
   border-bottom: 1px solid var(--color-border);
 }
 
 .app-detail-page__headline {
-  min-width: 0;
+  min-width: 260px;
+  flex: 1 1 320px;
 }
 
 .app-detail-page__title {
@@ -56,11 +58,27 @@
   max-width: 62ch;
 }
 
-.app-detail-page__header-actions {
+/* The right-hand rail: Test drive + Projects, how many projects use it, then the Registry
+   tile — everything about "where this app stands" gathered in one place beside the pitch. */
+.app-detail-page__side {
   flex-shrink: 0;
+  width: 250px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.app-detail-page__actions-row {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
+  gap: 8px;
+}
+
+.app-detail-page__using-count {
+  margin: 0;
+  font-size: 12px;
+  color: var(--color-text-secondary);
 }
 
 @media (max-width: 720px) {
@@ -69,40 +87,42 @@
     gap: 16px;
   }
 
-  .app-detail-page__header-actions {
-    flex-direction: column;
-    align-items: flex-start;
+  .app-detail-page__side {
     width: 100%;
+    align-items: flex-start;
   }
 }
 
-/* ── Registry: one compact, unboxed line under the header — an app-store "info strip," not a
-   dashboard of cards. Wraps to its own lines only on narrow screens. ─────────────────────── */
-.app-detail-page__registry {
+/* ── Registry tile — a compact card in the side rail, not a full-width dashboard row ──────── */
+.app-detail-page__registry-tile {
+  width: 100%;
   display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  row-gap: 6px;
-  column-gap: 18px;
-  padding: 2px 0 4px;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  background: var(--color-surface-sunken);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
 }
 
-.app-detail-page__registry-eyebrow {
-  font-size: 0.7rem;
+.app-detail-page__registry-heading {
+  margin: 0;
+  font-size: 0.68rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--color-text-faint);
 }
 
-.app-detail-page__registry-item {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 5px;
+.app-detail-page__registry-row {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
   font-size: 0.82rem;
 }
 
 .app-detail-page__registry-label {
+  font-size: 0.72rem;
   color: var(--color-text-faint);
 }
 
@@ -117,18 +137,12 @@
   word-break: break-all;
 }
 
-/* ── "Test drive" — the header's right-hand action ───────────────────────────── */
+/* ── "Test drive" ──────────────────────────────────────────────────────────────────────── */
 .app-detail-page__testdrive {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: 6px;
-}
-
-@media (max-width: 720px) {
-  .app-detail-page__testdrive {
-    align-items: flex-start;
-  }
 }
 
 .app-detail-page__testdrive-meta {
@@ -169,88 +183,68 @@
   text-decoration: none;
 }
 
-/* ── "Connected projects" — pill chips, read/remove only (adding lives in the header now) ──── */
-.app-detail-page__conns {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+/* ── "Projects" — the checklist dropdown that replaces the old select+Add control and the
+   standalone "Connected projects" card in one. Same open/outside-click-close recipe as
+   InfoPopover. ─────────────────────────────────────────────────────────────────────────── */
+.app-detail-page__projects {
+  position: relative;
 }
 
-.app-detail-page__conn-chip {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  background: var(--color-surface-sunken);
-  border: 1px solid var(--color-border);
-  border-radius: 999px;
-  padding: 4px 6px 4px 14px;
-}
-
-.app-detail-page__conn-name {
-  border: 0;
-  background: none;
-  padding: 0;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-text);
-  white-space: nowrap;
-}
-
-.app-detail-page__conn-name:hover {
-  color: var(--color-accent);
-}
-
-.app-detail-page__conn-remove {
-  flex-shrink: 0;
-  border: none;
-  background: transparent;
-  color: var(--color-text-faint);
-  font-size: 12px;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-}
-
-.app-detail-page__conn-remove:hover {
-  background: var(--color-critical-soft);
-  color: var(--color-critical);
-}
-
-/* ── "Add to project" — compact select + button, sized to sit in the header ──────────────── */
-.app-detail-page__add {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-}
-
-.app-detail-page__add select {
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-sm);
+.app-detail-page__projects-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 50;
+  width: max(220px, 100%);
+  padding: 10px;
   background: var(--color-surface);
-  padding: 7px 9px;
-  font-size: 12px;
-  max-width: 200px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  text-align: left;
 }
 
-.app-detail-page__add-btn {
-  border: none;
-  background: var(--color-accent);
-  color: #fff;
-  border-radius: var(--radius-sm);
-  padding: 7px 14px;
-  font-size: 12px;
+.app-detail-page__projects-heading {
+  margin: 0 0 6px;
+  font-size: 0.7rem;
   font-weight: 700;
-  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-faint);
 }
 
-.app-detail-page__add-btn:disabled {
-  background: var(--color-border-strong);
-  color: var(--color-text-faint);
+.app-detail-page__projects-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.app-detail-page__projects-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 4px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.app-detail-page__projects-item:hover {
+  background: var(--color-surface-sunken);
+}
+
+.app-detail-page__projects-item input {
+  accent-color: var(--color-accent);
+  cursor: pointer;
 }
 
 @media (max-width: 720px) {
-  .app-detail-page__add select {
-    max-width: none;
-    flex: 1;
+  .app-detail-page__projects-panel {
+    left: 0;
+    right: auto;
+    width: max(260px, 100%);
   }
 }
