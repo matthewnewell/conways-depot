@@ -191,9 +191,8 @@ export default function TheoryOfOperationsPage() {
               <em>The actual point</em>
             </p>
             <p className="theory-entry__def">
-              The payoff: departments, projects, portfolios, and the organization stay in sync on
-              the same facts, instead of six different spreadsheets telling six different
-              stories.
+              Departments, projects, portfolios, and the organization stay in sync on the same
+              facts, instead of six different spreadsheets telling six different stories.
             </p>
           </div>
 
