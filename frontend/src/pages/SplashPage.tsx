@@ -11,7 +11,7 @@ const APPS = ['Capture', 'Contracts', 'Value stream', 'Lessons learned']
 const FEATURES = [
   {
     title: 'One digital thread',
-    body: "A single id per project, issued at pursuit and never reissued. It scopes who sees what and keeps every app's records tied to the right work.",
+    body: "A single id per project, issued at pursuit and never reissued. Every app's records — and anything the project assistant looks up — are scoped to that one id alone, so it can't wander into another project's data.",
     icon: (
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <circle cx="5" cy="12" r="2.4" />
@@ -44,8 +44,8 @@ const FEATURES = [
     ),
   },
   {
-    title: 'A project assistant',
-    body: 'A top-level assistant that works across the apps a project subscribes to, over MCP — ask about the data instead of opening each app.',
+    title: 'AI project assistant',
+    body: "A top-level AI that works across every app a project subscribes to, over MCP — so you're managing the project, not drilling into each app just to check on it.",
     icon: (
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M12 3l1.7 4.8L18.5 9.5l-4.8 1.7L12 16l-1.7-4.8L5.5 9.5l4.8-1.7z" />
