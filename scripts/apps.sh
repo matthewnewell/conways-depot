@@ -18,6 +18,8 @@ APPS=(
   "good-plan-frontend|5178|/home/matthew/good-plan/frontend|source ~/.nvm/nvm.sh && npm run dev -- --host 0.0.0.0"
   "scan-me-backend|8094|/home/matthew/scan-me/backend|.venv/bin/python app.py"
   "scan-me-frontend|5179|/home/matthew/scan-me/frontend|source ~/.nvm/nvm.sh && npm run dev -- --host 0.0.0.0"
+  "org-charts-backend|8095|/home/matthew/org-charts/backend|source .venv/bin/activate && DATA_DIR=/home/matthew/org-charts/data python app.py"
+  "org-charts-frontend|5181|/home/matthew/org-charts/frontend|source ~/.nvm/nvm.sh && npm run dev -- --host 0.0.0.0"
   "demo-shell|5180|/home/matthew/demo-shell|python3 -m http.server 5180 --bind 0.0.0.0"
 )
 # BurnedValue (port 5000) removed 2026-09-12 - being retired in favor of "Good Plan" (labor

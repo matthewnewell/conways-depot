@@ -231,10 +231,30 @@ def seed_if_empty():
         capability=cap_scan,
         url="http://localhost:5179",
     )
+    cap_org_structure = Capability(
+        name="Organizational Structure & Reporting",
+        description="The company's real reporting chain — who reports to whom, from the CEO down to the shop floor — independent of any one project's own team roster.",
+    )
+    db.session.add(cap_org_structure)
+    db.session.flush()
+    app_org_charts = Application(
+        name="Org Charts",
+        description=(
+            "A graphical, drill-down view of the company's entire reporting chain, from the "
+            "CEO down to the shop floor. Simple and clean at rest, as deep as you actually "
+            "click into."
+        ),
+        owning_team="Matt (informal enabling team)",
+        team_type="enabling",
+        scope="organizational",
+        category="enterprise",
+        capability=cap_org_structure,
+        url="http://localhost:5181",
+    )
     db.session.add_all([
         app_value_stream, app_winmax,
         app_good_plan, app_big_plan, app_qms, app_lham, app_portfolio_manager,
-        app_contract_authoring, app_dwmp, app_fixer, app_scan_me,
+        app_contract_authoring, app_dwmp, app_fixer, app_scan_me, app_org_charts,
     ])
     db.session.flush()
 
