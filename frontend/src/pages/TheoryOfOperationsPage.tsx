@@ -216,8 +216,9 @@ export default function TheoryOfOperationsPage() {
           <h2>Why this matters</h2>
           <p>
             Implementations of workplace technology can be difficult because organizations treat
-            software as an external artifact dropped onto an existing structure. Across the
-            enterprise landscape, the cost of that mismatch is stark:
+            software as an external artifact dropped onto an existing structure. The challenge
+            is especially difficult when integrating AI workflow applications, where the cost of
+            that mismatch is stark:
           </p>
           <ul className="theory-matters__stats">
             <li>
