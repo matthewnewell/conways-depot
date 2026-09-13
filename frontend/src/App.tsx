@@ -5,6 +5,7 @@ import ApplicationRegistryPage from './pages/ApplicationRegistryPage'
 import ApplicationDetailPage from './pages/ApplicationDetailPage'
 import AdminPage from './pages/AdminPage'
 import SplashPage from './pages/SplashPage'
+import TheoryOfOperationsPage from './pages/TheoryOfOperationsPage'
 import DepotLayout from './pages/DepotLayout'
 
 export default function App() {
@@ -20,6 +21,7 @@ export default function App() {
         <Route path="/admin" element={<AdminPage />} />
       </Route>
       <Route path="/about" element={<SplashPage />} />
+      <Route path="/theory-of-operations" element={<TheoryOfOperationsPage />} />
     </Routes>
   )
 }

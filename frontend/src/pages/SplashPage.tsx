@@ -230,14 +230,9 @@ export default function SplashPage() {
                 Why Conway's Depot is built the way it is — explained simply, for leadership.
               </p>
             </div>
-            <a
-              className="splash-btn splash-btn--ghost"
-              href="https://claude.ai/code/artifact/ed6bd500-1e73-4fd4-9ab6-2ea6bca40d95"
-              target="_blank"
-              rel="noreferrer"
-            >
+            <Link className="splash-btn splash-btn--ghost" to="/theory-of-operations">
               View the presentation →
-            </a>
+            </Link>
           </section>
         </div>
       </div>

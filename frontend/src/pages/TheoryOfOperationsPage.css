@@ -1,0 +1,273 @@
+/* Theory of Operations — a self-contained leadership one-pager with its own typographic
+   identity (Barlow Condensed / Source Serif 4 / IBM Plex Mono), deliberately distinct from the
+   app's own system-font chrome. Same three-state light/dark token pattern as everywhere else,
+   scoped under .theory-page so it never leaks into the rest of the app. */
+
+.theory-page {
+  --ink: #182430;
+  --ink-soft: #4b5b64;
+  --ink-faint: #7c8a8c;
+  --paper: #eef1f0;
+  --surface: #ffffff;
+  --line: #d7ddda;
+  --teal: #0f766e;
+  --teal-soft: #e3f2ef;
+  --copper: #b45309;
+  --copper-soft: #fbeee0;
+  color-scheme: light;
+
+  min-height: 100%;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (prefers-color-scheme: dark) {
+  .theory-page:not([data-theme='light']) {
+    --ink: #eef2f1;
+    --ink-soft: #b7c4c2;
+    --ink-faint: #7f8f8d;
+    --paper: #101718;
+    --surface: #182122;
+    --line: #2b3839;
+    --teal: #35d1bd;
+    --teal-soft: #16302d;
+    --copper: #f0973d;
+    --copper-soft: #3a2414;
+    color-scheme: dark;
+  }
+}
+
+.theory-page[data-theme='dark'] {
+  --ink: #eef2f1;
+  --ink-soft: #b7c4c2;
+  --ink-faint: #7f8f8d;
+  --paper: #101718;
+  --surface: #182122;
+  --line: #2b3839;
+  --teal: #35d1bd;
+  --teal-soft: #16302d;
+  --copper: #f0973d;
+  --copper-soft: #3a2414;
+  color-scheme: dark;
+}
+
+.theory-page * {
+  box-sizing: border-box;
+}
+
+.theory-page__inner {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 40px 32px 96px;
+}
+
+.theory-page h1,
+.theory-page h2,
+.theory-page .display {
+  font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  text-wrap: balance;
+  letter-spacing: 0.01em;
+}
+
+.theory-page a {
+  color: var(--teal);
+}
+
+/* ── back link ──────────────────────────────────────────────────────────── */
+
+.theory-back {
+  display: inline-block;
+  margin-bottom: 28px;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 0.76rem;
+  font-weight: 500;
+  color: var(--ink-faint);
+  text-decoration: none;
+}
+
+.theory-back:hover {
+  color: var(--teal);
+}
+
+/* ── masthead ───────────────────────────────────────────────────────────── */
+
+.theory-eyebrow {
+  display: block;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--teal);
+  margin-bottom: 14px;
+}
+
+.theory-masthead h1 {
+  margin: 0 0 14px;
+  font-size: clamp(2.6rem, 7vw, 3.6rem);
+  font-weight: 700;
+  line-height: 0.98;
+  color: var(--ink);
+}
+
+.theory-masthead__thesis {
+  margin: 8px 0 0;
+  white-space: nowrap;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: clamp(1.1rem, 3vw, 1.7rem);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1.15;
+  color: var(--teal);
+}
+
+@media (max-width: 640px) {
+  .theory-masthead__thesis {
+    white-space: normal;
+  }
+}
+
+.theory-masthead__attr {
+  display: block;
+  margin-top: 8px;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+/* ── the mirrored diagram ───────────────────────────────────────────────── */
+
+.theory-diagram {
+  margin: 56px 0 0;
+}
+
+.theory-diagram svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.theory-diagram__node-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+  font-size: 17px;
+}
+
+.theory-diagram__tier-tag {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  fill: var(--ink-faint);
+}
+
+.theory-diagram__side-tag {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ── the ideas, as a glossary ───────────────────────────────────────────── */
+
+.theory-glossary {
+  margin-top: 68px;
+}
+
+.theory-entry {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 8px 32px;
+  padding: 26px 0;
+  border-top: 1px solid var(--line);
+}
+
+.theory-entry:last-child {
+  border-bottom: 1px solid var(--line);
+}
+
+.theory-entry__term {
+  margin: 0;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.theory-entry__term em {
+  display: block;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-style: normal;
+  font-size: 0.66rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-top: 5px;
+}
+
+.theory-entry__def {
+  margin: 0;
+  font-size: 0.98rem;
+  line-height: 1.65;
+  color: var(--ink-soft);
+  max-width: 60ch;
+}
+
+@media (max-width: 560px) {
+  .theory-entry {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+}
+
+/* ── why it matters ─────────────────────────────────────────────────────── */
+
+.theory-matters {
+  margin-top: 60px;
+  padding: 30px 32px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--teal);
+  border-radius: 4px;
+}
+
+.theory-matters h2 {
+  margin: 0 0 10px;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.theory-matters p {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--ink-soft);
+}
+
+.theory-matters p + p {
+  margin-top: 12px;
+}
+
+/* ── footer ─────────────────────────────────────────────────────────────── */
+
+.theory-footer {
+  margin-top: 72px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 0.74rem;
+  color: var(--ink-faint);
+}
