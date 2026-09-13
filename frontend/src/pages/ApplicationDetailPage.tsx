@@ -78,13 +78,16 @@ function RegistryRow({ label, value }: { label: string; value: string }) {
 function TestDrive({ appId, url }: { appId: string; url: string }) {
   const { data, isLoading, refetch, isFetching } = useAppReachable(appId, true)
   const reachable = data?.reachable ?? false
+  // Every sibling app's own splash/about page is its front door — "Test drive" should land
+  // there, not on the bare operational root.
+  const splashUrl = `${url.replace(/\/$/, '')}/about`
 
   return (
     <div className="app-detail-page__testdrive">
       {reachable ? (
         <a
           className="depot-btn depot-btn--primary"
-          href={url}
+          href={splashUrl}
           target={OUTBOUND_TARGET}
           rel="noreferrer"
         >
