@@ -221,7 +221,7 @@
 }
 
 .splash-why__cite {
-  margin: 12px 0 0 21px;
+  font-style: normal;
   font-size: 0.8rem;
   color: var(--color-text-secondary);
 }

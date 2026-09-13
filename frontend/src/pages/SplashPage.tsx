@@ -191,10 +191,10 @@ export default function SplashPage() {
             <blockquote className="splash-why__quote">
               Organizations which design systems are constrained to produce designs which are
               copies of the communication structures of these organizations.
+              <cite className="splash-why__cite">
+                {' '}— Melvin E. Conway · <em>How Do Committees Invent?</em> · 1968
+              </cite>
             </blockquote>
-            <p className="splash-why__cite">
-              Melvin E. Conway · <em>How Do Committees Invent?</em> · 1968
-            </p>
             <div className="splash-theory">
               <p className="splash-theory__body">
                 Conway's Depot is built to let systems, apps, and communication thrive across
