@@ -210,10 +210,31 @@ def seed_if_empty():
         capability=cap_rca_capa,
         url="http://localhost:5177",
     )
+    cap_scan = Capability(
+        name="License & Supply-Chain Compliance",
+        description="Checking that a repo's own license and the licenses/vulnerabilities of everything it depends on are clean enough to hand to an internal or external open-source review.",
+    )
+    db.session.add(cap_scan)
+    db.session.flush()
+    app_scan_me = Application(
+        name="Scan Me",
+        description=(
+            "A pre-flight check before a repo goes into the company's own open-source / "
+            "import review — its own license, every dependency's declared license, and any "
+            "dependency with a known vulnerability. A signal for our side, not a substitute "
+            "for their gate."
+        ),
+        owning_team="Matt (informal enabling team)",
+        team_type="enabling",
+        scope="organizational",
+        category="technical",
+        capability=cap_scan,
+        url="http://localhost:5179",
+    )
     db.session.add_all([
         app_value_stream, app_winmax,
         app_good_plan, app_big_plan, app_qms, app_lham, app_portfolio_manager,
-        app_contract_authoring, app_dwmp, app_fixer,
+        app_contract_authoring, app_dwmp, app_fixer, app_scan_me,
     ])
     db.session.flush()
 
