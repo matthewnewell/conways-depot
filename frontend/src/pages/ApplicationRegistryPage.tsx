@@ -62,10 +62,14 @@ export default function ApplicationRegistryPage() {
   const [scope, setScope] = useState<'all' | 'mine'>('all')
   const grouped = !!limitedPersona && scope === 'mine'
 
-  // Category is the browse axis — the app store's aisle, a fixed 15288-derived taxonomy. Shown
-  // whole (even empty aisles) so a gap reads as "we have no tool for that process group yet".
+  // Category is the browse axis — the app store's aisle(s), a fixed 15288-derived taxonomy. Most
+  // apps have one; a few straddle two. Shown whole (even empty aisles) so a gap reads as "we
+  // have no tool for that process group yet".
   const [hiddenCategories, setHiddenCategories] = useState<Set<AppCategory>>(new Set())
-  const catVisible = (a: Application) => !hiddenCategories.has(a.category ?? 'general')
+  const appCats = (a: Application): AppCategory[] =>
+    a.categories?.length ? a.categories : [a.category ?? 'general']
+  // Visible if it's filed under at least one category that isn't hidden.
+  const catVisible = (a: Application) => appCats(a).some((c) => !hiddenCategories.has(c))
 
   function toggleCategory(c: AppCategory) {
     setHiddenCategories((prev) => {
@@ -102,8 +106,9 @@ export default function ApplicationRegistryPage() {
         return a.name.localeCompare(b.name)
       case 'category':
         return (
-          CATEGORY_LABEL[a.category ?? 'general'].localeCompare(CATEGORY_LABEL[b.category ?? 'general']) ||
-          a.name.localeCompare(b.name)
+          appCats(a).map((c) => CATEGORY_LABEL[c]).join(', ').localeCompare(
+            appCats(b).map((c) => CATEGORY_LABEL[c]).join(', ')
+          ) || a.name.localeCompare(b.name)
         )
       case 'capability':
         return (
@@ -270,7 +275,9 @@ export default function ApplicationRegistryPage() {
               {allSorted.map((a: Application) => (
                 <tr key={a.id} onClick={() => navigate(`/applications/${a.id}`)}>
                   <td className="app-table__name">{a.name}</td>
-                  <td className="app-table__category">{CATEGORY_LABEL[a.category ?? 'general']}</td>
+                  <td className="app-table__category">
+                    {appCats(a).map((c) => CATEGORY_LABEL[c]).join(', ')}
+                  </td>
                   <td className="app-table__desc-col app-table__capability">
                     {a.capability_name ?? <span className="app-table__muted">—</span>}
                   </td>

@@ -32,13 +32,24 @@ def _project_counts() -> dict[str, int]:
     return {app_id: n for app_id, n in rows}
 
 
+def _split_categories(raw) -> list[str]:
+    """`category` may arrive as a single string, a comma-separated string, or a list (the
+    frontend can send any of the three) — always split into individual aisle codes."""
+    if raw is None:
+        return []
+    parts = raw if isinstance(raw, list) else str(raw).split(",")
+    return [p.strip() for p in parts if p.strip()]
+
+
 def _validate(body: dict) -> tuple[dict, int] | None:
     if body.get("team_type") is not None and body.get("team_type") not in (*TEAM_TYPES, None):
         return {"error": f"team_type must be one of {TEAM_TYPES} or null"}, 400
     if "scope" in body and body["scope"] not in APP_SCOPES:
         return {"error": f"scope must be one of {APP_SCOPES}"}, 400
-    if body.get("category") is not None and body.get("category") not in APP_CATEGORIES:
-        return {"error": f"category must be one of {APP_CATEGORIES} or null"}, 400
+    if body.get("category") is not None:
+        bad = [c for c in _split_categories(body["category"]) if c not in APP_CATEGORIES]
+        if bad:
+            return {"error": f"category must be one or more of {APP_CATEGORIES} (got {bad})"}, 400
     return None
 
 
@@ -65,7 +76,7 @@ def create_application():
         owning_team=body.get("owning_team"),
         team_type=body.get("team_type"),
         scope=body.get("scope", "project"),
-        category=body.get("category"),
+        category=",".join(_split_categories(body.get("category"))) or None,
         capability_id=body.get("capability_id"),
         url=body.get("url"),
     )
@@ -130,10 +141,12 @@ def update_application(application_id):
 
     for field in (
         "name", "description", "owning_team", "team_type", "scope",
-        "category", "capability_id", "url",
+        "capability_id", "url",
     ):
         if field in body:
             setattr(a, field, body[field])
+    if "category" in body:
+        a.category = ",".join(_split_categories(body["category"])) or None
 
     db.session.commit()
     return jsonify(a.to_dict())

@@ -83,9 +83,11 @@ class Application(db.Model):
     # browses by category (below), the way an app store has aisles, not phases.
     # "project" (default) or "organizational" — see APP_SCOPES above.
     scope = db.Column(db.String(20), nullable=False, default="project")
-    # The 15288-derived browse aisle — see APP_CATEGORIES. Nullable: an app can be uncategorized
-    # (shows under "General" in the UI) until someone files it.
-    category = db.Column(db.String(20), nullable=True)
+    # The 15288-derived browse aisle(s) — see APP_CATEGORIES. Stored as a comma-separated list
+    # (e.g. "project,technical") so one app can be filed under more than one aisle — most apps
+    # have exactly one. Nullable: an app can be uncategorized (shows under "General") until
+    # someone files it. Use `category_list` / `to_dict()`'s `categories` to read it as a list.
+    category = db.Column(db.String(60), nullable=True)
     capability_id = db.Column(db.String(36), db.ForeignKey("capability.id"), nullable=True)
     # Base URL if this app is actually reachable somewhere (a real dev/prod URL) — a "test
     # drive" link into the running app, not tied to any project. Null for vendor products we
@@ -95,7 +97,15 @@ class Application(db.Model):
 
     capability = db.relationship("Capability", back_populates="applications")
 
+    @property
+    def category_list(self) -> list[str]:
+        """`category` parsed into its component aisles — usually just one."""
+        if not self.category:
+            return []
+        return [c.strip() for c in self.category.split(",") if c.strip()]
+
     def to_dict(self) -> dict:
+        cats = self.category_list
         return {
             "id": self.id,
             "name": self.name,
@@ -103,7 +113,10 @@ class Application(db.Model):
             "owning_team": self.owning_team,
             "team_type": self.team_type,
             "scope": self.scope,
-            "category": self.category,
+            # `category` stays the first aisle for older call sites; `categories` is the full
+            # list an app can be filed under.
+            "category": cats[0] if cats else None,
+            "categories": cats,
             "capability_id": self.capability_id,
             "capability_name": self.capability.name if self.capability else None,
             "url": self.url,

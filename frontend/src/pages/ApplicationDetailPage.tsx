@@ -50,7 +50,9 @@ export default function ApplicationDetailPage() {
             <div className="app-detail-page__fact">
               <span className="app-detail-page__fact-label">Category</span>
               <span className="app-detail-page__fact-value">
-                {CATEGORY_LABEL[app.category ?? 'general']}
+                {(app.categories?.length ? app.categories : [app.category ?? 'general'])
+                  .map((c) => CATEGORY_LABEL[c])
+                  .join(', ')}
               </span>
             </div>
             <div className="app-detail-page__fact">

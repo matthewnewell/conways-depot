@@ -99,8 +99,12 @@ export interface Application {
   owning_team: string | null
   team_type: TeamType
   scope: AppScope
-  /** The registry's browse aisle (15288 process group). Null = not filed yet → "General". */
+  /** The registry's browse aisle (15288 process group) — `categories[0]` for older call sites.
+   *  Null = not filed yet → "General". */
   category: AppCategory | null
+  /** Every aisle this app is filed under — most apps have exactly one, but an app can straddle
+   *  more than one (e.g. a project-scoped tool that's also a Technical-process execution view). */
+  categories: AppCategory[]
   /** The specific need this app fills within its category — the two-tier scheme. */
   capability_id: string | null
   capability_name: string | null

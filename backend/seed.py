@@ -191,7 +191,7 @@ def seed_if_empty():
         description="Shop-floor part status and expedite visibility, over an on-demand S4 extract — not a new system of record.",
         owning_team="Matt (informal enabling team)",
         team_type="enabling",
-        category="project",  # 15288 Project Processes — Implementation (6.4.7) execution visibility
+        category="project,technical",  # 15288 Project + Technical (6.4.7 Implementation) — filed under both
         capability=cap_manufacturing_status,
         url="http://localhost:5176",
     )
