@@ -15,6 +15,12 @@ const PHASE_LABEL: Record<Phase, string> = {
   closeout: 'Closeout',
 }
 
+// A small, hand-picked front row — not derived from any "featured" flag in the data (there
+// isn't one), just the handful worth putting in front of someone before they've picked a
+// category. Shown by name so it survives an app being renamed underneath it without silent
+// breakage (a missing name just quietly drops that card).
+const FEATURED_APP_NAMES = ['Good Plan', 'Value Stream', 'WinMax']
+
 type SortKey = 'name' | 'category' | 'capability' | 'projects'
 
 /** The "?" beside the Category filter — a legend mapping each aisle to its 15288 process group
@@ -64,8 +70,10 @@ export default function ApplicationRegistryPage() {
 
   // Category is the browse axis — the app store's aisle(s), a fixed 15288-derived taxonomy. Most
   // apps have one; a few straddle two. Shown whole (even empty aisles) so a gap reads as "we
-  // have no tool for that process group yet".
-  const [hiddenCategories, setHiddenCategories] = useState<Set<AppCategory>>(new Set())
+  // have no tool for that process group yet". Every category starts hidden — the catalog opens
+  // on the Featured row alone, not a full unfiltered dump; picking a category is what actually
+  // browses the aisles.
+  const [hiddenCategories, setHiddenCategories] = useState<Set<AppCategory>>(new Set(APP_CATEGORIES))
   const appCats = (a: Application): AppCategory[] =>
     a.categories?.length ? a.categories : [a.category ?? 'general']
   // Visible if it's filed under at least one category that isn't hidden.
@@ -126,6 +134,9 @@ export default function ApplicationRegistryPage() {
   }
 
   const appsById = new Map((applications ?? []).map((a) => [a.id, a]))
+  const featured = FEATURED_APP_NAMES
+    .map((name) => (applications ?? []).find((a) => a.name === name))
+    .filter((a): a is Application => !!a)
   const allSorted = (applications ?? []).filter(catVisible).sort((a, b) => {
     const cmp = compare(a, b)
     return sortDesc ? -cmp : cmp
@@ -144,11 +155,34 @@ export default function ApplicationRegistryPage() {
             </button>
             <button
               className={`depot-scope-toggle__option ${scope === 'mine' ? 'depot-scope-toggle__option--active' : ''}`}
-              onClick={() => setScope('mine')}
+              onClick={() => {
+                setScope('mine')
+                // "My Project Apps" is already a small, curated list — starting every category
+                // hidden (right for the big flat catalog, where Featured fills the gap) would
+                // just show an empty group with no explanation. Reveal all categories the first
+                // time someone switches here, same as this view's behavior before Featured
+                // existed; leave it alone once they've touched the filter themselves.
+                if (hiddenCategories.size === APP_CATEGORIES.length) setHiddenCategories(new Set())
+              }}
             >
               My Project Apps
             </button>
           </div>
+        )}
+
+        {!isLoading && featured.length > 0 && (
+          <section className="app-featured" aria-label="Featured applications">
+            <span className="app-featured__label">Featured</span>
+            <div className="app-featured__row">
+              {featured.map((a) => (
+                <button key={a.id} className="app-featured__card" onClick={() => navigate(`/applications/${a.id}`)}>
+                  <span className="app-featured__name">{a.name}</span>
+                  {a.capability_name && <span className="app-featured__cap">{a.capability_name}</span>}
+                  {a.description && <span className="app-featured__desc">{a.description}</span>}
+                </button>
+              ))}
+            </div>
+          </section>
         )}
 
         <div className="depot-checkbox-filter">
@@ -242,7 +276,9 @@ export default function ApplicationRegistryPage() {
         {/* ── All Apps: the flat, sortable catalog ────────────────────────────────── */}
         {!isLoading && !grouped && allSorted.length === 0 && (
           <div className="app-registry-page__loading">
-            No applications match the selected categories.
+            {hiddenCategories.size === APP_CATEGORIES.length
+              ? 'Pick a category above to browse the full catalog.'
+              : 'No applications match the selected categories.'}
           </div>
         )}
 

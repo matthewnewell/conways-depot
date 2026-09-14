@@ -25,6 +25,72 @@
   text-align: center;
 }
 
+/* ── Featured — a small hand-picked front row, shown regardless of the category filter
+   state (which now starts with every category hidden) so the store never opens on a blank
+   page. ── */
+.app-featured {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.app-featured__label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-faint);
+}
+
+.app-featured__row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.app-featured__card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-top: 3px solid var(--color-accent);
+  border-radius: var(--radius-lg);
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.app-featured__card:hover {
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-sm);
+}
+
+.app-featured__name {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.app-featured__cap {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-accent);
+}
+
+.app-featured__desc {
+  margin-top: 2px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 /* "?" legend beside the Category filter label — the popover shell is InfoPopover.css; these
    are just the legend table inside it. */
 .app-registry-page .depot-checkbox-filter__label {
