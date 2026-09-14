@@ -31,6 +31,7 @@ REPOS=(
   "scope-manager"
   "labor-supply-demand"
   "winmax"
+  # keep in sync with scripts/apps.sh whenever a new app is added
 )
 
 failed=()

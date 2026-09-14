@@ -98,20 +98,20 @@ def seed_if_empty():
     app_winmax_own = Application(
         name="WinMax",
         description=(
-            "Not yet built — a P(Win)/P(Go) gated pursuit tracker: named scoring factors, "
+            "A P(Win)/P(Go)/Bid-No-Bid gated pursuit tracker: named scoring factors, "
             "threshold bands (<25% no-bid, 25-50% caution, 50-70% competitive, >70% strong), "
             "and a journal of why a score moved, same evidence-not-just-a-number-flip "
-            "convention as Value Stream's and The Fixer's own journals. One AI chat assistant "
-            "to start — not the six specialized agent roles (Capture Manager, Competitive "
+            "convention as Value Stream's and The Fixer's own journals. One AI chat "
+            "assistant, not the six specialized agent roles (Capture Manager, Competitive "
             "Intel, Price-to-Win, Customer Intel, Proposal Strategist, Color Team Reviewer) an "
             "earlier teaser sketched. Meant to eventually replace WinMax (Deltek), the vendor "
             "tool this same capability names today."
         ),
-        owning_team=None,
-        team_type=None,
+        owning_team="Matt (informal enabling team)",
+        team_type="enabling",
         category="agreement",
         capability=cap_capture,
-        url=None,
+        url="http://localhost:5185",
     )
     # ── Organizational Enablers (ISO/IEC/IEEE 15288 Organizational Project-Enabling Processes) —
     #    scope="organizational": these serve every project at once. Value Stream's own template
