@@ -1,12 +1,14 @@
 """
 Registry seed — capabilities, applications, and two demo projects.
 
-Value Stream is a real, currently-running sibling app (it has a `url`). WinMax and Contract &
-Legal Authoring are real vendor products this Depot registers but never integrates with — no
-`url`, and the crosswalk (ExternalId) is the only connection. Staffing & Capacity Engine and
-People & Access Directory aren't built yet — the descriptions say so, and they're here to keep
-the capability visible as a gap. (There's no `status` field distinguishing these — the prose
-and the presence/absence of a `url` carry it.)
+Value Stream is a real, currently-running sibling app (it has a `url`). WinMax (Deltek) and
+Contract & Legal Authoring are real vendor products this Depot registers but never integrates
+with — no `url`, and the crosswalk (ExternalId) is the only connection. Plain "WinMax" is this
+company's own not-yet-built replacement for that same vendor tool, sharing its Capability on
+purpose — see its own description for why the two coexist. Descriptions on every not-yet-built
+Application say so plainly, and they're here to keep the capability visible as a gap. (There's
+no `status` field distinguishing these — the prose and the presence/absence of a `url` carry
+it.)
 
 Personas (models.Person) and their project memberships are seeded separately by
 seed_people_if_empty() — a demo "viewing as" switcher, not authentication.
@@ -85,13 +87,31 @@ def seed_if_empty():
         url=VALUE_STREAM_BASE_URL,
     )
     app_winmax = Application(
-        name="WinMax",
-        description="Deltek's capture management product — pursuit tracking, gate reviews, P(win).",
+        name="WinMax (Deltek)",
+        description="Deltek's capture management product — pursuit tracking, gate reviews, P(win). Vendor tool, external to this ecosystem.",
         owning_team="Business Development",
         team_type=None,  # a vendor product, not an internally-owned team
         category="agreement",  # 15288 Agreement Processes — Supply (pursuing work to supply)
         capability=cap_capture,
         url=None,  # real external SaaS product; no stable local URL to link to
+    )
+    app_winmax_own = Application(
+        name="WinMax",
+        description=(
+            "Not yet built — a P(Win)/P(Go) gated pursuit tracker: named scoring factors, "
+            "threshold bands (<25% no-bid, 25-50% caution, 50-70% competitive, >70% strong), "
+            "and a journal of why a score moved, same evidence-not-just-a-number-flip "
+            "convention as Value Stream's and The Fixer's own journals. One AI chat assistant "
+            "to start — not the six specialized agent roles (Capture Manager, Competitive "
+            "Intel, Price-to-Win, Customer Intel, Proposal Strategist, Color Team Reviewer) an "
+            "earlier teaser sketched. Meant to eventually replace WinMax (Deltek), the vendor "
+            "tool this same capability names today."
+        ),
+        owning_team=None,
+        team_type=None,
+        category="agreement",
+        capability=cap_capture,
+        url=None,
     )
     # ── Organizational Enablers (ISO/IEC/IEEE 15288 Organizational Project-Enabling Processes) —
     #    scope="organizational": these serve every project at once. Value Stream's own template
@@ -292,7 +312,7 @@ def seed_if_empty():
         url="http://localhost:5183",
     )
     cap_performance = Capability(
-        name="Cost & Schedule Performance",
+        name="Cost, Schedule, and Technical Performance Dashboard",
         description="Earned value against real actuals — BCWS, BCWP, and ACWP per charge number — read from Good Plan's budget, Scope Manager's progress, and an S4 actuals feed.",
     )
     db.session.add(cap_performance)
@@ -300,9 +320,9 @@ def seed_if_empty():
     app_reckon = Application(
         name="Reckon",
         description=(
-            "Not yet built — a cost and schedule performance dashboard, read-only across "
-            "Good Plan, Scope Manager, and a mocked S4 actuals feed, computing real earned "
-            "value per charge number. Scales from a single project's own view up to an "
+            "Not yet built — a cost, schedule, and technical performance dashboard, read-only "
+            "across Good Plan, Scope Manager, and a mocked S4 actuals feed, computing real "
+            "earned value per charge number. Scales from a single project's own view up to an "
             "organization-wide/portfolio rollup — the same underlying data, just aggregated "
             "differently."
         ),
@@ -315,7 +335,7 @@ def seed_if_empty():
     )
 
     db.session.add_all([
-        app_value_stream, app_winmax,
+        app_value_stream, app_winmax, app_winmax_own,
         app_good_plan, app_labor_supply_demand, app_qms, app_lham, app_portfolio_manager,
         app_contract_authoring, app_dwmp, app_fixer, app_scan_me, app_org_charts, app_dwmo,
         app_scope_manager, app_reckon,
