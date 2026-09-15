@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApplications } from '../api/hooks'
 import type { AppCategory, Application, Phase } from '../api/types'
@@ -20,8 +20,6 @@ const PHASE_LABEL: Record<Phase, string> = {
 // category. Shown by name so it survives an app being renamed underneath it without silent
 // breakage (a missing name just quietly drops that card).
 const FEATURED_APP_NAMES = ['Good Plan', 'Value Stream', 'WinMax']
-
-type SortKey = 'name' | 'category' | 'capability' | 'projects'
 
 /** The "?" beside the Category filter — a legend mapping each aisle to its 15288 process group
  * and the kind of tool that lives there. */
@@ -59,8 +57,7 @@ export default function ApplicationRegistryPage() {
   const navigate = useNavigate()
   const { data: applications, isLoading } = useApplications()
   const { persona } = usePersona()
-  const [sortKey, setSortKey] = useState<SortKey>('name')
-  const [sortDesc, setSortDesc] = useState(false)
+  const resultsRef = useRef<HTMLDivElement>(null)
   // The catalog defaults to the whole org-wide list. A limited persona can flip to a per-
   // project view — their projects, each collapsible to the apps it connects to. See
   // lib/persona.tsx.
@@ -99,48 +96,25 @@ export default function ApplicationRegistryPage() {
     })
   }
 
-  function toggleSort(key: SortKey) {
-    if (key === sortKey) {
-      setSortDesc((d) => !d)
-    } else {
-      setSortKey(key)
-      setSortDesc(false)
-    }
-  }
-
-  function compare(a: Application, b: Application): number {
-    switch (sortKey) {
-      case 'name':
-        return a.name.localeCompare(b.name)
-      case 'category':
-        return (
-          appCats(a).map((c) => CATEGORY_LABEL[c]).join(', ').localeCompare(
-            appCats(b).map((c) => CATEGORY_LABEL[c]).join(', ')
-          ) || a.name.localeCompare(b.name)
-        )
-      case 'capability':
-        return (
-          (a.capability_name ?? '').localeCompare(b.capability_name ?? '') ||
-          a.name.localeCompare(b.name)
-        )
-      case 'projects':
-        return a.project_count - b.project_count || a.name.localeCompare(b.name)
-    }
-  }
-
-  function sortIndicator(key: SortKey) {
-    if (key !== sortKey) return null
-    return <span className="app-table__sort-arrow">{sortDesc ? '↓' : '↑'}</span>
-  }
-
   const appsById = new Map((applications ?? []).map((a) => [a.id, a]))
   const featured = FEATURED_APP_NAMES
     .map((name) => (applications ?? []).find((a) => a.name === name))
     .filter((a): a is Application => !!a)
-  const allSorted = (applications ?? []).filter(catVisible).sort((a, b) => {
-    const cmp = compare(a, b)
-    return sortDesc ? -cmp : cmp
-  })
+
+  // Results are grouped by aisle, not one flat sorted list — a multi-category app (e.g. Reckon,
+  // filed under both Projects and Organizational) shows up once per checked category it
+  // belongs to, same as a real store shelving one product under more than one section. Within
+  // a group, apps are just alphabetical — there's no sort-by-column control anymore now that
+  // this isn't a table; "Category" as a sort axis stopped meaning anything once category *is*
+  // the grouping.
+  const visibleCategories = APP_CATEGORIES.filter((c) => !hiddenCategories.has(c))
+  const matchCount = (applications ?? []).filter(catVisible).length
+  const groups = visibleCategories.map((c) => ({
+    category: c,
+    apps: (applications ?? [])
+      .filter((a) => appCats(a).includes(c))
+      .sort((a, b) => a.name.localeCompare(b.name)),
+  }))
 
   return (
     <div className="app-registry-page">
@@ -157,7 +131,7 @@ export default function ApplicationRegistryPage() {
               className={`depot-scope-toggle__option ${scope === 'mine' ? 'depot-scope-toggle__option--active' : ''}`}
               onClick={() => {
                 setScope('mine')
-                // "My Project Apps" is already a small, curated list — starting every category
+                // "My Apps" is already a small, curated list — starting every category
                 // hidden (right for the big flat catalog, where Featured fills the gap) would
                 // just show an empty group with no explanation. Reveal all categories the first
                 // time someone switches here, same as this view's behavior before Featured
@@ -165,7 +139,7 @@ export default function ApplicationRegistryPage() {
                 if (hiddenCategories.size === APP_CATEGORIES.length) setHiddenCategories(new Set())
               }}
             >
-              My Project Apps
+              My Apps
             </button>
           </div>
         )}
@@ -200,11 +174,22 @@ export default function ApplicationRegistryPage() {
               {CATEGORY_LABEL[c]}
             </label>
           ))}
+          {!grouped && visibleCategories.length > 0 && (
+            <span className="depot-checkbox-filter__summary">
+              {matchCount} app{matchCount === 1 ? '' : 's'}
+              <button
+                className="depot-checkbox-filter__see"
+                onClick={() => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              >
+                See results
+              </button>
+            </span>
+          )}
         </div>
 
         {isLoading && <div className="app-registry-page__loading">Loading registry…</div>}
 
-        {/* ── My Project Apps: the persona's projects, each collapsible ────────────── */}
+        {/* ── My Apps: the persona's projects, each collapsible ────────────── */}
         {!isLoading && grouped && (
           <div className="app-groups">
             {limitedPersona!.projects.length === 0 && (
@@ -273,61 +258,57 @@ export default function ApplicationRegistryPage() {
           </div>
         )}
 
-        {/* ── All Apps: the flat, sortable catalog ────────────────────────────────── */}
-        {!isLoading && !grouped && allSorted.length === 0 && (
-          <div className="app-registry-page__loading">
-            {hiddenCategories.size === APP_CATEGORIES.length
-              ? 'Pick a category above to browse the full catalog.'
-              : 'No applications match the selected categories.'}
+        {/* ── All Apps: browsed by aisle, cards not rows ──────────────────────────── */}
+        {!isLoading && !grouped && (
+          <div className="app-results" ref={resultsRef}>
+            {visibleCategories.length === 0 ? (
+              <div className="app-registry-page__loading">
+                Pick a category above to browse the full catalog.
+              </div>
+            ) : (
+              groups.map(({ category, apps }) => (
+                <section className="app-result-group" key={category}>
+                  <h2 className="app-result-group__title">
+                    {CATEGORY_LABEL[category]}
+                    <span className="app-result-group__count">
+                      {apps.length} app{apps.length === 1 ? '' : 's'}
+                    </span>
+                  </h2>
+                  {apps.length === 0 ? (
+                    <p className="app-result-group__empty">No apps in this aisle yet.</p>
+                  ) : (
+                    <div className="app-result-cards">
+                      {apps.map((a) => (
+                        <button key={a.id} className="app-result-card" onClick={() => navigate(`/applications/${a.id}`)}>
+                          <div className="app-result-card__main">
+                            <span className="app-result-card__name">{a.name}</span>
+                            {a.capability_name && <span className="app-result-card__cap">{a.capability_name}</span>}
+                            {a.description && <p className="app-result-card__desc">{a.description}</p>}
+                          </div>
+                          <div className="app-result-card__meta">
+                            {appCats(a).length > 1 && (
+                              <span className="app-result-card__pills">
+                                {appCats(a).map((cc) => (
+                                  <span key={cc} className="app-result-card__pill">{CATEGORY_LABEL[cc]}</span>
+                                ))}
+                              </span>
+                            )}
+                            <span className="app-result-card__projects">
+                              {a.project_count > 0 ? (
+                                `${a.project_count} project${a.project_count === 1 ? '' : 's'}`
+                              ) : (
+                                <span className="app-table__muted">0 projects</span>
+                              )}
+                            </span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </section>
+              ))
+            )}
           </div>
-        )}
-
-        {!isLoading && !grouped && allSorted.length > 0 && (
-          <table className="app-table">
-            <thead>
-              <tr>
-                <th className="app-table__sortable" onClick={() => toggleSort('name')}>
-                  Name{sortIndicator('name')}
-                </th>
-                <th className="app-table__sortable" onClick={() => toggleSort('category')}>
-                  Category{sortIndicator('category')}
-                </th>
-                <th
-                  className="app-table__sortable app-table__desc-col"
-                  onClick={() => toggleSort('capability')}
-                >
-                  Capability{sortIndicator('capability')}
-                </th>
-                <th
-                  className="app-table__sortable app-table__num-col"
-                  onClick={() => toggleSort('projects')}
-                  title="How many projects connect to this app — a rough read on which catalog entries are load-bearing"
-                >
-                  Projects using{sortIndicator('projects')}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {allSorted.map((a: Application) => (
-                <tr key={a.id} onClick={() => navigate(`/applications/${a.id}`)}>
-                  <td className="app-table__name">{a.name}</td>
-                  <td className="app-table__category">
-                    {appCats(a).map((c) => CATEGORY_LABEL[c]).join(', ')}
-                  </td>
-                  <td className="app-table__desc-col app-table__capability">
-                    {a.capability_name ?? <span className="app-table__muted">—</span>}
-                  </td>
-                  <td className="app-table__num-col app-table__projects">
-                    {a.project_count > 0 ? (
-                      a.project_count
-                    ) : (
-                      <span className="app-table__muted">0</span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
         )}
       </div>
     </div>

@@ -289,97 +289,168 @@
   text-overflow: ellipsis;
 }
 
-.app-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-}
-
-.app-table th {
-  text-align: left;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: var(--color-text-faint);
-  padding: 10px 16px;
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-surface-sunken);
-  white-space: nowrap;
-}
-
-.app-table__sortable {
-  cursor: pointer;
-  user-select: none;
-}
-
-.app-table__sortable:hover {
-  color: var(--color-accent);
-}
-
-.app-table__sort-arrow {
-  margin-left: 4px;
-  color: var(--color-accent);
-}
-
-.app-table td {
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--color-border);
-  font-size: 13px;
-  vertical-align: top;
-}
-
-.app-table tbody tr {
-  cursor: pointer;
-}
-
-.app-table tbody tr:hover {
-  background: var(--color-accent-soft);
-}
-
-.app-table tbody tr:last-child td {
-  border-bottom: none;
-}
-
-.app-table__name {
-  font-weight: 700;
-  white-space: nowrap;
-}
-
 .app-table__muted {
   color: var(--color-text-faint);
 }
 
-.app-table__capability {
-  color: var(--color-text-secondary);
+/* ── Category filter's live "N apps · See results" — only shown once something's checked. ── */
+.depot-checkbox-filter__summary {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--color-text-faint);
+  white-space: nowrap;
+}
+
+.depot-checkbox-filter__see {
+  border: none;
+  background: none;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-accent);
+}
+
+.depot-checkbox-filter__see:hover {
+  text-decoration: underline;
+}
+
+/* ── Results, grouped by aisle — cards, same visual language as Featured above them. ── */
+.app-results {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.app-result-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.app-result-group__title {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.app-result-group__count {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-faint);
+}
+
+.app-result-group__empty {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-faint);
+  padding: 14px 16px;
+  background: var(--color-surface);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-md);
+}
+
+.app-result-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.app-result-card {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 18px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.app-result-card:hover {
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-sm);
+}
+
+.app-result-card__main {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.app-result-card__name {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.app-result-card__cap {
+  font-size: 11px;
   font-weight: 600;
-  white-space: nowrap;
+  color: var(--color-accent);
 }
 
-.app-table__category {
+.app-result-card__desc {
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+}
+
+.app-result-card__meta {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.app-result-card__pills {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.app-result-card__pill {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--color-surface-sunken);
   color: var(--color-text-secondary);
   white-space: nowrap;
 }
 
-/* Project-count column — a narrow numeric column, right-aligned so the digits line up. */
-.app-table__num-col {
-  text-align: right;
-  width: 1%;
-  white-space: nowrap;
-}
-
-.app-table__projects {
+.app-result-card__projects {
+  font-size: 12px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
 }
 
-/* Capability is the one column that gets dropped when space is tight — Category (the filter)
-   and the full record are still there / one click away. */
-@media (max-width: 640px) {
-  .app-table__desc-col {
-    display: none;
+@media (max-width: 560px) {
+  .app-result-card {
+    flex-direction: column;
+  }
+
+  .app-result-card__meta {
+    align-items: flex-start;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
   }
 }
