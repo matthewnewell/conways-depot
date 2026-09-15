@@ -78,11 +78,17 @@ function RegistryRow({ label, value }: { label: string; value: string }) {
  * "running / not running" probe so you don't get handed a dead tab. No launching — you start
  * the app yourself; this just checks whether it's up. */
 function TestDrive({ appId, url }: { appId: string; url: string }) {
+  const { persona } = usePersona()
   const { data, isLoading, refetch, isFetching } = useAppReachable(appId, true)
   const reachable = data?.reachable ?? false
   // Every sibling app's own splash/about page is its front door — "Test drive" should land
-  // there, not on the bare operational root.
-  const splashUrl = `${url.replace(/\/$/, '')}/about`
+  // there, not on the bare operational root. The active persona rides along as a query param
+  // too — almost every app ignores it (harmless), but an app that shares the Depot's own
+  // identity (Task Master, so far the only one) can pick it straight up instead of asking the
+  // person to re-select who they are a second time in a completely separate switcher.
+  const splashUrl = persona
+    ? `${url.replace(/\/$/, '')}/about?person_id=${encodeURIComponent(persona.id)}`
+    : `${url.replace(/\/$/, '')}/about`
 
   return (
     <div className="app-detail-page__testdrive">
