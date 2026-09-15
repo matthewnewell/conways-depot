@@ -11,6 +11,7 @@ import type {
   Person,
   Phase,
   Pin,
+  PinPreset,
   Portfolio,
   ProjectAppLink,
   ProjectDetail,
@@ -305,6 +306,25 @@ export function useUnpinApp() {
   return useMutation({
     mutationFn: ({ personId, applicationId }: { personId: string; applicationId: string }) =>
       api.del<void>(`/pins?person_id=${encodeURIComponent(personId)}&application_id=${encodeURIComponent(applicationId)}`),
+    onSuccess: invalidate,
+  })
+}
+
+export function usePinPresets() {
+  return useQuery({
+    queryKey: ['pin-presets'],
+    queryFn: () => api.get<PinPreset[]>('/pins/presets'),
+    staleTime: 5 * 60_000,
+  })
+}
+
+/** Replaces the person's whole pinned set with one preset's — not a merge. See PinPreset's own
+ * doc comment: "default" is the reset case, same endpoint either way. */
+export function useApplyPinPreset() {
+  const invalidate = useInvalidatePins()
+  return useMutation({
+    mutationFn: (data: { person_id: string; preset: string }) =>
+      api.post<{ person_id: string; preset: string }>('/pins/apply-preset', data),
     onSuccess: invalidate,
   })
 }

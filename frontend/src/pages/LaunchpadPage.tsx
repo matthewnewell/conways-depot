@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { useApplications, useProjects } from '../api/hooks'
+import { useApplications, useApplyPinPreset, usePinPresets, useProjects } from '../api/hooks'
 import type { Application, Phase, PersonProject } from '../api/types'
 import { usePersona } from '../lib/persona'
 import AppSummaryTile from '../components/AppSummaryTile'
@@ -90,6 +90,7 @@ export default function LaunchpadPage() {
           <div className="lp-section__head">
             <span className="lp-section__title">Pinned apps</span>
             <span className="lp-section__hint">organizational apps, plus anything you've pinned</span>
+            <PresetDropdown personId={persona?.id} />
             <button className="lp-section__link" onClick={() => navigate('/catalog')}>Browse catalog →</button>
           </div>
           {appsLoading ? (
@@ -121,5 +122,38 @@ export default function LaunchpadPage() {
         </section>
       </div>
     </div>
+  )
+}
+
+/** "Apply a preset" — a curated starting set of pins for a role (see backend presets.py). Not
+ * a persistent choice: picking one replaces the whole pinned set right away and the select
+ * resets to its placeholder — same one-time-action shape as clicking a button, just packaged
+ * as a dropdown because there are five of them. "Default" is the reset case (all organizational
+ * apps, nothing else), not a separate control. */
+function PresetDropdown({ personId }: { personId: string | undefined }) {
+  const { data: presets } = usePinPresets()
+  const applyPreset = useApplyPinPreset()
+
+  if (!personId || !presets || presets.length === 0) return null
+
+  return (
+    <select
+      className="lp-preset-select"
+      value=""
+      disabled={applyPreset.isPending}
+      onChange={(e) => {
+        const preset = e.target.value
+        if (preset) applyPreset.mutate({ person_id: personId, preset })
+      }}
+    >
+      <option value="" disabled>
+        Apply preset…
+      </option>
+      {presets.map((p) => (
+        <option key={p.key} value={p.key} title={p.description}>
+          {p.label}
+        </option>
+      ))}
+    </select>
   )
 }

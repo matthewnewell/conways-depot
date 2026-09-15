@@ -277,6 +277,17 @@ export interface Pin {
   created_at: string
 }
 
+/** A curated "starting set of pins for my role" — see backend presets.py. Applying one
+ * replaces the whole pinned set outright, not a merge; "default" is exactly the organizational
+ * apps and nothing else, so it doubles as the Launchpad's reset-my-pins action. Not a role
+ * system — nothing here is stored on a person, it's a one-time action. */
+export interface PinPreset {
+  key: string
+  label: string
+  description: string
+  application_ids: string[]
+}
+
 export interface ChatMessage {
   role: 'user' | 'assistant'
   content: string

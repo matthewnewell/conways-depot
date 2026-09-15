@@ -59,8 +59,23 @@
   color: var(--color-text-faint);
 }
 
-.lp-section__link {
+.lp-preset-select {
   margin-left: auto;
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-sm);
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.lp-preset-select:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.lp-section__link {
   border: none;
   background: none;
   padding: 0;

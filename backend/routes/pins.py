@@ -11,6 +11,7 @@ from flask import Blueprint, jsonify, request
 
 from db import db
 from models import Application, HiddenOrgApp, Person, Pin
+from presets import PRESETS
 
 bp = Blueprint("pins", __name__, url_prefix="/api/pins")
 
@@ -22,6 +23,73 @@ def list_pins():
         q = q.filter_by(person_id=person_id)
     pins = q.order_by(Pin.created_at).all()
     return jsonify([p.to_dict() for p in pins])
+
+
+@bp.get("/presets")
+def list_presets():
+    """The Launchpad's preset dropdown — see presets.py for what these are and aren't (not a
+    role system, just a handful of hardcoded starting points). Resolves each preset's app
+    names to live ids here so the frontend never has to know an app's id ahead of time; an
+    app name not currently registered is silently skipped, same tolerance seed.py's own
+    _ADMIN_PINS already has."""
+    apps_by_name = {a.name: a for a in Application.query.all()}
+    out = []
+    for key, preset in PRESETS.items():
+        apps = [apps_by_name[n] for n in preset["app_names"] if n in apps_by_name]
+        out.append({
+            "key": key,
+            "label": preset["label"],
+            "description": preset["description"],
+            "application_ids": [a.id for a in apps],
+        })
+    return jsonify(out)
+
+
+@bp.post("/apply-preset")
+def apply_preset():
+    """Apply a preset outright — the person's pinned set becomes exactly what the preset
+    names, replacing whatever they had (not a merge). "Default" (all 7 organizational apps,
+    nothing else) is the same state a persona starts in, so this doubles as the Launchpad's
+    reset-my-pins action rather than needing a separate one."""
+    body = request.get_json(force=True) or {}
+    person_id = body.get("person_id")
+    preset_key = body.get("preset")
+
+    person = Person.query.get(person_id) if person_id else None
+    if person is None:
+        return jsonify({"error": "person_id does not refer to a real person"}), 400
+    preset = PRESETS.get(preset_key)
+    if preset is None:
+        return jsonify({"error": f"preset must be one of {sorted(PRESETS)}"}), 400
+
+    target_apps = Application.query.filter(Application.name.in_(preset["app_names"])).all()
+    target_org_ids = {a.id for a in target_apps if a.scope == "organizational"}
+    target_project_ids = {a.id for a in target_apps if a.scope != "organizational"}
+
+    # Organizational: hide every one not in the target set, un-hide every one that is.
+    all_org_ids = {a.id for a in Application.query.filter_by(scope="organizational").all()}
+    hidden_by_app = {
+        h.application_id: h for h in HiddenOrgApp.query.filter_by(person_id=person.id).all()
+    }
+    for app_id in all_org_ids:
+        wants_visible = app_id in target_org_ids
+        is_hidden = app_id in hidden_by_app
+        if wants_visible and is_hidden:
+            db.session.delete(hidden_by_app[app_id])
+        elif not wants_visible and not is_hidden:
+            db.session.add(HiddenOrgApp(person_id=person.id, application_id=app_id))
+
+    # Project-scope: reconcile explicit Pin rows against the target set.
+    existing_pins = {p.application_id: p for p in Pin.query.filter_by(person_id=person.id).all()}
+    for app_id in target_project_ids:
+        if app_id not in existing_pins:
+            db.session.add(Pin(person_id=person.id, application_id=app_id))
+    for app_id, pin in existing_pins.items():
+        if app_id not in target_project_ids:
+            db.session.delete(pin)
+
+    db.session.commit()
+    return jsonify({"person_id": person.id, "preset": preset_key}), 200
 
 
 def _require_person_and_app(person_id, application_id):
