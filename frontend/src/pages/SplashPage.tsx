@@ -45,7 +45,7 @@ const FEATURES = [
   },
   {
     title: 'AI assistant',
-    body: "A top-level AI that reads every connected app's data and journal, over MCP — so you can ask what changed and why, not dig through five apps to find out.",
+    body: "A top-level AI that reads every connected app's data and journal, over MCP — so you can understand what changed and why, and take meaningful next steps.",
     icon: (
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M12 3l1.7 4.8L18.5 9.5l-4.8 1.7L12 16l-1.7-4.8L5.5 9.5l4.8-1.7z" />
