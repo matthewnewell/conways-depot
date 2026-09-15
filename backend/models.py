@@ -364,6 +364,35 @@ class Pin(db.Model):
         }
 
 
+class HiddenOrgApp(db.Model):
+    """The other half of the Launchpad's Pinned Apps section: organizational-scope apps are
+    pinned by *default* for everyone (they sit above any one project, so there's nothing to
+    "choose" the way a project-scope app's Pin is a choice) — this table records the exception,
+    a person who explicitly removed one from their own view. Computed, not stored: a brand new
+    organizational app is automatically on for everyone the moment it's registered, no backfill
+    row needed anywhere (see routes/people.py's pinned_application_ids). Only ever meaningful
+    for an organizational-scope Application; a project-scope app's "off" state is already just
+    the absence of a Pin row, so nothing here applies to those. Same shape as Pin on purpose —
+    routes/pins.py's POST/DELETE branch on the app's scope and operate on whichever of the two
+    tables actually applies, so the frontend's pin/unpin call never needs to know which one."""
+
+    __tablename__ = "hidden_org_app"
+    __table_args__ = (db.UniqueConstraint("person_id", "application_id", name="uq_hidden_person_app"),)
+
+    id = db.Column(db.String(36), primary_key=True, default=_uuid)
+    person_id = db.Column(db.String(36), db.ForeignKey("person.id"), nullable=False, index=True)
+    application_id = db.Column(db.String(36), db.ForeignKey("application.id"), nullable=False, index=True)
+    created_at = db.Column(db.DateTime, default=_now, nullable=False)
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "person_id": self.person_id,
+            "application_id": self.application_id,
+            "created_at": self.created_at.isoformat(),
+        }
+
+
 class ProjectAppLink(db.Model):
     """The golden thread made visible: this project, at this phase, has a record in this
     application. external_ref and link_url are both optional, plain pointers — never a live

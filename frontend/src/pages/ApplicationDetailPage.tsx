@@ -8,6 +8,7 @@ import {
 } from '../api/hooks'
 import type { Application, Phase } from '../api/types'
 import { CATEGORY_LABEL } from '../api/types'
+import PinToggle from '../components/PinToggle'
 import { OUTBOUND_TARGET } from '../lib/embed'
 import { usePersona } from '../lib/persona'
 import './depot-shared.css'
@@ -44,6 +45,7 @@ export default function ApplicationDetailPage() {
                 <span className="app-detail-page__testdrive-off">No demo yet</span>
               )}
               <ProjectLinksControl app={app} />
+              <PinToggle app={app} variant="button" />
             </div>
             <p className="app-detail-page__using-count">
               {app.project_count === 0

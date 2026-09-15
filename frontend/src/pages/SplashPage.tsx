@@ -11,7 +11,7 @@ const APPS = ['Capture', 'Contracts', 'Value stream', 'Lessons learned']
 const FEATURES = [
   {
     title: 'One digital thread',
-    body: "A single id per project, issued at pursuit and never reissued. Every app's records are scoped to that one id so people and agents can't wander into another project's data.",
+    body: "A single id per project. Every app's records are scoped to that one id so people and agents can't wander into another project's data.",
     icon: (
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <circle cx="5" cy="12" r="2.4" />
@@ -22,7 +22,7 @@ const FEATURES = [
   },
   {
     title: 'An app store',
-    body: 'Browse a catalog of applications. The project installs the applications its work needs — a link is a pointer, never a live integration.',
+    body: 'Browse a catalog of applications. The project installs the applications its work needs.',
     icon: (
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <rect x="4" y="4" width="7" height="7" rx="1.5" />
@@ -44,8 +44,8 @@ const FEATURES = [
     ),
   },
   {
-    title: 'AI project assistant',
-    body: "A top-level AI that works across every app a project subscribes to, over MCP — so you're managing the project, not drilling into each app just to check on it.",
+    title: 'AI assistant',
+    body: "A top-level AI that reads every connected app's data and journal, over MCP — so you can ask what changed and why, not dig through five apps to find out.",
     icon: (
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M12 3l1.7 4.8L18.5 9.5l-4.8 1.7L12 16l-1.7-4.8L5.5 9.5l4.8-1.7z" />

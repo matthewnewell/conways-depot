@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useApplications, usePinApp, useUnpinApp } from '../api/hooks'
+import { useApplications } from '../api/hooks'
 import type { AppCategory, Application, Phase } from '../api/types'
 import { APP_CATEGORIES, CATEGORY_INFO, CATEGORY_LABEL } from '../api/types'
 import InfoPopover from '../components/InfoPopover'
+import PinToggle from '../components/PinToggle'
 import { usePersona } from '../lib/persona'
 import './depot-shared.css'
 import './ApplicationRegistryPage.css'
@@ -57,8 +58,6 @@ export default function ApplicationRegistryPage() {
   const navigate = useNavigate()
   const { data: applications, isLoading } = useApplications()
   const { persona } = usePersona()
-  const pinApp = usePinApp()
-  const unpinApp = useUnpinApp()
   const [sortMode, setSortMode] = useState<'alpha' | 'popular'>('alpha')
   // The catalog defaults to the whole org-wide list. A limited persona can flip to a per-
   // project view — their projects, each collapsible to the apps it connects to. See
@@ -297,21 +296,11 @@ export default function ApplicationRegistryPage() {
                   ) : (
                     <div className="app-result-cards">
                       {apps.map((a) => {
-                        const pinned = !!persona?.pinned_application_ids.includes(a.id)
                         return (
                           <div key={a.id} className="app-result-card">
-                            {persona && (
-                              <button
-                                className={`app-result-card__pin ${pinned ? 'app-result-card__pin--active' : ''}`}
-                                title={pinned ? `Unpin ${a.name}` : `Pin ${a.name} to your Launchpad`}
-                                onClick={() => {
-                                  if (pinned) unpinApp.mutate({ personId: persona.id, applicationId: a.id })
-                                  else pinApp.mutate({ person_id: persona.id, application_id: a.id })
-                                }}
-                              >
-                                {pinned ? '★' : '☆'}
-                              </button>
-                            )}
+                            <div className="app-result-card__pin">
+                              <PinToggle app={a} />
+                            </div>
                             <button className="app-result-card__button" onClick={() => navigate(`/catalog/${a.id}`)}>
                               <div className="app-result-card__main">
                                 <span className="app-result-card__name">{a.name}</span>

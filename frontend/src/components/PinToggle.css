@@ -1,0 +1,76 @@
+.pin-toggle {
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--color-text-faint);
+}
+
+.pin-toggle:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* Icon variant — the Catalog's compact star, positioned absolutely by its own parent card. */
+.pin-toggle--icon {
+  padding: 2px 4px;
+  font-size: 15px;
+  line-height: 1;
+  border-radius: var(--radius-sm);
+}
+
+.pin-toggle--icon:hover {
+  color: var(--color-accent);
+  background: var(--color-accent-soft);
+}
+
+/* Button variant — the app detail page's labeled control, matching .depot-btn--ghost. */
+.pin-toggle--button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.pin-toggle--button:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  background: var(--color-surface-sunken);
+}
+
+.pin-toggle__glyph {
+  font-size: 0.95em;
+  line-height: 1;
+}
+
+/* Active (currently pinned) — same accent reading everywhere. */
+.pin-toggle--active {
+  color: var(--color-accent);
+}
+
+.pin-toggle--button.pin-toggle--active {
+  border-color: var(--color-accent);
+  background: var(--color-accent-soft);
+}
+
+/* Reset (an organizational app someone hid, showing its way back) — a distinct, slightly
+   warmer tone so it doesn't read as an ordinary "not pinned" star; it's a deviation from
+   default, not a neutral unchosen state. */
+.pin-toggle--reset {
+  color: var(--color-wait);
+}
+
+.pin-toggle--button.pin-toggle--reset {
+  border-color: var(--color-wait);
+  color: var(--color-wait);
+}
+
+.pin-toggle--button.pin-toggle--reset:hover {
+  background: var(--color-wait-soft);
+}

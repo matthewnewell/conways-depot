@@ -405,27 +405,12 @@
   cursor: pointer;
 }
 
+/* Positioning wrapper only — PinToggle.css owns the button's own look. */
 .app-result-card__pin {
   position: absolute;
   top: 10px;
   right: 10px;
   z-index: 1;
-  border: none;
-  background: none;
-  padding: 2px 4px;
-  font-size: 15px;
-  line-height: 1;
-  color: var(--color-text-faint);
-  border-radius: var(--radius-sm);
-}
-
-.app-result-card__pin:hover {
-  color: var(--color-accent);
-  background: var(--color-accent-soft);
-}
-
-.app-result-card__pin--active {
-  color: var(--color-accent);
 }
 
 .app-result-card__main {
