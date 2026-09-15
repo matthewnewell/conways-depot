@@ -7,7 +7,7 @@ from routes.ai import bp as ai_bp
 from routes.applications import bp as applications_bp, capabilities_bp
 from routes.people import bp as people_bp
 from routes.pins import bp as pins_bp
-from routes.projects import bp as projects_bp, external_ids_bp, links_bp, portfolios_bp
+from routes.projects import bp as projects_bp, external_ids_bp, links_bp, memberships_bp, portfolios_bp
 from seed import seed_if_empty, seed_people_if_empty, seed_pins_if_empty
 
 FRONTEND_DIST = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "frontend", "dist")
@@ -22,6 +22,7 @@ def create_app():
     app.register_blueprint(projects_bp)
     app.register_blueprint(external_ids_bp)
     app.register_blueprint(links_bp)
+    app.register_blueprint(memberships_bp)
     app.register_blueprint(portfolios_bp)
     app.register_blueprint(applications_bp)
     app.register_blueprint(capabilities_bp)

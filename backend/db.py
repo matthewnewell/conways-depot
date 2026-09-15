@@ -42,6 +42,10 @@ _MIGRATIONS: list[tuple[str, str, str]] = [
     ("application", "category", "ALTER TABLE application ADD COLUMN category VARCHAR(20)"),
     ("project", "team_topology", "ALTER TABLE project ADD COLUMN team_topology VARCHAR(30)"),
     ("application", "api_url", "ALTER TABLE application ADD COLUMN api_url VARCHAR(500)"),
+    (
+        "project_membership", "can_manage_members",
+        "ALTER TABLE project_membership ADD COLUMN can_manage_members BOOLEAN NOT NULL DEFAULT 0",
+    ),
 ]
 
 

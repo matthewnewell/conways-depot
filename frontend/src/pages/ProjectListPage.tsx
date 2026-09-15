@@ -32,11 +32,13 @@ export default function ProjectListPage() {
   // Default: most wired-up projects first — sort by how many apps each connects to.
   const [sortKey, setSortKey] = useState<SortKey>('apps')
   const [sortDesc, setSortDesc] = useState(true)
-  // The persona lens: a limited persona defaults to "just my projects", with an "All" toggle
-  // that filters nothing out of reach — see lib/persona.tsx. The admin persona has no toggle;
-  // it always sees the whole registry.
+  // The persona lens: same toggle as the Catalog's All Apps / My Apps — defaults to "all"
+  // now that Projects is a top-level nav item in its own right (the full portfolio), with
+  // "mine" as the narrower option, not the default. The Launchpad's own My Projects section is
+  // still where a personalized default view lives. The admin persona has no toggle; it always
+  // sees the whole registry. See lib/persona.tsx.
   const limitedPersona = persona && !persona.is_admin ? persona : null
-  const [scope, setScope] = useState<'mine' | 'all'>('mine')
+  const [scope, setScope] = useState<'mine' | 'all'>('all')
   const mineOnly = !!limitedPersona && scope === 'mine'
   // Portfolio is a filter, not a table column — same pattern as Phase on the Application
   // Registry. Undefined until the portfolio list loads, at which point everything defaults
@@ -109,16 +111,16 @@ export default function ProjectListPage() {
         {limitedPersona && (
           <div className="depot-scope-toggle" role="group" aria-label="Which projects to show">
             <button
-              className={`depot-scope-toggle__option ${scope === 'mine' ? 'depot-scope-toggle__option--active' : ''}`}
-              onClick={() => setScope('mine')}
-            >
-              {limitedPersona.name}'s projects
-            </button>
-            <button
               className={`depot-scope-toggle__option ${scope === 'all' ? 'depot-scope-toggle__option--active' : ''}`}
               onClick={() => setScope('all')}
             >
-              All projects
+              All Projects
+            </button>
+            <button
+              className={`depot-scope-toggle__option ${scope === 'mine' ? 'depot-scope-toggle__option--active' : ''}`}
+              onClick={() => setScope('mine')}
+            >
+              My Projects
             </button>
           </div>
         )}
@@ -158,7 +160,7 @@ export default function ProjectListPage() {
         {!isLoading && (projects?.length ?? 0) > 0 && filtered.length === 0 && (
           <div className="project-list-page__empty">
             {mineOnly && limitedPersona!.project_ids.length === 0
-              ? `${limitedPersona!.name} isn't on any projects yet — switch to "All projects" to see the registry.`
+              ? `${limitedPersona!.name} isn't on any projects yet — switch to "All Projects" to see the registry.`
               : 'No projects match the current filters.'}
           </div>
         )}

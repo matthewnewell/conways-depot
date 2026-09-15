@@ -6,19 +6,22 @@ from models import (
     PHASES,
     TEAM_TYPES,
     ExternalId,
+    Person,
     Portfolio,
     Project,
     ProjectAppLink,
+    ProjectMembership,
     ProjectPhaseEvent,
 )
 
 bp = Blueprint("projects", __name__, url_prefix="/api/projects")
-# Flat resources for mutating a single external-id/link row, matching Value Stream's
+# Flat resources for mutating a single external-id/link/membership row, matching Value Stream's
 # routes/edges.py convention: creation is nested under the parent (POST /projects/<id>/links),
 # but update/delete address the row directly, not through its parent.
 external_ids_bp = Blueprint("external_ids", __name__, url_prefix="/api/external-ids")
 links_bp = Blueprint("links", __name__, url_prefix="/api/links")
 portfolios_bp = Blueprint("portfolios", __name__, url_prefix="/api/portfolios")
+memberships_bp = Blueprint("memberships", __name__, url_prefix="/api/memberships")
 
 
 def _validate_phase(body: dict) -> tuple[dict, int] | None:
@@ -193,6 +196,56 @@ def update_link(link_id):
 def delete_link(link_id):
     link = ProjectAppLink.query.get_or_404(link_id)
     db.session.delete(link)
+    db.session.commit()
+    return "", 204
+
+
+@bp.post("/<project_id>/members")
+def add_member(project_id):
+    p = Project.query.get_or_404(project_id)
+    body = request.get_json(force=True) or {}
+    person_id = body.get("person_id")
+    if not person_id:
+        return jsonify({"error": "person_id is required"}), 400
+
+    person = Person.query.get(person_id)
+    if not person:
+        return jsonify({"error": "person not found"}), 404
+    if person.is_admin:
+        # The admin persona is the "see everything" seat, not a real member of any one project
+        # — see people.py's own comment on this. Adding a membership row for it would just be
+        # confusing (a role_label / can_manage_members that never means anything).
+        return jsonify({"error": "the admin persona is not a real project member"}), 400
+    if ProjectMembership.query.filter_by(project_id=p.id, person_id=person_id).first():
+        return jsonify({"error": "this person is already a member of this project"}), 409
+
+    m = ProjectMembership(
+        project_id=p.id,
+        person_id=person_id,
+        role_label=(body.get("role_label") or "").strip() or None,
+        can_manage_members=bool(body.get("can_manage_members", False)),
+    )
+    db.session.add(m)
+    db.session.commit()
+    return jsonify(m.to_dict()), 201
+
+
+@memberships_bp.put("/<membership_id>")
+def update_membership(membership_id):
+    m = ProjectMembership.query.get_or_404(membership_id)
+    body = request.get_json(force=True) or {}
+    if "role_label" in body:
+        m.role_label = (body["role_label"] or "").strip() or None
+    if "can_manage_members" in body:
+        m.can_manage_members = bool(body["can_manage_members"])
+    db.session.commit()
+    return jsonify(m.to_dict())
+
+
+@memberships_bp.delete("/<membership_id>")
+def delete_membership(membership_id):
+    m = ProjectMembership.query.get_or_404(membership_id)
+    db.session.delete(m)
     db.session.commit()
     return "", 204
 

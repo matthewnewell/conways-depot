@@ -431,20 +431,23 @@ def seed_if_empty():
     db.session.commit()
 
 
-# Persona name -> (title, is_admin, [project names they're on]). Matched to projects by name so
-# this can also backfill an already-seeded dev DB (see seed_people_if_empty). A project name
-# that isn't present is skipped, not an error — a fresh DB won't have the user-made ones.
-_DEMO_PEOPLE: list[tuple[str, str, bool, list[tuple[str, str]]]] = [
+# Persona name -> (title, is_admin, [(project name, role_label, can_manage_members)]). Matched
+# to projects by name so this can also backfill an already-seeded dev DB (see
+# seed_people_if_empty). A project name that isn't present is skipped, not an error — a fresh DB
+# won't have the user-made ones. can_manage_members is the one real (if unenforced) flag on
+# membership — see ProjectMembership's own docstring; the PM carries it here as the plausible
+# real-world case, the two other roles don't, so the demo shows both states.
+_DEMO_PEOPLE: list[tuple[str, str, bool, list[tuple[str, str, bool]]]] = [
     ("Admin", "Enterprise Architect", True, []),  # the "see everything" seat — the default persona
     ("Sam Ortiz", "Program Manager", False, [
-        ("Demo: Bracket Assembly Program", "Program Manager"),
-        ("Demo: Nacelle Fairing Retrofit", "Program Manager"),
+        ("Demo: Bracket Assembly Program", "Program Manager", True),
+        ("Demo: Nacelle Fairing Retrofit", "Program Manager", True),
     ]),
     ("Alex Chen", "Lead Engineer", False, [
-        ("Demo: Bracket Assembly Program", "Lead Engineer"),
+        ("Demo: Bracket Assembly Program", "Lead Engineer", False),
     ]),
     ("Jess Kim", "Capture Manager", False, [
-        ("Prospect: Riverside Facility Expansion", "Capture Manager"),
+        ("Prospect: Riverside Facility Expansion", "Capture Manager", False),
     ]),
 ]
 
@@ -463,12 +466,13 @@ def seed_people_if_empty():
         person = Person(name=name, title=title, is_admin=is_admin)
         db.session.add(person)
         db.session.flush()
-        for project_name, role_label in memberships:
+        for project_name, role_label, can_manage_members in memberships:
             project = projects_by_name.get(project_name)
             if project is None:
                 continue
             db.session.add(ProjectMembership(
                 person_id=person.id, project_id=project.id, role_label=role_label,
+                can_manage_members=can_manage_members,
             ))
     db.session.commit()
 

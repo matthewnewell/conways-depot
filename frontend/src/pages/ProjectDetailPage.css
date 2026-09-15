@@ -370,6 +370,89 @@
   color: var(--color-critical);
 }
 
+/* Members — real people, not the free-text "Team & channels" section below it. */
+.member-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.member-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--color-surface-sunken);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+}
+
+.member-card__main {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.member-card__name {
+  font-weight: 700;
+}
+
+.member-card__role {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.member-card__badge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  white-space: nowrap;
+}
+
+.member-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.member-card__toggle {
+  border: none;
+  background: transparent;
+  color: var(--color-accent);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 4px;
+}
+
+.member-card__remove {
+  border: none;
+  background: transparent;
+  color: var(--color-text-faint);
+  font-size: 11px;
+  padding: 2px 4px;
+}
+
+.member-card__remove:hover {
+  color: var(--color-critical);
+}
+
+.member-form__checkbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
 /* Team & channels — the home-base editing fields (lifted from the folded-in Launchpad). */
 .home-base__field {
   display: flex;

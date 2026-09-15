@@ -2,19 +2,24 @@ import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   useAddExternalId,
+  useAddMember,
   useApplications,
   useCreateLink,
   useDeleteExternalId,
   useDeleteLink,
+  useDeleteMembership,
   useDeleteProject,
+  usePeople,
   usePortfolios,
   useProject,
+  useUpdateMembership,
   useUpdateProject,
 } from '../api/hooks'
 import type { ChannelLink, Phase, ProjectDetail, TeamTopology } from '../api/types'
 import { PHASES, TEAM_TOPOLOGIES, TEAM_TOPOLOGY_INFO } from '../api/types'
 import InfoPopover from '../components/InfoPopover'
 import { OUTBOUND_TARGET } from '../lib/embed'
+import { usePersona } from '../lib/persona'
 import './depot-shared.css'
 import './ProjectDetailPage.css'
 
@@ -112,6 +117,8 @@ export default function ProjectDetailPage() {
             ))}
           </div>
         </section>
+
+        <Members project={project} />
 
         <HomeBase key={project.updated_at} project={project} />
       </div>
@@ -355,6 +362,122 @@ function ExternalIds({ project }: { project: ProjectDetail }) {
           >
             Save
           </button>
+        </div>
+      )}
+    </section>
+  )
+}
+
+/** Real people on this project — not free-text like "Team & channels" below it. Add/remove and
+ * the "can manage members" toggle are only shown to the active persona if they're allowed to
+ * use them: admin, or already `can_manage_members` on *this* project. That's a soft,
+ * "signposting, not enforcement" gate — same as every other admin-only affordance in this app
+ * (there's no real auth anywhere) — not a permission system. See ProjectMembership's backend
+ * docstring for why this one flag exists at all when nothing else here is checked. */
+function Members({ project }: { project: ProjectDetail }) {
+  const { persona } = usePersona()
+  const { data: people } = usePeople()
+  const addMember = useAddMember(project.id)
+  const updateMembership = useUpdateMembership(project.id)
+  const deleteMembership = useDeleteMembership(project.id)
+
+  const [adding, setAdding] = useState(false)
+  const [personId, setPersonId] = useState('')
+  const [roleLabel, setRoleLabel] = useState('')
+  const [canManage, setCanManage] = useState(false)
+
+  const activeMembership = persona ? project.members.find((m) => m.person_id === persona.id) : undefined
+  const canEdit = !!persona?.is_admin || !!activeMembership?.can_manage_members
+
+  const memberIds = new Set(project.members.map((m) => m.person_id))
+  const addable = (people ?? []).filter((p) => !p.is_admin && !memberIds.has(p.id))
+
+  function reset() {
+    setAdding(false)
+    setPersonId('')
+    setRoleLabel('')
+    setCanManage(false)
+  }
+
+  function save() {
+    if (!personId) return
+    addMember.mutate(
+      { person_id: personId, role_label: roleLabel.trim() || undefined, can_manage_members: canManage },
+      { onSuccess: reset },
+    )
+  }
+
+  return (
+    <section className="depot-section">
+      <div className="depot-section__header-row">
+        <h2 className="depot-section__title">Members</h2>
+        {canEdit && !adding && addable.length > 0 && (
+          <button onClick={() => setAdding(true)}>+ Add member</button>
+        )}
+      </div>
+      <p className="depot-section__subtitle">
+        Who's actually on this project — a real persona, not a caption.
+      </p>
+
+      {project.members.length === 0 && !adding && (
+        <p className="depot-section__body">No members yet.</p>
+      )}
+
+      <div className="member-list">
+        {project.members.map((m) => (
+          <div key={m.id} className="member-card">
+            <div className="member-card__main">
+              <span className="member-card__name">{m.person_name}</span>
+              {m.role_label && <span className="member-card__role">{m.role_label}</span>}
+              {m.can_manage_members && (
+                <span className="member-card__badge" title="Can add and remove members on this project">
+                  Can manage members
+                </span>
+              )}
+            </div>
+            {canEdit && (
+              <div className="member-card__actions">
+                <button
+                  className="member-card__toggle"
+                  onClick={() => updateMembership.mutate({ membershipId: m.id, can_manage_members: !m.can_manage_members })}
+                >
+                  {m.can_manage_members ? 'Revoke manage' : 'Grant manage'}
+                </button>
+                <button className="member-card__remove" onClick={() => deleteMembership.mutate(m.id)}>
+                  Remove
+                </button>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {canEdit && adding && (
+        <div className="depot-inline-form depot-inline-form--stacked">
+          <select value={personId} onChange={(e) => setPersonId(e.target.value)}>
+            <option value="">Select person…</option>
+            {addable.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+                {p.title ? ` — ${p.title}` : ''}
+              </option>
+            ))}
+          </select>
+          <input
+            placeholder="Role label (optional — e.g. Program Manager)"
+            value={roleLabel}
+            onChange={(e) => setRoleLabel(e.target.value)}
+          />
+          <label className="member-form__checkbox">
+            <input type="checkbox" checked={canManage} onChange={(e) => setCanManage(e.target.checked)} />
+            Can manage members on this project
+          </label>
+          <div className="depot-inline-form__actions">
+            <button disabled={!personId} onClick={save}>
+              Add
+            </button>
+            <button onClick={reset}>Cancel</button>
+          </div>
         </div>
       )}
     </section>

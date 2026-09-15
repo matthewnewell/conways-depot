@@ -11,7 +11,7 @@ Conway's Depot's own repo rather than as its own sibling repo (see "Why it's her
 Depot's navigation** when the Depot runs in the shell:
 
 - **Conway's Depot** (top-left) → the splash / "what & why" page (`/about`)
-- **Launchpad** → `/`   ·   **Catalog** → `/catalog`
+- **Launchpad** → `/`   ·   **Projects** → `/projects`   ·   **Catalog** → `/catalog`
 - **⚙ Admin** (far right) → `/admin`
 
 Because the bar is the *parent* frame, it survives anything the framed page does — the

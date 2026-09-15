@@ -186,6 +186,7 @@ export interface ProjectSummary {
   updated_at: string
   external_ids: ExternalId[]
   phase_events: PhaseEvent[]
+  members: ProjectMembership[]
   /** How many applications this project connects to — present on the list endpoint only (the
    * detail endpoint carries the full `app_links` instead). Mirror of Application.project_count. */
   app_count?: number
@@ -193,6 +194,20 @@ export interface ProjectSummary {
 
 export interface ProjectDetail extends ProjectSummary {
   app_links: ProjectAppLink[]
+}
+
+/** A real (if still unenforced — see Person's own note below) person on a project. */
+export interface ProjectMembership {
+  id: string
+  person_id: string
+  person_name: string | null
+  project_id: string
+  /** Free-text caption ("Program Manager"), never checked against anything. */
+  role_label: string | null
+  /** The one deliberate exception to "nothing here is enforcement" — see backend
+   * ProjectMembership's own docstring. Still just a flag the frontend reads to decide who sees
+   * the add/remove-member controls, not real access control; no named roles beyond this. */
+  can_manage_members: boolean
 }
 
 /** A demo persona for the nav's "viewing as" switcher — NOT a user account. There is no
@@ -210,6 +225,10 @@ export interface PersonProject {
    * enum. Null for the admin persona (not a real member of anything) and for a project reached
    * only by pin, once pins cover projects too — the frontend labels those cases itself. */
   role_label: string | null
+  /** False for the admin persona's synthetic entries here — OR this with `Person.is_admin`
+   * wherever gating who sees the member-management controls, same as every other admin-only
+   * affordance in this app. */
+  can_manage_members: boolean
 }
 
 export interface Person {

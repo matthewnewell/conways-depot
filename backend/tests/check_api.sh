@@ -57,7 +57,7 @@ curl -s "$BASE/applications" | python3 -c "
 import json, sys
 apps = json.load(sys.stdin)
 org = {a['name']: a for a in apps if a['scope'] == 'organizational'}
-assert {'Staffing & Capacity Engine', 'Contract & Legal Authoring'} <= set(org), set(org)
+assert {'Labor Supply & Demand', 'Contract & Legal Authoring'} <= set(org), set(org)  # was 'Staffing & Capacity Engine' pre-rename
 print('ok —', sorted(org))
 "
 

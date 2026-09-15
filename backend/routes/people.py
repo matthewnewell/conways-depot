@@ -27,10 +27,10 @@ def list_people():
         # app so any generic "is this mine?" check in the frontend just resolves to yes.
         if person.is_admin:
             member_projects = all_projects
-            role_by_project = {}  # admin isn't a real member of anything — no role_label to show
+            membership_by_project = {}  # admin isn't a real member of anything — nothing to show
         else:
             member_projects = [m.project for m in person.memberships]
-            role_by_project = {m.project_id: m.role_label for m in person.memberships}
+            membership_by_project = {m.project_id: m for m in person.memberships}
 
         projects = [
             {
@@ -41,7 +41,12 @@ def list_people():
                 # The Launchpad's membership tag — real free text on file (e.g. "Program
                 # Manager"), not a role enum. Admin (and anyone pinned-not-membered, once pins
                 # cover projects too) shows null here; the frontend labels that "Admin"/"—".
-                "role_label": role_by_project.get(proj.id),
+                "role_label": membership_by_project[proj.id].role_label if proj.id in membership_by_project else None,
+                # The one real (if still unenforced) flag — see ProjectMembership's own
+                # docstring. False for admin's synthetic entries here; the frontend ORs this
+                # with persona.is_admin wherever it gates the member-management controls, the
+                # same "admin can do everything" reading every other admin-only affordance uses.
+                "can_manage_members": membership_by_project[proj.id].can_manage_members if proj.id in membership_by_project else False,
             }
             for proj in member_projects
         ]

@@ -13,6 +13,7 @@ import type {
   Portfolio,
   ProjectAppLink,
   ProjectDetail,
+  ProjectMembership,
   ProjectSummary,
 } from './types'
 
@@ -127,6 +128,46 @@ export function useDeleteLink(projectId: string) {
   const invalidate = useInvalidateProject(projectId)
   return useMutation({
     mutationFn: (linkId: string) => api.del<void>(`/links/${linkId}`),
+    onSuccess: invalidate,
+  })
+}
+
+// ── Project membership ───────────────────────────────────────────────────────
+// A membership change also changes what `/people` reports for that person (role_label,
+// can_manage_members, which projects they're "on" at all) — invalidate both, unlike the
+// link/external-id mutations above which are purely project-local.
+
+function useInvalidateProjectAndPeople(projectId: string) {
+  const qc = useQueryClient()
+  return () => {
+    qc.invalidateQueries({ queryKey: ['projects', projectId] })
+    qc.invalidateQueries({ queryKey: ['projects'] })
+    qc.invalidateQueries({ queryKey: ['people'] })
+  }
+}
+
+export function useAddMember(projectId: string) {
+  const invalidate = useInvalidateProjectAndPeople(projectId)
+  return useMutation({
+    mutationFn: (data: { person_id: string; role_label?: string; can_manage_members?: boolean }) =>
+      api.post<ProjectMembership>(`/projects/${projectId}/members`, data),
+    onSuccess: invalidate,
+  })
+}
+
+export function useUpdateMembership(projectId: string) {
+  const invalidate = useInvalidateProjectAndPeople(projectId)
+  return useMutation({
+    mutationFn: ({ membershipId, ...data }: { membershipId: string; role_label?: string; can_manage_members?: boolean }) =>
+      api.put<ProjectMembership>(`/memberships/${membershipId}`, data),
+    onSuccess: invalidate,
+  })
+}
+
+export function useDeleteMembership(projectId: string) {
+  const invalidate = useInvalidateProjectAndPeople(projectId)
+  return useMutation({
+    mutationFn: (membershipId: string) => api.del<void>(`/memberships/${membershipId}`),
     onSuccess: invalidate,
   })
 }

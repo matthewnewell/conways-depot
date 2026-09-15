@@ -196,6 +196,9 @@ class Project(db.Model):
     app_links = db.relationship(
         "ProjectAppLink", back_populates="project", cascade="all, delete-orphan", lazy="selectin"
     )
+    memberships = db.relationship(
+        "ProjectMembership", back_populates="project", cascade="all, delete-orphan", lazy="selectin"
+    )
     # Ordered oldest-first so the frontend can render it as a plain top-to-bottom timeline
     # without re-sorting. See ProjectPhaseEvent below for why this exists.
     phase_events = db.relationship(
@@ -219,6 +222,7 @@ class Project(db.Model):
             "updated_at": self.updated_at.isoformat(),
             "external_ids": [e.to_dict() for e in self.external_ids],
             "phase_events": [e.to_dict() for e in self.phase_events],
+            "members": [m.to_dict() for m in self.memberships],
         }
         if include_links:
             d["app_links"] = [l.to_dict() for l in self.app_links]
@@ -307,16 +311,33 @@ class Person(db.Model):
 
 class ProjectMembership(db.Model):
     """Persona ↔ project. `role_label` is a caption ("Program Manager", "Capture Manager"),
-    never checked against anything — see Person's note on why none of this is enforcement."""
+    never checked against anything — see Person's note on why none of this is enforcement.
+
+    `can_manage_members` is the one deliberate exception, per the Launchpad brief: "a table +
+    one boolean, not named roles." It's still not real access control (nothing here is — see
+    Person's docstring), but the frontend does read it to decide who sees the add/remove-member
+    controls on a project, the same soft "signposting, not enforcement" the admin persona's
+    ⚙ Admin link already gets. No named roles, no permission matrix — just this one flag."""
     __tablename__ = "project_membership"
 
     id = db.Column(db.String(36), primary_key=True, default=_uuid)
     person_id = db.Column(db.String(36), db.ForeignKey("person.id"), nullable=False, index=True)
     project_id = db.Column(db.String(36), db.ForeignKey("project.id"), nullable=False, index=True)
     role_label = db.Column(db.String(100), nullable=True)
+    can_manage_members = db.Column(db.Boolean, nullable=False, default=False)
 
     person = db.relationship("Person", back_populates="memberships")
-    project = db.relationship("Project")
+    project = db.relationship("Project", back_populates="memberships")
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "person_id": self.person_id,
+            "person_name": self.person.name if self.person else None,
+            "project_id": self.project_id,
+            "role_label": self.role_label,
+            "can_manage_members": self.can_manage_members,
+        }
 
 
 class Pin(db.Model):
