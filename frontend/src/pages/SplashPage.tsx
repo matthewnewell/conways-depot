@@ -22,7 +22,7 @@ const FEATURES = [
   },
   {
     title: 'An app store',
-    body: 'Browse a catalog of applications. The project installs the applications its work needs.',
+    body: 'Browse a catalog of applications. The project installs the applications its work needs. Users pin their favorites.',
     icon: (
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <rect x="4" y="4" width="7" height="7" rx="1.5" />
