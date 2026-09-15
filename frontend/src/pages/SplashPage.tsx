@@ -10,7 +10,7 @@ const APPS = ['Capture', 'Contracts', 'Value stream', 'Lessons learned']
 
 const FEATURES = [
   {
-    title: 'One digital thread',
+    title: 'A digital thread',
     body: "A single id per project. Every app's records are scoped to that one id so people and agents can't wander into another project's data.",
     icon: (
       <svg viewBox="0 0 24 24" aria-hidden="true">
