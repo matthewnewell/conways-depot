@@ -131,6 +131,41 @@ def application_reachable(application_id):
     return jsonify({"url": a.url, "reachable": reachable})
 
 
+_NO_SUMMARY = {"headline": None, "label": "No summary published", "status": None, "href": None}
+
+
+@bp.get("/<application_id>/summary")
+def application_summary(application_id):
+    """The Launchpad's app-summary contract: this app's own backend (`api_url`), not the Depot,
+    decides what its tile shows — a `{headline, label, status, href}` the Depot renders
+    opaquely and never interprets. The Depot's job is only to call it server-to-server (same
+    reason /reachable does, not the browser — no CORS setup needed on 10+ separate repos) and
+    fall back to "no summary published" on anything that isn't a clean 200: no `api_url` wired
+    up yet, the app not running, a slow/broken response. That fallback is a normal state, never
+    an error the frontend has to handle specially."""
+    a = Application.query.get_or_404(application_id)
+    if not a.api_url:
+        return jsonify({**_NO_SUMMARY, "href": a.url})
+
+    params = {}
+    if project_id := request.args.get("project_id"):
+        params["project_id"] = project_id
+
+    try:
+        r = httpx.get(f"{a.api_url.rstrip('/')}/api/summary", params=params, timeout=1.5)
+        if r.status_code != 200:
+            return jsonify({**_NO_SUMMARY, "href": a.url})
+        data = r.json()
+        return jsonify({
+            "headline": data.get("headline"),
+            "label": data.get("label"),
+            "status": data.get("status") if data.get("status") in ("ok", "warn", "critical") else None,
+            "href": data.get("href") or a.url,
+        })
+    except (httpx.HTTPError, ValueError):
+        return jsonify({**_NO_SUMMARY, "href": a.url})
+
+
 @bp.put("/<application_id>")
 def update_application(application_id):
     a = Application.query.get_or_404(application_id)

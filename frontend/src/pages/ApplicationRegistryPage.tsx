@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useApplications } from '../api/hooks'
+import { useApplications, usePinApp, useUnpinApp } from '../api/hooks'
 import type { AppCategory, Application, Phase } from '../api/types'
 import { APP_CATEGORIES, CATEGORY_INFO, CATEGORY_LABEL } from '../api/types'
 import InfoPopover from '../components/InfoPopover'
@@ -57,6 +57,8 @@ export default function ApplicationRegistryPage() {
   const navigate = useNavigate()
   const { data: applications, isLoading } = useApplications()
   const { persona } = usePersona()
+  const pinApp = usePinApp()
+  const unpinApp = useUnpinApp()
   const [sortMode, setSortMode] = useState<'alpha' | 'popular'>('alpha')
   // The catalog defaults to the whole org-wide list. A limited persona can flip to a per-
   // project view — their projects, each collapsible to the apps it connects to. See
@@ -156,7 +158,7 @@ export default function ApplicationRegistryPage() {
             <span className="app-featured__label">Featured</span>
             <div className="app-featured__row">
               {featured.map((a) => (
-                <button key={a.id} className="app-featured__card" onClick={() => navigate(`/applications/${a.id}`)}>
+                <button key={a.id} className="app-featured__card" onClick={() => navigate(`/catalog/${a.id}`)}>
                   <span className="app-featured__name">{a.name}</span>
                   {a.capability_name && <span className="app-featured__cap">{a.capability_name}</span>}
                   {a.description && <span className="app-featured__desc">{a.description}</span>}
@@ -259,7 +261,7 @@ export default function ApplicationRegistryPage() {
                           <button
                             key={a.id}
                             className="app-group__row"
-                            onClick={() => navigate(`/applications/${a.id}`)}
+                            onClick={() => navigate(`/catalog/${a.id}`)}
                           >
                             <span className="app-group__row-name">{a.name}</span>
                             <span className="app-group__row-cap">{a.capability_name ?? '—'}</span>
@@ -294,31 +296,48 @@ export default function ApplicationRegistryPage() {
                     <p className="app-result-group__empty">No apps in this aisle yet.</p>
                   ) : (
                     <div className="app-result-cards">
-                      {apps.map((a) => (
-                        <button key={a.id} className="app-result-card" onClick={() => navigate(`/applications/${a.id}`)}>
-                          <div className="app-result-card__main">
-                            <span className="app-result-card__name">{a.name}</span>
-                            {a.capability_name && <span className="app-result-card__cap">{a.capability_name}</span>}
-                            {a.description && <p className="app-result-card__desc">{a.description}</p>}
-                          </div>
-                          <div className="app-result-card__meta">
-                            {appCats(a).length > 1 && (
-                              <span className="app-result-card__pills">
-                                {appCats(a).map((cc) => (
-                                  <span key={cc} className="app-result-card__pill">{CATEGORY_LABEL[cc]}</span>
-                                ))}
-                              </span>
+                      {apps.map((a) => {
+                        const pinned = !!persona?.pinned_application_ids.includes(a.id)
+                        return (
+                          <div key={a.id} className="app-result-card">
+                            {persona && (
+                              <button
+                                className={`app-result-card__pin ${pinned ? 'app-result-card__pin--active' : ''}`}
+                                title={pinned ? `Unpin ${a.name}` : `Pin ${a.name} to your Launchpad`}
+                                onClick={() => {
+                                  if (pinned) unpinApp.mutate({ personId: persona.id, applicationId: a.id })
+                                  else pinApp.mutate({ person_id: persona.id, application_id: a.id })
+                                }}
+                              >
+                                {pinned ? '★' : '☆'}
+                              </button>
                             )}
-                            <span className="app-result-card__projects">
-                              {a.project_count > 0 ? (
-                                `${a.project_count} project${a.project_count === 1 ? '' : 's'}`
-                              ) : (
-                                <span className="app-table__muted">0 projects</span>
-                              )}
-                            </span>
+                            <button className="app-result-card__button" onClick={() => navigate(`/catalog/${a.id}`)}>
+                              <div className="app-result-card__main">
+                                <span className="app-result-card__name">{a.name}</span>
+                                {a.capability_name && <span className="app-result-card__cap">{a.capability_name}</span>}
+                                {a.description && <p className="app-result-card__desc">{a.description}</p>}
+                              </div>
+                              <div className="app-result-card__meta">
+                                {appCats(a).length > 1 && (
+                                  <span className="app-result-card__pills">
+                                    {appCats(a).map((cc) => (
+                                      <span key={cc} className="app-result-card__pill">{CATEGORY_LABEL[cc]}</span>
+                                    ))}
+                                  </span>
+                                )}
+                                <span className="app-result-card__projects">
+                                  {a.project_count > 0 ? (
+                                    `${a.project_count} project${a.project_count === 1 ? '' : 's'}`
+                                  ) : (
+                                    <span className="app-table__muted">0 projects</span>
+                                  )}
+                                </span>
+                              </div>
+                            </button>
                           </div>
-                        </button>
-                      ))}
+                        )
+                      })}
                     </div>
                   )}
                 </section>

@@ -109,6 +109,9 @@ export interface Application {
   capability_id: string | null
   capability_name: string | null
   url: string | null
+  /** This app's own backend base URL — separate from `url` (its frontend). Only used
+   * server-side, to call its /api/summary contract; null means no summary wired up yet. */
+  api_url: string | null
   created_at: string
   /** How many distinct projects have a link to this application. Present on the list and
    * detail endpoints; a read on which catalog entries are actually load-bearing. */
@@ -203,6 +206,10 @@ export interface PersonProject {
   name: string
   phase: Phase
   application_ids: string[]
+  /** The Launchpad's membership tag — real free text on file ("Program Manager"), not a role
+   * enum. Null for the admin persona (not a real member of anything) and for a project reached
+   * only by pin, once pins cover projects too — the frontend labels those cases itself. */
+  role_label: string | null
 }
 
 export interface Person {
@@ -216,6 +223,27 @@ export interface Person {
   project_ids: string[]
   /** Flat union of every app id any of this persona's projects connects to. */
   application_ids: string[]
+  /** Apps this persona pinned to their own Launchpad — "my apps" means this, not "apps I
+   * built" and not the flat union above. */
+  pinned_application_ids: string[]
+}
+
+/** The Launchpad's app-summary contract — an app's own backend decides what its tile shows;
+ * the Depot renders this opaquely and never interprets `headline`/`label`. `status` drives the
+ * tile's accent color only. `null` fields (or the whole thing being the "no summary published"
+ * shape) are a normal, expected state, not an error. */
+export interface AppSummary {
+  headline: string | null
+  label: string | null
+  status: 'ok' | 'warn' | 'critical' | null
+  href: string | null
+}
+
+export interface Pin {
+  id: string
+  person_id: string
+  application_id: string
+  created_at: string
 }
 
 export interface ChatMessage {

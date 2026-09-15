@@ -2,12 +2,14 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from './client'
 import type {
   Application,
+  AppSummary,
   Capability,
   ChatMessage,
   ChatResult,
   ExternalId,
   Person,
   Phase,
+  Pin,
   Portfolio,
   ProjectAppLink,
   ProjectDetail,
@@ -196,6 +198,48 @@ export function useCapabilities() {
   return useQuery({
     queryKey: ['capabilities'],
     queryFn: () => api.get<Capability[]>('/capabilities'),
+  })
+}
+
+/** The Launchpad's app-summary contract — one query per tile (not a batched call) so a slow or
+ * unimplemented app never blocks the others from rendering. `enabled` lets the caller hold off
+ * until it actually knows which apps to ask about. */
+export function useApplicationSummary(applicationId: string, projectId?: string, enabled = true) {
+  return useQuery({
+    queryKey: ['applications', applicationId, 'summary', projectId ?? null],
+    queryFn: () => {
+      const qs = projectId ? `?project_id=${encodeURIComponent(projectId)}` : ''
+      return api.get<AppSummary>(`/applications/${applicationId}/summary${qs}`)
+    },
+    enabled,
+    staleTime: 30_000,
+    retry: false,
+  })
+}
+
+// ── Pins ─────────────────────────────────────────────────────────────────────
+
+function useInvalidatePins() {
+  const qc = useQueryClient()
+  return () => qc.invalidateQueries({ queryKey: ['people'] })
+}
+
+/** Pin/unpin both just invalidate `people` — `pinned_application_ids` lives on each persona's
+ * own /people entry, so that's the one place the Launchpad and anything else reads it from. */
+export function usePinApp() {
+  const invalidate = useInvalidatePins()
+  return useMutation({
+    mutationFn: (data: { person_id: string; application_id: string }) => api.post<Pin>('/pins', data),
+    onSuccess: invalidate,
+  })
+}
+
+export function useUnpinApp() {
+  const invalidate = useInvalidatePins()
+  return useMutation({
+    mutationFn: ({ personId, applicationId }: { personId: string; applicationId: string }) =>
+      api.del<void>(`/pins?person_id=${encodeURIComponent(personId)}&application_id=${encodeURIComponent(applicationId)}`),
+    onSuccess: invalidate,
   })
 }
 

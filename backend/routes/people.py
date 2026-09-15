@@ -11,7 +11,7 @@ localStorage; the project and application lists use this to default to a "mine" 
 from flask import Blueprint, jsonify
 
 from db import db
-from models import Person, Project
+from models import Person, Pin, Project
 
 bp = Blueprint("people", __name__, url_prefix="/api/people")
 
@@ -27,8 +27,10 @@ def list_people():
         # app so any generic "is this mine?" check in the frontend just resolves to yes.
         if person.is_admin:
             member_projects = all_projects
+            role_by_project = {}  # admin isn't a real member of anything — no role_label to show
         else:
             member_projects = [m.project for m in person.memberships]
+            role_by_project = {m.project_id: m.role_label for m in person.memberships}
 
         projects = [
             {
@@ -36,17 +38,25 @@ def list_people():
                 "name": proj.name,
                 "phase": proj.phase,
                 "application_ids": sorted({l.application_id for l in proj.app_links}),
+                # The Launchpad's membership tag — real free text on file (e.g. "Program
+                # Manager"), not a role enum. Admin (and anyone pinned-not-membered, once pins
+                # cover projects too) shows null here; the frontend labels that "Admin"/"—".
+                "role_label": role_by_project.get(proj.id),
             }
             for proj in member_projects
         ]
         project_ids = [p["id"] for p in projects]
         application_ids = sorted({aid for p in projects for aid in p["application_ids"]})
+        pinned_application_ids = sorted(
+            {p.application_id for p in Pin.query.filter_by(person_id=person.id).all()}
+        )
 
         out.append(
             {
                 **person.to_dict(),
                 "project_ids": project_ids,
                 "application_ids": application_ids,
+                "pinned_application_ids": pinned_application_ids,
                 "projects": projects,
             }
         )

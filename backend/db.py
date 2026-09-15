@@ -41,6 +41,7 @@ _MIGRATIONS: list[tuple[str, str, str]] = [
     ("project", "channels", "ALTER TABLE project ADD COLUMN channels TEXT"),
     ("application", "category", "ALTER TABLE application ADD COLUMN category VARCHAR(20)"),
     ("project", "team_topology", "ALTER TABLE project ADD COLUMN team_topology VARCHAR(30)"),
+    ("application", "api_url", "ALTER TABLE application ADD COLUMN api_url VARCHAR(500)"),
 ]
 
 

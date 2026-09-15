@@ -4,10 +4,13 @@ import PersonaMenu from './PersonaMenu'
 import './DepotNav.css'
 
 /** Persistent top navbar across every page — including the splash page, which sits outside the
- * chat-enabled layout but should still be reachable the same way. Two dimensions the registry
- * actually has: Projects and Applications. Phase isn't a nav item on its own — it's a property
- * of a project, not a separate collection. The brand text links to the splash page (what this
- * is and why) rather than duplicating "Projects" as a second link to the same place.
+ * chat-enabled layout but should still be reachable the same way. The Depot is a shell now, not
+ * just the catalog: **Launchpad** (`/`) is the landing page — organizational apps, pinned apps,
+ * and a persona's own projects, one glance — and **Catalog** (`/catalog`) is where you browse
+ * by category. Projects and a given app's own detail page are reached *from* those two, not
+ * top-level nav items on their own; Phase isn't either — it's a property of a project. The
+ * brand text links to the splash page (what this is and why) rather than duplicating
+ * "Launchpad" as a second link to the same place.
  *
  * There's no ⚙ Admin link here: admin is a property of a persona, not a nav destination. The
  * default persona is literally named "Admin" (the see-everything seat) and the switcher lets
@@ -38,13 +41,13 @@ export default function DepotNav() {
           end
           className={({ isActive }) => `depot-nav__link ${isActive ? 'depot-nav__link--active' : ''}`}
         >
-          Projects
+          Launchpad
         </NavLink>
         <NavLink
-          to="/applications"
+          to="/catalog"
           className={({ isActive }) => `depot-nav__link ${isActive ? 'depot-nav__link--active' : ''}`}
         >
-          Applications
+          Catalog
         </NavLink>
       </div>
       <div className="depot-nav__right">

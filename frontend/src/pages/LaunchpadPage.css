@@ -1,0 +1,225 @@
+.launchpad-page {
+  height: 100%;
+  overflow-y: auto;
+}
+
+.launchpad-page__content {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 28px 20px 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.launchpad-page__header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.launchpad-page__title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.launchpad-page__loading {
+  margin: 0;
+  color: var(--color-text-faint);
+  font-size: 13px;
+}
+
+/* ── section shell, shared by all three ── */
+
+.lp-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.lp-section__head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.lp-section__title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-faint);
+}
+
+.lp-section__hint {
+  font-size: 12px;
+  color: var(--color-text-faint);
+}
+
+.lp-section__link {
+  margin-left: auto;
+  border: none;
+  background: none;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-accent);
+}
+
+.lp-section__link:hover {
+  text-decoration: underline;
+}
+
+.lp-section__empty {
+  margin: 0;
+  padding: 16px 18px;
+  background: var(--color-surface);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  font-size: 13px;
+  color: var(--color-text-faint);
+}
+
+/* ── app cards (Organizational + Pinned) ── */
+
+.lp-app-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.lp-app-card {
+  position: relative;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.lp-app-card:hover {
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-sm);
+}
+
+.lp-app-card__main {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  padding: 16px 18px;
+  border: none;
+  background: none;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.lp-app-card__name {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.lp-app-card__cap {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-accent);
+}
+
+.lp-app-card__unpin {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  border: none;
+  background: none;
+  padding: 2px 4px;
+  font-size: 11px;
+  color: var(--color-text-faint);
+  border-radius: var(--radius-sm);
+}
+
+.lp-app-card__unpin:hover {
+  color: var(--color-critical);
+  background: var(--color-critical-soft);
+}
+
+/* ── project cards ── */
+
+.lp-project-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.lp-project-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 18px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.lp-project-card:hover {
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-sm);
+}
+
+.lp-project-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.lp-project-card__name {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.lp-project-card__tag {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--color-accent-soft);
+  color: var(--color-accent-hover);
+  white-space: nowrap;
+}
+
+.lp-project-card__phase {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.lp-project-card__chips {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border);
+}
+
+.lp-chip .app-summary-tile {
+  font-size: 12px;
+}
+
+.lp-chip .app-summary-tile__headline {
+  font-size: 1rem;
+}

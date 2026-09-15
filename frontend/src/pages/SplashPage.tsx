@@ -74,7 +74,7 @@ export default function SplashPage() {
               <Link className="splash-btn splash-btn--primary" to="/admin">
                 Create a project
               </Link>
-              <Link className="splash-btn splash-btn--ghost" to="/applications">
+              <Link className="splash-btn splash-btn--ghost" to="/catalog">
                 Browse the app store
               </Link>
             </div>

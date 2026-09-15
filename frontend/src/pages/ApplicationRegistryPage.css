@@ -377,24 +377,55 @@
 }
 
 .app-result-card {
+  position: relative;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.app-result-card:hover,
+.app-result-card:focus-within {
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-sm);
+}
+
+.app-result-card__button {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
+  width: 100%;
   padding: 14px 18px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  border: none;
+  background: none;
   text-align: left;
   font: inherit;
   color: inherit;
   cursor: pointer;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.app-result-card:hover {
-  border-color: var(--color-accent);
-  box-shadow: var(--shadow-sm);
+.app-result-card__pin {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1;
+  border: none;
+  background: none;
+  padding: 2px 4px;
+  font-size: 15px;
+  line-height: 1;
+  color: var(--color-text-faint);
+  border-radius: var(--radius-sm);
+}
+
+.app-result-card__pin:hover {
+  color: var(--color-accent);
+  background: var(--color-accent-soft);
+}
+
+.app-result-card__pin--active {
+  color: var(--color-accent);
 }
 
 .app-result-card__main {
@@ -458,7 +489,7 @@
 }
 
 @media (max-width: 560px) {
-  .app-result-card {
+  .app-result-card__button {
     flex-direction: column;
   }
 

@@ -93,6 +93,13 @@ class Application(db.Model):
     # drive" link into the running app, not tied to any project. Null for vendor products we
     # don't host and for anything not built yet.
     url = db.Column(db.String(500), nullable=True)
+    # The app's own BACKEND base URL — separate from `url` (its frontend) on purpose: the
+    # Launchpad's summary contract (GET {api_url}/api/summary?project_id=) is a server-to-server
+    # call the Depot's own backend makes, same as the existing /reachable probe, never something
+    # the browser calls directly (would need CORS on every sibling app's Flask server for no
+    # reason). Null means "no summary contract wired up yet" — a normal state, not an error; see
+    # routes/applications.py's summary proxy route.
+    api_url = db.Column(db.String(500), nullable=True)
     created_at = db.Column(db.DateTime, default=_now, nullable=False)
 
     capability = db.relationship("Capability", back_populates="applications")
@@ -120,6 +127,7 @@ class Application(db.Model):
             "capability_id": self.capability_id,
             "capability_name": self.capability.name if self.capability else None,
             "url": self.url,
+            "api_url": self.api_url,
             "created_at": self.created_at.isoformat(),
         }
 
@@ -309,6 +317,30 @@ class ProjectMembership(db.Model):
 
     person = db.relationship("Person", back_populates="memberships")
     project = db.relationship("Project")
+
+
+class Pin(db.Model):
+    """Person ↔ Application, for the Launchpad's Pinned Apps section. "My apps" means *this* —
+    what a person chose to keep in front of them — not "apps I built" and not the flat union of
+    apps reachable through project membership (that's `application_ids` on the /people
+    response). Deliberately dumb: no note, no ordering field, just that the pin exists. Unique
+    on (person_id, application_id) — pinning twice is a no-op, not a second row."""
+
+    __tablename__ = "pin"
+    __table_args__ = (db.UniqueConstraint("person_id", "application_id", name="uq_pin_person_app"),)
+
+    id = db.Column(db.String(36), primary_key=True, default=_uuid)
+    person_id = db.Column(db.String(36), db.ForeignKey("person.id"), nullable=False, index=True)
+    application_id = db.Column(db.String(36), db.ForeignKey("application.id"), nullable=False, index=True)
+    created_at = db.Column(db.DateTime, default=_now, nullable=False)
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "person_id": self.person_id,
+            "application_id": self.application_id,
+            "created_at": self.created_at.isoformat(),
+        }
 
 
 class ProjectAppLink(db.Model):

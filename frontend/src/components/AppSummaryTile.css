@@ -1,0 +1,39 @@
+.app-summary-tile {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.app-summary-tile--empty {
+  color: var(--color-text-faint);
+  font-style: italic;
+}
+
+.app-summary-tile__headline {
+  font-size: 1.4rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.app-summary-tile__label {
+  color: var(--color-text-secondary);
+}
+
+.app-summary-tile--neutral .app-summary-tile__headline {
+  color: var(--color-text);
+}
+
+.app-summary-tile--ok .app-summary-tile__headline {
+  color: var(--color-success);
+}
+
+.app-summary-tile--warn .app-summary-tile__headline {
+  color: var(--color-wait);
+}
+
+.app-summary-tile--critical .app-summary-tile__headline {
+  color: var(--color-critical);
+}

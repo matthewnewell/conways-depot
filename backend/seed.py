@@ -454,3 +454,29 @@ def seed_people_if_empty():
                 person_id=person.id, project_id=project.id, role_label=role_label,
             ))
     db.session.commit()
+
+
+# Pinned by Admin — the default "see everything" persona, so the Launchpad isn't an empty
+# Pinned Apps section on a fresh visit. Same three as the catalog's own Featured row, on
+# purpose: one consistent "these are the apps to look at first" story across both pages.
+_ADMIN_PINS = ["Good Plan", "Value Stream", "WinMax"]
+
+
+def seed_pins_if_empty():
+    """Guarded separately, same reasoning as seed_people_if_empty: pins shipped after the
+    registry and personas did, so an already-seeded dev DB needs them backfilled too."""
+    from models import Application, Person, Pin
+
+    if Pin.query.count() > 0:
+        return
+
+    admin = Person.query.filter_by(is_admin=True).first()
+    if admin is None:
+        return
+
+    for app_name in _ADMIN_PINS:
+        app = Application.query.filter_by(name=app_name).first()
+        if app is None:
+            continue
+        db.session.add(Pin(person_id=admin.id, application_id=app.id))
+    db.session.commit()
