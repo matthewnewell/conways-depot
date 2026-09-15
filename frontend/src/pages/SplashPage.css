@@ -167,8 +167,15 @@
   border-radius: var(--radius-md);
 }
 
+.splash-feature__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .splash-feature__icon {
   display: inline-flex;
+  flex-shrink: 0;
   padding: 8px;
   border-radius: var(--radius-sm);
   background: var(--color-accent-soft);
@@ -187,14 +194,14 @@
 }
 
 .splash-feature__title {
-  margin: 14px 0 6px;
+  margin: 0;
   font-size: 0.98rem;
   font-weight: 700;
   color: var(--color-text);
 }
 
 .splash-feature__body {
-  margin: 0;
+  margin: 12px 0 0;
   font-size: 0.85rem;
   line-height: 1.6;
   color: var(--color-text-secondary);

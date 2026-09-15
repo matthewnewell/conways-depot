@@ -34,7 +34,7 @@ const FEATURES = [
   },
   {
     title: 'A launchpad',
-    body: "Land on the projects and apps tied to your role. Open one of those projects and its home page does the same for its own installed apps — no scatter of tools and tabs.",
+    body: 'A personal launchpad, customized for each user. A project launchpad, for its connected apps and data.',
     icon: (
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M12 4v10" />
@@ -179,8 +179,10 @@ export default function SplashPage() {
           <section className="splash-features">
             {FEATURES.map((f) => (
               <article className="splash-feature" key={f.title}>
-                <span className="splash-feature__icon">{f.icon}</span>
-                <h3 className="splash-feature__title">{f.title}</h3>
+                <div className="splash-feature__head">
+                  <span className="splash-feature__icon">{f.icon}</span>
+                  <h3 className="splash-feature__title">{f.title}</h3>
+                </div>
                 <p className="splash-feature__body">{f.body}</p>
               </article>
             ))}
