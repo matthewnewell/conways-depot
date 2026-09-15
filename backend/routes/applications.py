@@ -79,6 +79,7 @@ def create_application():
         category=",".join(_split_categories(body.get("category"))) or None,
         capability_id=body.get("capability_id"),
         url=body.get("url"),
+        api_url=body.get("api_url"),
     )
     db.session.add(a)
     db.session.commit()
@@ -148,8 +149,16 @@ def application_summary(application_id):
         return jsonify({**_NO_SUMMARY, "href": a.url})
 
     params = {}
-    if project_id := request.args.get("project_id"):
-        params["project_id"] = project_id
+    if depot_project_id := request.args.get("project_id"):
+        # Translate the Depot's own project id into whatever pointer this app actually knows
+        # about, via the same external_ref crosswalk ProjectAppLink already carries (e.g. a
+        # Value Stream map id — see seed.py's VALUE_STREAM_DEMO_MAP_ID). A sibling app was never
+        # meant to recognize the Depot's ids directly; falls back to passing the Depot's id
+        # as-is if no link/ref exists yet, in case the app wants to key on it anyway.
+        link = ProjectAppLink.query.filter_by(
+            project_id=depot_project_id, application_id=application_id
+        ).first()
+        params["project_id"] = link.external_ref if link and link.external_ref else depot_project_id
 
     try:
         r = httpx.get(f"{a.api_url.rstrip('/')}/api/summary", params=params, timeout=1.5)
@@ -176,7 +185,7 @@ def update_application(application_id):
 
     for field in (
         "name", "description", "owning_team", "team_type", "scope",
-        "capability_id", "url",
+        "capability_id", "url", "api_url",
     ):
         if field in body:
             setattr(a, field, body[field])

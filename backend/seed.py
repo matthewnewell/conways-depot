@@ -41,12 +41,18 @@ from models import Application, Capability, ExternalId, Portfolio, Project, Proj
 def _days_ago(n: int) -> datetime:
     return datetime.now(timezone.utc) - timedelta(days=n)
 
-# The real id of Value Stream's own seeded demo map (`Demo: Bracket Assembly...`), as of when
-# this was written. If Value Stream's dev DB is ever reset, this link goes stale — an accepted
-# limitation of a plain-URL pointer, and exactly the kind of drift a real crosswalk has to live
-# with too.
-VALUE_STREAM_DEMO_MAP_ID = "b21f6ed1-3403-4a0b-a0c0-44f93d646562"
+# The real id of Value Stream's own seeded sample map (`Bracket Assembly`, project field
+# "Demo: Bracket Assembly Program" — `GET /api/maps/sample` there). If Value Stream's dev DB is
+# ever reset, this link goes stale — an accepted limitation of a plain-URL pointer, and exactly
+# the kind of drift a real crosswalk has to live with too. **This already happened once**
+# (2026-09-15, while wiring Increment 2's summary contract): the id below was updated from a
+# now-nonexistent map; verify with `curl {VALUE_STREAM_API_URL}/api/maps/sample` before trusting
+# it again after any Value Stream reseed.
+VALUE_STREAM_DEMO_MAP_ID = "772111e5-31f5-4a58-a294-fad9b39a9fb9"
 VALUE_STREAM_BASE_URL = "http://localhost:5173"
+# The backend's own base URL — never shown to a person, only called server-to-server by the
+# Launchpad's app-summary proxy (see routes/applications.py's application_summary()).
+VALUE_STREAM_API_URL = "http://localhost:8080"
 
 
 def seed_if_empty():
@@ -85,6 +91,7 @@ def seed_if_empty():
         category="project",  # 15288 Project Processes — Assessment / Measurement
         capability=cap_vsm,
         url=VALUE_STREAM_BASE_URL,
+        api_url=VALUE_STREAM_API_URL,
     )
     app_winmax = Application(
         name="WinMax (Deltek)",
@@ -388,7 +395,7 @@ def seed_if_empty():
         ProjectAppLink(
             project_id=project.id, application_id=app_value_stream.id, phase="execution",
             external_ref=VALUE_STREAM_DEMO_MAP_ID,
-            link_url=f"{VALUE_STREAM_BASE_URL}/maps/{VALUE_STREAM_DEMO_MAP_ID}/bluf",
+            link_url=f"{VALUE_STREAM_BASE_URL}/maps/{VALUE_STREAM_DEMO_MAP_ID}/timeline",
             notes="Design -> Procure -> Build -> Ship value stream for the bracket redesign.",
         ),
     ])
