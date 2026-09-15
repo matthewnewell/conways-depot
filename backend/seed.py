@@ -1,14 +1,17 @@
 """
 Registry seed — capabilities, applications, and two demo projects.
 
-Value Stream is a real, currently-running sibling app (it has a `url`). WinMax (Deltek) and
-Contract & Legal Authoring are real vendor products this Depot registers but never integrates
-with — no `url`, and the crosswalk (ExternalId) is the only connection. Plain "WinMax" is this
-company's own not-yet-built replacement for that same vendor tool, sharing its Capability on
-purpose — see its own description for why the two coexist. Descriptions on every not-yet-built
-Application say so plainly, and they're here to keep the capability visible as a gap. (There's
-no `status` field distinguishing these — the prose and the presence/absence of a `url` carry
-it.)
+Value Stream and WinMax are real, currently-running sibling apps (each has a `url`, and now an
+`api_url` for the Launchpad summary contract — see routes/applications.py's application_summary).
+Contract & Legal Authoring is a real vendor product this Depot registers but never integrates
+with — no `url`, and the crosswalk (ExternalId) is its only connection. (There's no `status`
+field distinguishing built-vs-not — the prose and the presence/absence of a `url` carry it.)
+
+WinMax used to coexist with a "WinMax (Deltek)" vendor-stub entry sharing its Capability — the
+vendor product it was meant to replace. Removed 2026-09-15 once it was clear that stub would
+never itself get built out (it was never more than a name + a crosswalk anyway): the Capability
+survives under the real WinMax, and its two ProjectAppLink rows were migrated across (see the
+demo project blocks below) rather than deleted, so the opportunity numbers aren't lost.
 
 Personas (models.Person) and their project memberships are seeded separately by
 seed_people_if_empty() — a demo "viewing as" switcher, not authentication.
@@ -54,6 +57,15 @@ VALUE_STREAM_BASE_URL = "http://localhost:5173"
 # Launchpad's app-summary proxy (see routes/applications.py's application_summary()).
 VALUE_STREAM_API_URL = "http://localhost:8080"
 
+# WinMax's own backend, same "server-to-server only" role as VALUE_STREAM_API_URL above. Unlike
+# Value Stream, WinMax's demo pursuits (its own seed.py) were curated to make WinMax's own case
+# on its own splash page, not to line up with either of *this* Depot's demo projects by name —
+# so there is no WINMAX_DEMO_PURSUIT_ID constant here. Both demo projects' WinMax links below
+# carry the old Deltek opportunity number in a note instead of a resolvable external_ref, and
+# their Launchpad tile honestly reads "No pursuit linked yet" until a real capture record for
+# either project exists in WinMax.
+WINMAX_API_URL = "http://localhost:8099"
+
 
 def seed_if_empty():
     if Project.query.count() > 0 or Application.query.count() > 0:
@@ -94,15 +106,6 @@ def seed_if_empty():
         api_url=VALUE_STREAM_API_URL,
     )
     app_winmax = Application(
-        name="WinMax (Deltek)",
-        description="Deltek's capture management product — pursuit tracking, gate reviews, P(win). Vendor tool, external to this ecosystem.",
-        owning_team="Business Development",
-        team_type=None,  # a vendor product, not an internally-owned team
-        category="agreement",  # 15288 Agreement Processes — Supply (pursuing work to supply)
-        capability=cap_capture,
-        url=None,  # real external SaaS product; no stable local URL to link to
-    )
-    app_winmax_own = Application(
         name="WinMax",
         description=(
             "A P(Win)/P(Go)/Bid-No-Bid gated pursuit tracker: named scoring factors, "
@@ -111,14 +114,15 @@ def seed_if_empty():
             "convention as Value Stream's and The Fixer's own journals. One AI chat "
             "assistant, not the six specialized agent roles (Capture Manager, Competitive "
             "Intel, Price-to-Win, Customer Intel, Proposal Strategist, Color Team Reviewer) an "
-            "earlier teaser sketched. Meant to eventually replace WinMax (Deltek), the vendor "
-            "tool this same capability names today."
+            "earlier teaser sketched. Replaced the \"WinMax (Deltek)\" vendor-stub entry that "
+            "used to share this capability."
         ),
         owning_team="Matt (informal enabling team)",
         team_type="enabling",
         category="agreement",
         capability=cap_capture,
         url="http://localhost:5185",
+        api_url=WINMAX_API_URL,
     )
     # ── Organizational Enablers (ISO/IEC/IEEE 15288 Organizational Project-Enabling Processes) —
     #    scope="organizational": these serve every project at once. Value Stream's own template
@@ -342,7 +346,7 @@ def seed_if_empty():
     )
 
     db.session.add_all([
-        app_value_stream, app_winmax, app_winmax_own,
+        app_value_stream, app_winmax,
         app_good_plan, app_labor_supply_demand, app_qms, app_lham, app_portfolio_manager,
         app_contract_authoring, app_dwmp, app_fixer, app_scan_me, app_org_charts, app_dwmo,
         app_scope_manager, app_reckon,
@@ -389,8 +393,11 @@ def seed_if_empty():
     db.session.add_all([
         ProjectAppLink(
             project_id=project.id, application_id=app_winmax.id, phase="pursuit",
-            external_ref="OPP-8891",
-            notes="Captured as a sole-source bracket redesign pursuit.",
+            notes=(
+                "Captured as a sole-source bracket redesign pursuit (opportunity OPP-8891, "
+                "originally tracked in WinMax (Deltek) before that vendor stub was retired). "
+                "No matching WinMax capture record created yet."
+            ),
         ),
         ProjectAppLink(
             project_id=project.id, application_id=app_value_stream.id, phase="execution",
@@ -415,7 +422,10 @@ def seed_if_empty():
     db.session.add(ExternalId(project_id=prospect.id, system="WinMax", external_id="OPP-9214"))
     db.session.add(ProjectAppLink(
         project_id=prospect.id, application_id=app_winmax.id, phase="pursuit",
-        external_ref="OPP-9214",
+        notes=(
+            "Opportunity OPP-9214, originally tracked in WinMax (Deltek) before that vendor "
+            "stub was retired. No matching WinMax capture record created yet."
+        ),
     ))
 
     db.session.commit()

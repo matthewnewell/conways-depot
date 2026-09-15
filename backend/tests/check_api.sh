@@ -45,7 +45,7 @@ apps = json.load(sys.stdin)
 cats = {a['name']: a['category'] for a in apps}
 assert cats['WinMax'] == 'agreement', cats
 assert cats['Value Stream'] == 'project', cats
-assert cats['Staffing & Capacity Engine'] == 'enterprise', cats
+assert cats['Labor Supply & Demand'] == 'enterprise', cats  # was 'Staffing & Capacity Engine' pre-rename
 print('ok —', cats)
 "
 STATUS=$(curl -s -o /dev/null -w '%{http_code}' -X PUT "$BASE/applications/$WV_ID" \
