@@ -6,11 +6,6 @@
   font-size: 13px;
 }
 
-.app-summary-tile--empty {
-  color: var(--color-text-faint);
-  font-style: italic;
-}
-
 .app-summary-tile__headline {
   font-size: 1.4rem;
   font-weight: 800;

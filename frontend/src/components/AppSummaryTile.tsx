@@ -3,19 +3,19 @@ import type { AppSummary } from '../api/types'
 import './AppSummaryTile.css'
 
 /** The Launchpad's app-summary contract, rendered — the Depot never interprets `headline`/
- * `label`, it just displays them and colors the tile by `status`. Renders "No summary
- * published" (a normal state) while loading and on any failure/absence, never an error message
- * — see backend routes/applications.py's summary proxy for why that's always the fallback. */
+ * `label`, it just displays them and colors the tile by `status`. No headline (still loading,
+ * no api_url wired up, the sibling app has nothing to say — "No summary published"/"No map
+ * linked yet"/"No pursuit linked yet" are all equally uninformative) renders nothing at all,
+ * not a muted placeholder line — a card with real data earns its second line, one without just
+ * stays quiet rather than cluttering every tile with "nothing to see here" text. See backend
+ * routes/applications.py's summary proxy for why an empty state is always the fallback, never
+ * an error. */
 export default function AppSummaryTile({ applicationId, projectId }: { applicationId: string; projectId?: string }) {
-  const { data, isLoading } = useApplicationSummary(applicationId, projectId)
-  const summary: AppSummary = data ?? { headline: null, label: isLoading ? null : 'No summary published', status: null, href: null }
-
-  if (!summary.headline && !summary.label) {
-    return <p className="app-summary-tile app-summary-tile--empty">…</p>
-  }
+  const { data } = useApplicationSummary(applicationId, projectId)
+  const summary: AppSummary = data ?? { headline: null, label: null, status: null, href: null }
 
   if (!summary.headline) {
-    return <p className="app-summary-tile app-summary-tile--empty">{summary.label}</p>
+    return null
   }
 
   return (
