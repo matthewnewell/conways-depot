@@ -34,7 +34,7 @@ const FEATURES = [
   },
   {
     title: 'A launchpad',
-    body: "The project's home page opens into its installed apps — one place to pick up the work instead of a scatter of tools and tabs.",
+    body: "Land on the projects and apps tied to your role. Open one of those projects and its home page does the same for its own installed apps — no scatter of tools and tabs.",
     icon: (
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M12 4v10" />
