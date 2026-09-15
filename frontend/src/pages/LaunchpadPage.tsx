@@ -89,7 +89,6 @@ export default function LaunchpadPage() {
         <section className="lp-section">
           <div className="lp-section__head">
             <span className="lp-section__title">Pinned apps</span>
-            <span className="lp-section__hint">organizational apps, plus anything you've pinned</span>
             <PresetDropdown personId={persona?.id} />
             <button className="lp-section__link" onClick={() => navigate('/catalog')}>Browse catalog →</button>
           </div>

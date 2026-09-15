@@ -13,7 +13,10 @@ anything — so it doubles as the Launchpad's "reset my pins" action, not a sepa
 
 Referenced by app name, same pattern seed.py's own _ADMIN_PINS already uses, resolved to ids
 at apply time (routes/pins.py) — never assume a fixed id, an app that isn't registered yet on
-a given DB is just skipped.
+a given DB is just skipped. Mission Assurance's own list leans on this: "Lessons Learned"
+isn't a built app yet (still brainstormed, see the ecosystem-new-apps memory) — it's named here
+anyway and simply resolves to nothing until it exists, then starts working with no further
+change needed.
 """
 
 PRESETS: dict[str, dict] = {
@@ -71,6 +74,17 @@ PRESETS: dict[str, dict] = {
             "Scan Me",
             "Dude, Where's My Part?",
             "Dude, Where's My Order?",
+        ],
+    },
+    "mission_assurance": {
+        "label": "Mission Assurance",
+        "description": "Quality, compliance, and closing the loop on what went wrong.",
+        "app_names": [
+            "Org Charts",
+            "QMS",
+            "Scan Me",
+            "The Fixer",
+            "Lessons Learned",  # not built yet — resolves to nothing until it's registered
         ],
     },
 }
