@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Conway's Depot</title>
+<style>
+  :root {
+    --bar-bg: #1f2430;
+    --bar-fg: #e8eaf0;
+    --bar-muted: #9aa3b2;
+    --bar-border: #333a48;
+    --accent: #6ea8fe;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    display: flex;
+    flex-direction: column;
+    font: 14px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: #0e1116;
+  }
+
+  #bar {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 0 16px;
+    height: 44px;
+    background: var(--bar-bg);
+    color: var(--bar-fg);
+    border-bottom: 1px solid var(--bar-border);
+    user-select: none;
+  }
+
+  #home {
+    display: flex;
+    align-items: baseline;
+    background: none;
+    border: 0;
+    padding: 0;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  #home .mark { font-weight: 700; letter-spacing: -0.01em; }
+  #home:hover .mark { color: #fff; }
+
+  .nav-btn {
+    background: none;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    padding: 5px 11px;
+    color: var(--bar-muted);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .nav-btn:hover { color: var(--bar-fg); border-color: var(--bar-border); }
+  .nav-btn.active {
+    color: var(--bar-fg);
+    border-color: var(--accent);
+    background: rgba(110, 168, 254, 0.12);
+  }
+
+  #primary { display: flex; gap: 4px; }
+  #admin { margin-left: auto; }
+
+  #frame {
+    flex: 1 1 auto;
+    width: 100%;
+    border: 0;
+    background: #fff;
+  }
+</style>
+</head>
+<body>
+  <div id="bar">
+    <button id="home" title="What Conway's Depot is and why">
+      <span class="mark">Conway's Depot</span>
+    </button>
+    <div id="primary">
+      <button class="nav-btn" data-key="launchpad" data-path="/">Launchpad</button>
+      <button class="nav-btn" data-key="catalog" data-path="/catalog">Catalog</button>
+    </div>
+    <button class="nav-btn" id="admin" data-key="admin" data-path="/admin">&#9881; Admin</button>
+  </div>
+  <iframe id="frame" title="Conway's Depot"></iframe>
+
+<script>
+  // The Depot is the only app the bar navigates directly; sibling apps (Value Stream,
+  // BurnedValue) are reached through the digital-thread links inside a project, and the bar
+  // stays put above them because it is the parent frame. Port matches .claude/launch.json.
+  const DEPOT = "http://localhost:5175";
+
+  const frame = document.getElementById("frame");
+  const navButtons = [...document.querySelectorAll(".nav-btn")];
+
+  function setActive(key) {
+    for (const btn of navButtons) btn.classList.toggle("active", btn.dataset.key === key);
+  }
+
+  // Best-effort highlight: we set frame.src so we know where we sent it, but the Depot's own
+  // in-frame navigation is cross-origin and unreadable — so "Projects" stays lit while you
+  // drill into a project, which is still the right section. The splash page lights nothing.
+  function navigate(path, key) {
+    frame.src = DEPOT + path;
+    setActive(key || "");
+    const qs = path === "/" ? "" : "?path=" + encodeURIComponent(path);
+    history.replaceState(null, "", location.pathname + qs);
+  }
+
+  for (const btn of navButtons) {
+    btn.addEventListener("click", () => navigate(btn.dataset.path, btn.dataset.key));
+  }
+  document.getElementById("home").addEventListener("click", () => navigate("/about", null));
+
+  // Restore on reload / shared link.
+  const startPath = new URLSearchParams(location.search).get("path") || "/";
+  const startBtn = navButtons.find((b) => b.dataset.path === startPath);
+  navigate(startPath, startBtn ? startBtn.dataset.key : null);
+</script>
+</body>
+</html>
