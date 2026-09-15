@@ -88,8 +88,12 @@ def seed_if_empty():
         name="Contract & Legal Authoring",
         description="Shared templates, clause libraries, and legal review used to write any contract — distinct from tracking one project's specific SOWs.",
     )
+    cap_task_priority = Capability(
+        name="Task & Priority Management",
+        description="A person's own working list across every project they support, kept current from real signals instead of memory.",
+    )
     db.session.add_all([
-        cap_capture, cap_vsm, cap_staffing, cap_contract_authoring,
+        cap_capture, cap_vsm, cap_staffing, cap_contract_authoring, cap_task_priority,
     ])
     db.session.flush()
 
@@ -344,12 +348,31 @@ def seed_if_empty():
         capability=cap_performance,
         url=None,
     )
+    app_task_master = Application(
+        name="Task Master",
+        description=(
+            "A personal kanban — Backlog, To Do, Doing, Done — for one person across every "
+            "project they support, not one board per project. \"Suggest backlog items\" reads "
+            "real cross-app signals through this Depot's own summary/journal proxies and "
+            "proposes grounded cards with a stated reason; nothing moves itself off the "
+            "backlog. The one sibling app with a required live dependency on this Depot — its "
+            "own persona switcher calls this API directly, rather than keeping its own copy "
+            "of who exists."
+        ),
+        owning_team="Matt (informal enabling team)",
+        team_type="enabling",
+        scope="organizational",  # general category, not tied to one project — see above
+        category="general",
+        capability=cap_task_priority,
+        url="http://localhost:5186",
+        api_url="http://localhost:8100",
+    )
 
     db.session.add_all([
         app_value_stream, app_winmax,
         app_good_plan, app_labor_supply_demand, app_qms, app_lham, app_portfolio_manager,
         app_contract_authoring, app_dwmp, app_fixer, app_scan_me, app_org_charts, app_dwmo,
-        app_scope_manager, app_reckon,
+        app_scope_manager, app_reckon, app_task_master,
     ])
     db.session.flush()
 

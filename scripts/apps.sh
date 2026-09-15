@@ -28,6 +28,8 @@ APPS=(
   "labor-supply-demand-frontend|5184|/home/matthew/labor-supply-demand/frontend|source ~/.nvm/nvm.sh && npm run dev -- --host 0.0.0.0"
   "winmax-backend|8099|/home/matthew/winmax/backend|.venv/bin/python app.py"
   "winmax-frontend|5185|/home/matthew/winmax/frontend|source ~/.nvm/nvm.sh && npm run dev -- --host 0.0.0.0"
+  "task-master-backend|8100|/home/matthew/task-master/backend|.venv/bin/python app.py"
+  "task-master-frontend|5186|/home/matthew/task-master/frontend|source ~/.nvm/nvm.sh && npm run dev -- --host 0.0.0.0"
   "demo-shell|5180|/home/matthew/conways-depot/demo-shell|python3 -m http.server 5180 --bind 0.0.0.0"
 )
 # BurnedValue (port 5000) removed 2026-09-12 - being retired in favor of "Good Plan" (labor
