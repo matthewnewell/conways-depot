@@ -7,6 +7,7 @@ import type {
   ChatMessage,
   ChatResult,
   ExternalId,
+  JournalEntry,
   Person,
   Phase,
   Pin,
@@ -256,6 +257,30 @@ export function useApplicationSummary(applicationId: string, projectId?: string,
     staleTime: 30_000,
     retry: false,
   })
+}
+
+/** One connected app's journal entries. The project-level Journal section (see
+ * ProjectDetailPage's `<Journal>`) doesn't call this directly — it needs a *dynamic* number of
+ * these queries (one per connected app) and uses `useQueries` with the same queryKey/queryFn
+ * shape instead, since React's hook rules don't allow calling a variable number of `useQuery`s.
+ * This one's for anywhere a single app's journal is enough on its own. */
+export function useApplicationJournal(applicationId: string, projectId: string) {
+  return useQuery({
+    queryKey: journalQueryKey(applicationId, projectId),
+    queryFn: () => fetchApplicationJournal(applicationId, projectId),
+    staleTime: 30_000,
+    retry: false,
+  })
+}
+
+export function journalQueryKey(applicationId: string, projectId: string) {
+  return ['applications', applicationId, 'journal', projectId] as const
+}
+
+export function fetchApplicationJournal(applicationId: string, projectId: string) {
+  return api.get<{ entries: JournalEntry[] }>(
+    `/applications/${applicationId}/journal?project_id=${encodeURIComponent(projectId)}`,
+  )
 }
 
 // ── Pins ─────────────────────────────────────────────────────────────────────

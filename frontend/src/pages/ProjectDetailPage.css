@@ -542,3 +542,63 @@
   background: var(--color-surface-sunken);
   border-style: solid;
 }
+
+/* Journal — merged, read-only feed from every connected app's own journal. */
+.journal-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.journal-entry {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 14px;
+  background: var(--color-surface-sunken);
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-accent);
+  border-radius: var(--radius-sm);
+}
+
+.journal-entry__meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 11px;
+}
+
+.journal-entry__source {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--color-accent);
+}
+
+.journal-entry__time {
+  color: var(--color-text-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.journal-entry__author {
+  color: var(--color-text-faint);
+}
+
+.journal-entry__author::before {
+  content: '· ';
+}
+
+p.journal-entry__summary,
+a.journal-entry__summary {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+a.journal-entry__summary:hover {
+  color: var(--color-accent);
+  text-decoration: underline;
+}

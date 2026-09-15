@@ -1,6 +1,9 @@
+import { useQueries } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
+  fetchApplicationJournal,
+  journalQueryKey,
   useAddExternalId,
   useAddMember,
   useApplications,
@@ -15,7 +18,7 @@ import {
   useUpdateMembership,
   useUpdateProject,
 } from '../api/hooks'
-import type { ChannelLink, Phase, ProjectDetail, TeamTopology } from '../api/types'
+import type { ChannelLink, JournalEntry, Phase, ProjectDetail, TeamTopology } from '../api/types'
 import { PHASES, TEAM_TOPOLOGIES, TEAM_TOPOLOGY_INFO } from '../api/types'
 import InfoPopover from '../components/InfoPopover'
 import { OUTBOUND_TARGET } from '../lib/embed'
@@ -121,6 +124,8 @@ export default function ProjectDetailPage() {
         <Members project={project} />
 
         <HomeBase key={project.updated_at} project={project} />
+
+        <Journal project={project} />
       </div>
     </div>
   )
@@ -598,6 +603,83 @@ function HomeBase({ project }: { project: ProjectDetail }) {
         >
           + Add channel
         </button>
+      </div>
+    </section>
+  )
+}
+
+type JournalRow = JournalEntry & { source_app_name: string | null }
+
+/** The cross-app journal, federated — not one shared table, one merged *view*. Every connected
+ * app keeps its own journal exactly as it always has; this fetches each one's `/journal`
+ * (via the Depot's own per-app proxy, same server-to-server pattern as AppSummaryTile) and
+ * merges the results into one reverse-chronological feed, tagged by which app each entry came
+ * from. `useQueries` (not a loop of `useQuery`) because the number of connected apps is
+ * dynamic — React's hook rules don't allow a variable number of `useQuery` calls. One slow or
+ * unreachable app's query just sits loading/failed on its own; it never blocks the others'
+ * entries from rendering. This is the real point of the whole thing: a merged record an agent
+ * (or a person) can read straight through to understand how a project actually got here,
+ * without opening five separate apps. */
+function Journal({ project }: { project: ProjectDetail }) {
+  const results = useQueries({
+    queries: project.app_links.map((link) => ({
+      queryKey: journalQueryKey(link.application_id, project.id),
+      queryFn: () => fetchApplicationJournal(link.application_id, project.id),
+      staleTime: 30_000,
+      retry: false,
+    })),
+  })
+
+  const rows: JournalRow[] = project.app_links.flatMap((link, i) => {
+    const entries = results[i]?.data?.entries ?? []
+    return entries.map((e) => ({ ...e, source_app_name: link.application_name }))
+  })
+  rows.sort((a, b) => b.timestamp.localeCompare(a.timestamp))
+
+  const anyLoading = results.some((r) => r.isLoading)
+
+  return (
+    <section className="depot-section">
+      <h2 className="depot-section__title">Journal</h2>
+      <p className="depot-section__subtitle">
+        Merged from every connected app's own journal — how this project actually got here, not
+        just where it is now.
+      </p>
+
+      {project.app_links.length === 0 && (
+        <p className="depot-section__body">Connect an application to start seeing its journal here.</p>
+      )}
+      {project.app_links.length > 0 && rows.length === 0 && (
+        <p className="depot-section__body">
+          {anyLoading ? 'Loading…' : 'No journal entries from connected apps yet.'}
+        </p>
+      )}
+
+      <div className="journal-feed">
+        {rows.map((e) => (
+          <div key={`${e.source_app_name}-${e.id}`} className="journal-entry">
+            <div className="journal-entry__meta">
+              {e.source_app_name && <span className="journal-entry__source">{e.source_app_name}</span>}
+              <span className="journal-entry__time">
+                {new Date(e.timestamp).toLocaleString(undefined, {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric',
+                  hour: 'numeric',
+                  minute: '2-digit',
+                })}
+              </span>
+              {e.author && <span className="journal-entry__author">{e.author}</span>}
+            </div>
+            {e.href ? (
+              <a className="journal-entry__summary" href={e.href} target={OUTBOUND_TARGET} rel="noreferrer">
+                {e.summary}
+              </a>
+            ) : (
+              <p className="journal-entry__summary">{e.summary}</p>
+            )}
+          </div>
+        ))}
       </div>
     </section>
   )

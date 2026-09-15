@@ -22,7 +22,7 @@ const FEATURES = [
   },
   {
     title: 'An app store',
-    body: 'Browse what the org builds, plans, or buys. The project installs the applications its work needs — a link is a pointer, never a live integration.',
+    body: 'Browse a catalog of applications. The project installs the applications its work needs — a link is a pointer, never a live integration.',
     icon: (
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <rect x="4" y="4" width="7" height="7" rx="1.5" />

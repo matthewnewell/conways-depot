@@ -258,6 +258,18 @@ export interface AppSummary {
   href: string | null
 }
 
+/** The Launchpad's cross-app journal contract — one entry from one sibling app's own journal.
+ * `summary` is pre-rendered by that app; the Depot never parses it back apart, same as it
+ * never interprets an AppSummary's headline/label. An empty `entries` list is a normal state
+ * (no api_url wired up, nothing logged yet, the app not running), not an error. */
+export interface JournalEntry {
+  id: string
+  timestamp: string
+  author: string | null
+  summary: string
+  href: string | null
+}
+
 export interface Pin {
   id: string
   person_id: string

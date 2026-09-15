@@ -135,6 +135,21 @@ def application_reachable(application_id):
 _NO_SUMMARY = {"headline": None, "label": "No summary published", "status": None, "href": None}
 
 
+def _translate_project_id(application_id: str, depot_project_id: str | None) -> str | None:
+    """Translate the Depot's own project id into whatever pointer a sibling app actually knows
+    about, via the same external_ref crosswalk ProjectAppLink already carries (e.g. a Value
+    Stream map id, a WinMax pursuit id — see seed.py's VALUE_STREAM_DEMO_MAP_ID). A sibling app
+    was never meant to recognize the Depot's ids directly; falls back to passing the Depot's id
+    as-is if no link/ref exists yet, in case the app wants to key on it anyway. Shared by both
+    /summary and /journal below — and by the project-level journal aggregator in routes/projects.py."""
+    if not depot_project_id:
+        return None
+    link = ProjectAppLink.query.filter_by(
+        project_id=depot_project_id, application_id=application_id
+    ).first()
+    return link.external_ref if link and link.external_ref else depot_project_id
+
+
 @bp.get("/<application_id>/summary")
 def application_summary(application_id):
     """The Launchpad's app-summary contract: this app's own backend (`api_url`), not the Depot,
@@ -149,16 +164,8 @@ def application_summary(application_id):
         return jsonify({**_NO_SUMMARY, "href": a.url})
 
     params = {}
-    if depot_project_id := request.args.get("project_id"):
-        # Translate the Depot's own project id into whatever pointer this app actually knows
-        # about, via the same external_ref crosswalk ProjectAppLink already carries (e.g. a
-        # Value Stream map id — see seed.py's VALUE_STREAM_DEMO_MAP_ID). A sibling app was never
-        # meant to recognize the Depot's ids directly; falls back to passing the Depot's id
-        # as-is if no link/ref exists yet, in case the app wants to key on it anyway.
-        link = ProjectAppLink.query.filter_by(
-            project_id=depot_project_id, application_id=application_id
-        ).first()
-        params["project_id"] = link.external_ref if link and link.external_ref else depot_project_id
+    if project_id := _translate_project_id(application_id, request.args.get("project_id")):
+        params["project_id"] = project_id
 
     try:
         r = httpx.get(f"{a.api_url.rstrip('/')}/api/summary", params=params, timeout=1.5)
@@ -173,6 +180,35 @@ def application_summary(application_id):
         })
     except (httpx.HTTPError, ValueError):
         return jsonify({**_NO_SUMMARY, "href": a.url})
+
+
+@bp.get("/<application_id>/journal")
+def application_journal(application_id):
+    """The cross-app journal contract's proxy half — same shape and same reasoning as
+    /summary above, just a list instead of one tile: `{entries: [{id, timestamp, author,
+    summary, href}, ...]}`, called server-to-server, opaque to the Depot (it never parses a
+    `summary` string back apart), empty list on anything that isn't a clean 200. Called both
+    per-application (this route) and in bulk by the project-level aggregator in
+    routes/projects.py, which is what the Launchpad's actual Journal section uses."""
+    a = Application.query.get_or_404(application_id)
+    if not a.api_url:
+        return jsonify({"entries": []})
+
+    params = {}
+    if project_id := _translate_project_id(application_id, request.args.get("project_id")):
+        params["project_id"] = project_id
+
+    try:
+        r = httpx.get(f"{a.api_url.rstrip('/')}/api/journal", params=params, timeout=1.5)
+        if r.status_code != 200:
+            return jsonify({"entries": []})
+        data = r.json()
+        entries = data.get("entries") if isinstance(data, dict) else None
+        if not isinstance(entries, list):
+            return jsonify({"entries": []})
+        return jsonify({"entries": entries})
+    except (httpx.HTTPError, ValueError):
+        return jsonify({"entries": []})
 
 
 @bp.put("/<application_id>")
