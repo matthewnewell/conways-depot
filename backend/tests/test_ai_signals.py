@@ -7,7 +7,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from routes.ai import _capability_gap_lines, _team_load_lines  # noqa: E402
+from routes.ai import _app_catalog_lines, _capability_gap_lines, _team_load_lines  # noqa: E402
 
 
 class _FakeCapability:
@@ -20,10 +20,15 @@ class _FakeApplication:
     # No `status` field — Application never got one that stuck (see db.py's
     # _drop_dead_columns comment): built/planned/external is carried by prose + the
     # presence/absence of `url`, not a flag this fake — or the real model — exposes.
-    def __init__(self, name, capability_id=None, owning_team=None):
+    def __init__(self, name, capability_id=None, owning_team=None, capability=None,
+                 description=None, category_list=None, url=None):
         self.name = name
         self.capability_id = capability_id
         self.owning_team = owning_team
+        self.capability = capability
+        self.description = description
+        self.category_list = category_list or []
+        self.url = url
 
 
 def test_capability_with_built_app_is_not_flagged_as_gap():
@@ -76,3 +81,26 @@ def test_apps_with_no_owning_team_are_ignored_in_load_signal():
     apps = [_FakeApplication("WinMax", owning_team=None)]
     lines = _team_load_lines(apps)
     assert "No team currently owns" in lines[0]
+
+
+def test_app_catalog_lines_carries_description_and_built_status():
+    cap = _FakeCapability("c1", "Value Stream Mapping")
+    apps = [
+        _FakeApplication(
+            "Value Stream", capability=cap, description="Visual value-stream mapping.",
+            category_list=["project"], url="http://localhost:5173",
+        ),
+        _FakeApplication("Unbuilt Thing", capability=None, description=None, category_list=[], url=None),
+    ]
+    lines = _app_catalog_lines(apps)
+    assert len(lines) == 2
+    # sorted alphabetically — "Unbuilt Thing" before "Value Stream"
+    assert "Unbuilt Thing" in lines[0]
+    assert "no url on file" in lines[0]
+    assert "no description on file" in lines[0]
+    assert "no capability on file" in lines[0]
+    assert "Value Stream" in lines[1]
+    assert "has a live url" in lines[1]
+    assert "Visual value-stream mapping." in lines[1]
+    assert "Value Stream Mapping" in lines[1]
+    assert "project" in lines[1]

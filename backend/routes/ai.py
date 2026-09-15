@@ -25,17 +25,29 @@ the org builds, some it buys), and Capabilities (the stable business need an app
 fulfills, independent of which application currently fulfills it — the same split TOGAF's
 Business Capability Map makes).
 
-Ground every answer in Conway's Law, the reverse Conway maneuver, and Team Topologies'
-vocabulary (stream-aligned / platform / enabling / complicated-subsystem team types) where
-relevant. Two structural signals below are the actual point of this tool — call them out when
-they're present, don't invent others:
-  - a Capability with no Application registered against it (a real gap)
-  - one team's name attached to an unusually large share of registered Applications (a
-    possible Conway's-Law overload signal worth someone's attention)
+You have two jobs:
 
-Never invent data not present in the context below. If something isn't tracked yet, say so
-plainly rather than guessing. Keep answers grounded, specific, and skeptical of over-claiming —
-this tool exists to be a credible, minimal foundation, not a sales pitch."""
+1. Structural analysis. Ground this in Conway's Law, the reverse Conway maneuver, and Team
+   Topologies' vocabulary (stream-aligned / platform / enabling / complicated-subsystem team
+   types) where relevant. Two signals below are the actual point of this tool — call them out
+   when present, don't invent others:
+     - a Capability with no Application registered against it (a real gap)
+     - one team's name attached to an unusually large share of registered Applications (a
+       possible Conway's-Law overload signal worth someone's attention)
+
+2. "What app should I use for X?" When someone describes a need in plain language, recommend
+   the 1-3 best-fitting Applications from the catalog below, each with a one-line reason tied
+   to its actual description — never a generic "this seems related." An app with no live url is
+   either not yet built or an external vendor tool the Depot doesn't host (its own description
+   says which) — if it's the best fit, recommend it anyway with that caveat, don't silently
+   prefer a worse-fitting live app just because it has a url. If nothing in the catalog actually
+   fits, say so plainly — that's the same capability-gap signal from job 1, just discovered from
+   a different angle — and don't force a recommendation to seem helpful.
+
+Never invent data not present in the context below — not a fourth app, not a capability that
+isn't listed, not a description this catalog doesn't actually carry. If something isn't tracked
+yet, say so plainly rather than guessing. Keep answers grounded, specific, and skeptical of
+over-claiming — this tool exists to be a credible, minimal foundation, not a sales pitch."""
 
 
 def _capability_gap_lines(capabilities: list[Capability], applications: list[Application]) -> list[str]:
@@ -50,6 +62,26 @@ def _capability_gap_lines(capabilities: list[Capability], applications: list[App
             lines.append(f"  - \"{cap.name}\": {', '.join(a.name for a in apps)}.")
         else:
             lines.append(f"  - GAP — \"{cap.name}\": nothing registered against it.")
+    return lines
+
+
+def _app_catalog_lines(applications: list[Application]) -> list[str]:
+    """One line per application — name, aisle(s), capability, built status, and its own
+    description — the material a "what app should I use for X" recommendation actually needs.
+    Separate from `_capability_gap_lines`, which is keyed by capability and only lists names;
+    this is keyed by application and carries the description text that lets the assistant
+    reason about *fit*, not just existence."""
+    lines = []
+    for a in sorted(applications, key=lambda a: a.name):
+        cats = ", ".join(a.category_list) if a.category_list else "uncategorized"
+        cap = a.capability.name if a.capability else "no capability on file"
+        # `url` presence alone can't distinguish "not yet built" from "an external vendor tool
+        # the Depot doesn't host" (both are just null) — the model documents this same
+        # ambiguity in models.py. Don't assert either reading; the description text below
+        # usually disambiguates ("Vendor tool, external..." vs "Not yet built —...").
+        built = "has a live url" if a.url else "no url on file — check the description for why"
+        desc = a.description or "no description on file"
+        lines.append(f'  - "{a.name}" ({cats} · {cap} · {built}): {desc}')
     return lines
 
 
@@ -85,6 +117,9 @@ def _build_portfolio_context() -> str:
     lines.append("\nTeam ownership load:")
     lines.extend(_team_load_lines(applications))
 
+    lines.append("\nApplication catalog (for \"what app should I use for X\" recommendations):")
+    lines.extend(_app_catalog_lines(applications))
+
     return "\n".join(lines)
 
 
@@ -115,6 +150,11 @@ def _build_project_context(project: Project) -> str:
             lines.append(f"  - {phase}: {names}")
     else:
         lines.append("No applications linked to this project yet.")
+
+    # The full catalog too, not just what's already linked — so "what should I add for X" can
+    # be answered from inside a project's own chat, not only the portfolio-wide one.
+    lines.append("\nFull application catalog (for \"what app should I use for X\" recommendations):")
+    lines.extend(_app_catalog_lines(Application.query.all()))
 
     return "\n".join(lines)
 

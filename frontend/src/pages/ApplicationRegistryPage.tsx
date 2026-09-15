@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApplications } from '../api/hooks'
 import type { AppCategory, Application, Phase } from '../api/types'
@@ -57,7 +57,7 @@ export default function ApplicationRegistryPage() {
   const navigate = useNavigate()
   const { data: applications, isLoading } = useApplications()
   const { persona } = usePersona()
-  const resultsRef = useRef<HTMLDivElement>(null)
+  const [sortMode, setSortMode] = useState<'alpha' | 'popular'>('alpha')
   // The catalog defaults to the whole org-wide list. A limited persona can flip to a per-
   // project view — their projects, each collapsible to the apps it connects to. See
   // lib/persona.tsx.
@@ -101,19 +101,26 @@ export default function ApplicationRegistryPage() {
     .map((name) => (applications ?? []).find((a) => a.name === name))
     .filter((a): a is Application => !!a)
 
-  // Results are grouped by aisle, not one flat sorted list — a multi-category app (e.g. Reckon,
-  // filed under both Projects and Organizational) shows up once per checked category it
-  // belongs to, same as a real store shelving one product under more than one section. Within
-  // a group, apps are just alphabetical — there's no sort-by-column control anymore now that
-  // this isn't a table; "Category" as a sort axis stopped meaning anything once category *is*
-  // the grouping.
+  // Results are grouped by aisle, not one flat list — a multi-category app (e.g. Reckon, filed
+  // under both Projects and Organizational) shows up once per checked category it belongs to,
+  // same as a real store shelving one product under more than one section. "Category" stopped
+  // being a sort axis once category *is* the grouping; within a group, the only real choices
+  // are alphabetical (browsing) or most-popular (project_count desc — "which entries are
+  // actually load-bearing," the same signal the old sortable table's "Projects using" column
+  // gave, just as a toggle instead of a clickable header now that this isn't a table).
+  function sortApps(apps: Application[]): Application[] {
+    return [...apps].sort((a, b) =>
+      sortMode === 'popular'
+        ? b.project_count - a.project_count || a.name.localeCompare(b.name)
+        : a.name.localeCompare(b.name)
+    )
+  }
+
   const visibleCategories = APP_CATEGORIES.filter((c) => !hiddenCategories.has(c))
   const matchCount = (applications ?? []).filter(catVisible).length
   const groups = visibleCategories.map((c) => ({
     category: c,
-    apps: (applications ?? [])
-      .filter((a) => appCats(a).includes(c))
-      .sort((a, b) => a.name.localeCompare(b.name)),
+    apps: sortApps((applications ?? []).filter((a) => appCats(a).includes(c))),
   }))
 
   return (
@@ -177,12 +184,21 @@ export default function ApplicationRegistryPage() {
           {!grouped && visibleCategories.length > 0 && (
             <span className="depot-checkbox-filter__summary">
               {matchCount} app{matchCount === 1 ? '' : 's'}
-              <button
-                className="depot-checkbox-filter__see"
-                onClick={() => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-              >
-                See results
-              </button>
+              <span className="depot-sort-toggle" role="group" aria-label="Sort results">
+                <button
+                  className={`depot-sort-toggle__option ${sortMode === 'popular' ? 'depot-sort-toggle__option--active' : ''}`}
+                  onClick={() => setSortMode('popular')}
+                >
+                  Most popular
+                </button>
+                <span className="depot-sort-toggle__sep">·</span>
+                <button
+                  className={`depot-sort-toggle__option ${sortMode === 'alpha' ? 'depot-sort-toggle__option--active' : ''}`}
+                  onClick={() => setSortMode('alpha')}
+                >
+                  Alphabetical
+                </button>
+              </span>
             </span>
           )}
         </div>
@@ -260,7 +276,7 @@ export default function ApplicationRegistryPage() {
 
         {/* ── All Apps: browsed by aisle, cards not rows ──────────────────────────── */}
         {!isLoading && !grouped && (
-          <div className="app-results" ref={resultsRef}>
+          <div className="app-results">
             {visibleCategories.length === 0 ? (
               <div className="app-registry-page__loading">
                 Pick a category above to browse the full catalog.
