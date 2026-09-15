@@ -18,9 +18,10 @@ import {
   useUpdateMembership,
   useUpdateProject,
 } from '../api/hooks'
-import type { ChannelLink, JournalEntry, Phase, ProjectDetail, TeamTopology } from '../api/types'
+import type { ChannelLink, Phase, ProjectDetail, TeamTopology } from '../api/types'
 import { PHASES, TEAM_TOPOLOGIES, TEAM_TOPOLOGY_INFO } from '../api/types'
 import InfoPopover from '../components/InfoPopover'
+import JournalFeed, { type TaggedJournalEntry } from '../components/JournalFeed'
 import { OUTBOUND_TARGET } from '../lib/embed'
 import { usePersona } from '../lib/persona'
 import './depot-shared.css'
@@ -608,8 +609,6 @@ function HomeBase({ project }: { project: ProjectDetail }) {
   )
 }
 
-type JournalRow = JournalEntry & { source_app_name: string | null }
-
 /** The cross-app journal, federated — not one shared table, one merged *view*. Every connected
  * app keeps its own journal exactly as it always has; this fetches each one's `/journal`
  * (via the Depot's own per-app proxy, same server-to-server pattern as AppSummaryTile) and
@@ -630,9 +629,9 @@ function Journal({ project }: { project: ProjectDetail }) {
     })),
   })
 
-  const rows: JournalRow[] = project.app_links.flatMap((link, i) => {
+  const rows: TaggedJournalEntry[] = project.app_links.flatMap((link, i) => {
     const entries = results[i]?.data?.entries ?? []
-    return entries.map((e) => ({ ...e, source_app_name: link.application_name }))
+    return entries.map((e) => ({ ...e, source_label: link.application_name }))
   })
   rows.sort((a, b) => b.timestamp.localeCompare(a.timestamp))
 
@@ -655,32 +654,7 @@ function Journal({ project }: { project: ProjectDetail }) {
         </p>
       )}
 
-      <div className="journal-feed">
-        {rows.map((e) => (
-          <div key={`${e.source_app_name}-${e.id}`} className="journal-entry">
-            <div className="journal-entry__meta">
-              {e.source_app_name && <span className="journal-entry__source">{e.source_app_name}</span>}
-              <span className="journal-entry__time">
-                {new Date(e.timestamp).toLocaleString(undefined, {
-                  year: 'numeric',
-                  month: 'short',
-                  day: 'numeric',
-                  hour: 'numeric',
-                  minute: '2-digit',
-                })}
-              </span>
-              {e.author && <span className="journal-entry__author">{e.author}</span>}
-            </div>
-            {e.href ? (
-              <a className="journal-entry__summary" href={e.href} target={OUTBOUND_TARGET} rel="noreferrer">
-                {e.summary}
-              </a>
-            ) : (
-              <p className="journal-entry__summary">{e.summary}</p>
-            )}
-          </div>
-        ))}
-      </div>
+      <JournalFeed entries={rows} />
     </section>
   )
 }

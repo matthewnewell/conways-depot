@@ -393,6 +393,28 @@ class HiddenOrgApp(db.Model):
         }
 
 
+class PinOrder(db.Model):
+    """One person's own drag-reordering of their Pinned Apps section — separate from Pin/
+    HiddenOrgApp on purpose, since "is this app pinned" and "where does it sit in the list" are
+    different questions: an organizational app is pinned without ever getting a Pin row, but it
+    still needs somewhere to record a position once someone drags it. `position` is a plain
+    integer, reassigned in full every time (routes/pins.py's reorder route deletes and
+    recreates every row for a person in one call, matching the exact order it's handed) — never
+    an ordering someone edits row by row, so there's nothing to keep in sync incrementally. An
+    app with no row here just sorts after everything that has one, by name — see
+    routes/people.py's pinned_application_ids for where that fallback is applied. A row left
+    over after an app is unpinned or a preset removes it is harmless orphan data, same tolerance
+    HiddenOrgApp already has for an app that's later deleted."""
+
+    __tablename__ = "pin_order"
+    __table_args__ = (db.UniqueConstraint("person_id", "application_id", name="uq_pinorder_person_app"),)
+
+    id = db.Column(db.String(36), primary_key=True, default=_uuid)
+    person_id = db.Column(db.String(36), db.ForeignKey("person.id"), nullable=False, index=True)
+    application_id = db.Column(db.String(36), db.ForeignKey("application.id"), nullable=False, index=True)
+    position = db.Column(db.Integer, nullable=False)
+
+
 class ProjectAppLink(db.Model):
     """The golden thread made visible: this project, at this phase, has a record in this
     application. external_ref and link_url are both optional, plain pointers — never a live

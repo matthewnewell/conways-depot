@@ -111,12 +111,18 @@
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  cursor: grab;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
 }
 
 .lp-app-card:hover {
   border-color: var(--color-accent);
   box-shadow: var(--shadow-sm);
+}
+
+.lp-app-card--dragging {
+  opacity: 0.4;
+  cursor: grabbing;
 }
 
 .lp-app-card__main {

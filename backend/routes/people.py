@@ -8,10 +8,12 @@ localStorage; the project and application lists use this to default to a "mine" 
 "all" toggle that hides nothing. See models.Person for the full disclaimer.
 """
 
+from collections import defaultdict
+
 from flask import Blueprint, jsonify
 
 from db import db
-from models import Application, HiddenOrgApp, Person, Pin, Project
+from models import Application, HiddenOrgApp, Person, Pin, PinOrder, Project
 
 bp = Blueprint("people", __name__, url_prefix="/api/people")
 
@@ -20,9 +22,16 @@ bp = Blueprint("people", __name__, url_prefix="/api/people")
 def list_people():
     people = Person.query.order_by(Person.name).all()
     all_projects = Project.query.order_by(Project.name).all()
+    all_apps = Application.query.all()
+    apps_by_id = {a.id: a for a in all_apps}
     # Every organizational app is pinned by default — see models.HiddenOrgApp — so the base set
     # is computed here, once, rather than per person.
-    org_app_ids = {a.id for a in Application.query.filter_by(scope="organizational").all()}
+    org_app_ids = {a.id for a in all_apps if a.scope == "organizational"}
+    # Pinned Apps' own drag-order — see models.PinOrder — grouped by person once rather than
+    # queried fresh inside the loop below.
+    order_by_person: dict[str, dict[str, int]] = defaultdict(dict)
+    for o in PinOrder.query.all():
+        order_by_person[o.person_id][o.application_id] = o.position
 
     out = []
     for person in people:
@@ -63,7 +72,19 @@ def list_people():
             h.application_id for h in HiddenOrgApp.query.filter_by(person_id=person.id).all()
         }
         explicit_pin_ids = {p.application_id for p in Pin.query.filter_by(person_id=person.id).all()}
-        pinned_application_ids = sorted((org_app_ids - hidden_org_app_ids) | explicit_pin_ids)
+        effective_pinned_ids = (org_app_ids - hidden_org_app_ids) | explicit_pin_ids
+        # Drag-ordered apps first, in the order this person put them in; anything never
+        # dragged (freshly pinned, a newly-registered org app, a preset just applied) falls in
+        # after, alphabetically — stable and predictable rather than the arbitrary id sort this
+        # used to be before PinOrder existed.
+        person_order = order_by_person.get(person.id, {})
+        pinned_application_ids = sorted(
+            effective_pinned_ids,
+            key=lambda aid: (
+                person_order.get(aid, len(person_order)),
+                apps_by_id[aid].name if aid in apps_by_id else "",
+            ),
+        )
 
         out.append(
             {

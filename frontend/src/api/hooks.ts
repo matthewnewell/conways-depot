@@ -329,6 +329,17 @@ export function useApplyPinPreset() {
   })
 }
 
+/** Saves a full drag-reorder of the Pinned Apps grid — see backend models.PinOrder. Always the
+ * complete list in its new order, not a single move. */
+export function useReorderPins() {
+  const invalidate = useInvalidatePins()
+  return useMutation({
+    mutationFn: (data: { person_id: string; application_ids: string[] }) =>
+      api.put<void>('/pins/order', data),
+    onSuccess: invalidate,
+  })
+}
+
 // ── People (demo personas) ───────────────────────────────────────────────────
 
 export function usePeople() {

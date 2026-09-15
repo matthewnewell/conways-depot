@@ -10,7 +10,7 @@ to know which table a given call actually touches; it always just POSTs or DELET
 from flask import Blueprint, jsonify, request
 
 from db import db
-from models import Application, HiddenOrgApp, Person, Pin
+from models import Application, HiddenOrgApp, Person, Pin, PinOrder
 from presets import PRESETS
 
 bp = Blueprint("pins", __name__, url_prefix="/api/pins")
@@ -156,5 +156,38 @@ def delete_pin():
     if pin is None:
         return "", 204  # already not pinned — unpinning is idempotent too
     db.session.delete(pin)
+    db.session.commit()
+    return "", 204
+
+
+@bp.put("/order")
+def reorder_pins():
+    """Save a drag-reorder of the Launchpad's Pinned Apps grid — see models.PinOrder. Body:
+    {person_id, application_ids: [...]} in the exact order they should render. Full replace,
+    not a per-item move: deletes every existing PinOrder row for this person and recreates one
+    per app at its index in the list. An app the caller leaves out of the list just loses its
+    stored position (falls back to sorting after everything positioned, by name) rather than
+    erroring — reordering a subset makes sense if a future UI only shows part of the grid."""
+    body = request.get_json(force=True) or {}
+    person_id = body.get("person_id")
+    application_ids = body.get("application_ids")
+
+    person = Person.query.get(person_id) if person_id else None
+    if person is None:
+        return jsonify({"error": "person_id does not refer to a real person"}), 400
+    if not isinstance(application_ids, list) or not application_ids:
+        return jsonify({"error": "application_ids must be a non-empty list"}), 400
+    known_ids = {
+        a.id for a in Application.query.filter(Application.id.in_(application_ids)).all()
+    }
+    unknown = [aid for aid in application_ids if aid not in known_ids]
+    if unknown:
+        return jsonify({"error": f"application_ids contains unknown app ids: {unknown}"}), 400
+
+    PinOrder.query.filter_by(person_id=person.id).filter(
+        PinOrder.application_id.in_(application_ids)
+    ).delete(synchronize_session=False)
+    for i, app_id in enumerate(application_ids):
+        db.session.add(PinOrder(person_id=person.id, application_id=app_id, position=i))
     db.session.commit()
     return "", 204
