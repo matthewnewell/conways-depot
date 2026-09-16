@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { useDepotChat } from '../api/hooks'
 import type { ChatMessage } from '../api/types'
+import { usePersona } from '../lib/persona'
 import './DepotChatPanel.css'
 
 interface DepotChatPanelProps {
@@ -27,7 +28,12 @@ const PROJECT_PROMPTS = [
  * resets whenever `projectId` changes (moving between the portfolio view and a project's own
  * view is a real context switch, not a continuation of the same thread). */
 export default function DepotChatPanel({ projectId, aiConfigured, onCollapse }: DepotChatPanelProps) {
+  const { persona } = usePersona()
   const [messages, setMessages] = useState<ChatMessage[]>([])
+  // Which assistant message indices actually triggered a real action (see routes/ai.py's
+  // action_taken) — kept separate from `messages` itself since that array is also what gets
+  // resent to the backend as conversation history, and action_taken is purely a display concern.
+  const [actionIndices, setActionIndices] = useState<Set<number>>(new Set())
   const [input, setInput] = useState('')
   const [error, setError] = useState<string | null>(null)
   const chat = useDepotChat()
@@ -51,14 +57,19 @@ export default function DepotChatPanel({ projectId, aiConfigured, onCollapse }: 
     scrollToBottom()
 
     chat.mutate(
-      { messages: nextMessages, projectId },
+      { messages: nextMessages, projectId, personId: persona?.id },
       {
         onSuccess: (result) => {
           if (result.error) {
             setError(result.error)
             return
           }
-          setMessages((m) => [...m, { role: 'assistant', content: result.reply }])
+          setMessages((m) => {
+            if (result.action_taken) {
+              setActionIndices((prev) => new Set(prev).add(m.length))
+            }
+            return [...m, { role: 'assistant', content: result.reply }]
+          })
           scrollToBottom()
         },
         onError: (err) => setError(err instanceof Error ? err.message : 'Something went wrong'),
@@ -116,6 +127,7 @@ export default function DepotChatPanel({ projectId, aiConfigured, onCollapse }: 
         {messages.map((m, i) => (
           <div key={i} className={`chat-panel__msg chat-panel__msg--${m.role}`}>
             {m.content}
+            {actionIndices.has(i) && <span className="chat-panel__action-badge">✓ Action taken</span>}
           </div>
         ))}
 

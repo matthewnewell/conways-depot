@@ -296,4 +296,7 @@ export interface ChatMessage {
 export interface ChatResult {
   reply: string
   error?: string
+  /** True when the assistant actually triggered its one real action (currently: Task Master's
+   * own "Suggest backlog items") rather than just talking about it — see routes/ai.py. */
+  action_taken?: boolean
 }

@@ -134,6 +134,14 @@
   font-style: italic;
 }
 
+.chat-panel__action-badge {
+  display: block;
+  margin-top: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-accent);
+}
+
 .chat-panel__error {
   align-self: stretch;
   font-size: 12px;

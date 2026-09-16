@@ -7,16 +7,31 @@ The "insight" here is never AI-invented: every Conway/reverse-Conway/capability-
 is a plain, deterministic computation over the registry (a team owning N apps, a capability with
 no built application). The AI's job is to explain and prioritize what the registry already
 proves, not to guess at facts it wasn't given.
+
+Third job, added later: one narrow, real write action — trigger Task Master's own "Suggest
+backlog items" for the person chatting. Deliberately not a general tool-calling framework (that
+would be the actually risky version); exactly one named action, reusing Task Master's existing
+endpoint and its existing "lands marked ai_suggested, nothing moves itself" safety posture
+unchanged. Real trigger: a user asked this chat to "review all my projects and make a backlog
+of tasks in task master" and got told "I can't do that — Task Master is a personal tool, not a
+project-wide one" — true on its face, but not the real reason (this chat had no write access to
+anything, Task Master included) and actively wrong about the request itself: a personal backlog
+spanning every project is exactly what Task Master is FOR, not a mismatch. See _SYSTEM_PROMPT's
+own third job description for how that's framed to the model.
 """
 
+import os
 from collections import defaultdict
 
+import httpx
 from flask import Blueprint, jsonify, request
 
 import ai_client
 from models import PHASES, Application, Capability, Project
 
 bp = Blueprint("ai", __name__, url_prefix="/api")
+
+TASK_MASTER_API_URL = os.environ.get("TASK_MASTER_API_URL", "http://localhost:8100").rstrip("/")
 
 SYSTEM_PROMPT = """You are the assistant embedded in Conway's Depot, a registry (not a
 platform) that tracks three things: Projects (each with a single persistent id — its "digital
@@ -25,7 +40,7 @@ the org builds, some it buys), and Capabilities (the stable business need an app
 fulfills, independent of which application currently fulfills it — the same split TOGAF's
 Business Capability Map makes).
 
-You have two jobs:
+You have three jobs:
 
 1. Structural analysis. Ground this in Conway's Law, the reverse Conway maneuver, and Team
    Topologies' vocabulary (stream-aligned / platform / enabling / complicated-subsystem team
@@ -44,10 +59,28 @@ You have two jobs:
    fits, say so plainly — that's the same capability-gap signal from job 1, just discovered from
    a different angle — and don't force a recommendation to seem helpful.
 
+3. One real action, and only this one: if the person chatting clearly asks you to review their
+   own projects and add tasks to their own Task Master backlog, you can actually do it — Task
+   Master is a PERSONAL, cross-project kanban by design (one backlog spanning every project a
+   person supports, not a per-project board), so "review all my projects, make a backlog in
+   Task Master" is exactly the shape Task Master exists for, not a mismatch to decline. Set
+   `"action": "suggest_task_master_backlog"` when — and only when — they clearly asked for this;
+   otherwise `"action": null`. This is a real, one-time action (creates real suggested cards,
+   landing tagged ✨ Suggested, same as Task Master's own Suggest button — nothing moves itself
+   further), not a simulation, so only trigger it on a clear ask, never proactively or as a
+   guess at what might be helpful. You have no other write ability — if someone asks for
+   anything else that would change data (in this registry or anywhere else), say plainly that
+   you can't do that, because you don't have write access to it, not because the request itself
+   doesn't make sense.
+
 Never invent data not present in the context below — not a fourth app, not a capability that
 isn't listed, not a description this catalog doesn't actually carry. If something isn't tracked
 yet, say so plainly rather than guessing. Keep answers grounded, specific, and skeptical of
-over-claiming — this tool exists to be a credible, minimal foundation, not a sales pitch."""
+over-claiming — this tool exists to be a credible, minimal foundation, not a sales pitch.
+
+Respond with ONLY this JSON shape:
+{"reply": "your response to them, as plain conversational text",
+ "action": "suggest_task_master_backlog" or null}"""
 
 
 def _capability_gap_lines(capabilities: list[Capability], applications: list[Application]) -> list[str]:
@@ -159,6 +192,34 @@ def _build_project_context(project: Project) -> str:
     return "\n".join(lines)
 
 
+def _trigger_task_master_suggest(person_id: str) -> str:
+    """Calls Task Master's own POST /api/tasks/suggest — the exact same endpoint its own
+    "Suggest backlog items" button calls, no new write path. Returns a plain, factual sentence
+    to append to the reply — the actual outcome (how many cards, or what went wrong), computed
+    here from Task Master's real response, never left to the model to claim on its own."""
+    try:
+        r = httpx.post(
+            f"{TASK_MASTER_API_URL}/api/tasks/suggest",
+            json={"person_id": person_id},
+            timeout=30.0,
+        )
+    except httpx.HTTPError:
+        return "(Couldn't reach Task Master to do this — it may not be running.)"
+
+    if r.status_code != 201:
+        try:
+            err = r.json().get("error", "an unknown error")
+        except ValueError:
+            err = f"HTTP {r.status_code}"
+        return f"(Task Master couldn't generate suggestions: {err})"
+
+    created = r.json()
+    if not created:
+        return "(Looked, but nothing in your current projects warranted a new task right now.)"
+    titles = "; ".join(t["title"] for t in created[:5])
+    return f"(Done — added {len(created)} suggested card(s) to your Task Master backlog: {titles}.)"
+
+
 @bp.post("/chat")
 def chat():
     if not ai_client.is_configured():
@@ -170,6 +231,7 @@ def chat():
         return jsonify({"error": "messages is required"}), 400
 
     project_id = body.get("project_id")
+    person_id = body.get("person_id")
     if project_id:
         project = Project.query.get(project_id)
         context = _build_project_context(project) if project else _build_portfolio_context()
@@ -177,5 +239,17 @@ def chat():
         context = _build_portfolio_context()
 
     system = SYSTEM_PROMPT + "\n\n" + context
-    reply = ai_client.chat(messages, system=system, max_tokens=1024)
-    return jsonify({"reply": reply})
+    result = ai_client.chat_json(messages, system=system, max_tokens=1024)
+    if "error" in result:
+        return jsonify({"reply": "", "error": result["error"]})
+
+    reply = (result.get("reply") or "").strip()
+    action_taken = False
+    if result.get("action") == "suggest_task_master_backlog":
+        if person_id:
+            reply = f"{reply}\n\n{_trigger_task_master_suggest(person_id)}"
+            action_taken = True
+        else:
+            reply = f"{reply}\n\n(Would do this, but I don't know who's asking — no persona is active.)"
+
+    return jsonify({"reply": reply, "action_taken": action_taken})

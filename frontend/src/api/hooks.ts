@@ -403,7 +403,7 @@ export function useHealth() {
  * `projectId` scopes the context server-side — omit it for the portfolio-wide view. */
 export function useDepotChat() {
   return useMutation({
-    mutationFn: ({ messages, projectId }: { messages: ChatMessage[]; projectId?: string }) =>
-      api.post<ChatResult>('/chat', { messages, project_id: projectId }),
+    mutationFn: ({ messages, projectId, personId }: { messages: ChatMessage[]; projectId?: string; personId?: string }) =>
+      api.post<ChatResult>('/chat', { messages, project_id: projectId, person_id: personId }),
   })
 }
