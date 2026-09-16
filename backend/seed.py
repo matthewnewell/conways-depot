@@ -92,8 +92,13 @@ def seed_if_empty():
         name="Task & Priority Management",
         description="A person's own working list across every project they support, kept current from real signals instead of memory.",
     )
+    cap_spec_authoring = Capability(
+        name="Spec Authoring & Prototyping",
+        description="Turning an idea into a specification and prototype-level design before anyone writes code — distinct from building the thing itself.",
+    )
     db.session.add_all([
         cap_capture, cap_vsm, cap_staffing, cap_contract_authoring, cap_task_priority,
+        cap_spec_authoring,
     ])
     db.session.flush()
 
@@ -367,12 +372,30 @@ def seed_if_empty():
         url="http://localhost:5186",
         api_url="http://localhost:8100",
     )
+    app_aarons_meadow = Application(
+        name="Aaron's Meadow",
+        description=(
+            "A place, not a tool: a chatbot-driven interview that turns an idea into a "
+            "specification and a prototype-level design, never working code. Pushes back on "
+            "scope creep, asks once whether the thing needs to exist at all, and shows the "
+            "spec assembling itself as you talk. Owns its own draft -> in_review -> published "
+            "lifecycle end to end; the Depot only ever sees what gets published, each one "
+            "registered here as its own Application (see, e.g., Scrap & Rework Reason Log)."
+        ),
+        owning_team="Matt (informal enabling team)",
+        team_type="enabling",
+        scope="organizational",  # general category, not tied to one project
+        category="general",
+        capability=cap_spec_authoring,
+        url="http://localhost:5187",
+        api_url="http://localhost:8101",
+    )
 
     db.session.add_all([
         app_value_stream, app_winmax,
         app_good_plan, app_labor_supply_demand, app_qms, app_lham, app_portfolio_manager,
         app_contract_authoring, app_dwmp, app_fixer, app_scan_me, app_org_charts, app_dwmo,
-        app_scope_manager, app_reckon, app_task_master,
+        app_scope_manager, app_reckon, app_task_master, app_aarons_meadow,
     ])
     db.session.flush()
 

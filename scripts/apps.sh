@@ -30,6 +30,8 @@ APPS=(
   "winmax-frontend|5185|/home/matthew/winmax/frontend|source ~/.nvm/nvm.sh && npm run dev -- --host 0.0.0.0"
   "task-master-backend|8100|/home/matthew/task-master/backend|.venv/bin/python app.py"
   "task-master-frontend|5186|/home/matthew/task-master/frontend|source ~/.nvm/nvm.sh && npm run dev -- --host 0.0.0.0"
+  "aarons-meadow-backend|8101|/home/matthew/aarons-meadow/backend|.venv/bin/python app.py"
+  "aarons-meadow-frontend|5187|/home/matthew/aarons-meadow/frontend|source ~/.nvm/nvm.sh && npm run dev -- --host 0.0.0.0"
   "demo-shell|5180|/home/matthew/conways-depot/demo-shell|python3 -m http.server 5180 --bind 0.0.0.0"
 )
 # BurnedValue (port 5000) removed 2026-09-12 - being retired in favor of "Good Plan" (labor

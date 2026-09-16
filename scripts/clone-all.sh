@@ -32,6 +32,7 @@ REPOS=(
   "labor-supply-demand"
   "winmax"
   "task-master"
+  "aarons-meadow"
   # keep in sync with scripts/apps.sh whenever a new app is added
 )
 
