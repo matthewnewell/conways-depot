@@ -37,12 +37,40 @@
   color: var(--color-text);
 }
 
-.journal-panel__hint {
-  margin: 0;
-  padding: 0 16px 12px;
-  font-size: 12px;
-  color: var(--color-text-faint);
+.journal-panel__composer {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0 16px 14px;
   border-bottom: 1px solid var(--color-border);
+}
+
+.journal-panel__composer-project {
+  align-self: flex-start;
+  padding: 5px 8px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+}
+
+.journal-panel__composer-input {
+  resize: none;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.journal-panel__composer-input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.journal-panel__composer-submit {
+  align-self: flex-end;
 }
 
 .journal-panel__body {

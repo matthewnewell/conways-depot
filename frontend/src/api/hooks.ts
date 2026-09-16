@@ -284,6 +284,43 @@ export function fetchApplicationJournal(applicationId: string, projectId: string
   )
 }
 
+// ── Notes — the Depot's own manually-authored journal entries (see models.JournalNote) ────────
+
+export function notesQueryKey(projectId: string) {
+  return ['projects', projectId, 'notes'] as const
+}
+
+export function fetchProjectNotes(projectId: string) {
+  return api.get<{ entries: JournalEntry[] }>(`/projects/${projectId}/notes`)
+}
+
+/** A single project's own notes — used by ProjectDetailPage's Journal section, which already
+ * knows which one project it's looking at. The Launchpad's cross-project JournalPanel needs a
+ * *dynamic* number of these (one per project) and uses `useQueries` directly instead, same
+ * reason `useApplicationJournal` above isn't used there either. */
+export function useProjectNotes(projectId: string | undefined) {
+  return useQuery({
+    queryKey: notesQueryKey(projectId ?? ''),
+    queryFn: () => fetchProjectNotes(projectId!),
+    enabled: !!projectId,
+    staleTime: 10_000,
+  })
+}
+
+export function useAddProjectNote() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (data: { projectId: string; person_id?: string; body: string }) =>
+      api.post<JournalEntry>(`/projects/${data.projectId}/notes`, {
+        person_id: data.person_id,
+        body: data.body,
+      }),
+    onSuccess: (_, variables) => {
+      qc.invalidateQueries({ queryKey: notesQueryKey(variables.projectId) })
+    },
+  })
+}
+
 // ── Pins ─────────────────────────────────────────────────────────────────────
 
 function useInvalidatePins() {

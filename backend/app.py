@@ -5,6 +5,7 @@ from flask import Flask, send_from_directory
 from db import init_db
 from routes.ai import bp as ai_bp
 from routes.applications import bp as applications_bp, capabilities_bp
+from routes.notes import bp as notes_bp
 from routes.people import bp as people_bp
 from routes.pins import bp as pins_bp
 from routes.projects import bp as projects_bp, external_ids_bp, links_bp, memberships_bp, portfolios_bp
@@ -29,6 +30,7 @@ def create_app():
     app.register_blueprint(people_bp)
     app.register_blueprint(pins_bp)
     app.register_blueprint(ai_bp)
+    app.register_blueprint(notes_bp)
 
     with app.app_context():
         seed_if_empty()

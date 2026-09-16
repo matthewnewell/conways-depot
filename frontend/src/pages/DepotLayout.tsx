@@ -56,7 +56,7 @@ export default function DepotLayout() {
         </div>
 
         {journalOpen ? (
-          <JournalPanel onCollapse={() => updateJournalOpen(false)} />
+          <JournalPanel projectId={projectId} onCollapse={() => updateJournalOpen(false)} />
         ) : (
           <button
             className="depot-layout__journal-tab"

@@ -279,6 +279,34 @@ class ProjectPhaseEvent(db.Model):
         }
 
 
+class JournalNote(db.Model):
+    """A Depot-native journal entry — a person's own typed note about a project, not read from
+    any connected app. The "other" journal the original Launchpad brief asked for (a manually-
+    authored note stream), sitting alongside the federated per-app aggregation every connected
+    app's own journal already feeds into a project's Journal section (see
+    routes/applications.py's /journal proxy). `to_entry_dict()` matches that exact
+    {id, timestamp, author, summary, href} shape on purpose — a manual note and a federated
+    entry merge into one feed with zero special-casing on the frontend."""
+    __tablename__ = "journal_note"
+
+    id = db.Column(db.String(36), primary_key=True, default=_uuid)
+    project_id = db.Column(db.String(36), db.ForeignKey("project.id"), nullable=False, index=True)
+    person_id = db.Column(db.String(36), db.ForeignKey("person.id"), nullable=True)
+    body = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=_now, nullable=False)
+
+    person = db.relationship("Person")
+
+    def to_entry_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "timestamp": self.created_at.isoformat(),
+            "author": self.person.name if self.person else None,
+            "summary": self.body,
+            "href": f"/projects/{self.project_id}",
+        }
+
+
 class Person(db.Model):
     """A demo persona — NOT a user account. There is no password, session, or permission check
     anywhere behind this model: it exists only to illustrate the "in production a user is on a

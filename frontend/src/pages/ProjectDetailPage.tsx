@@ -15,6 +15,7 @@ import {
   usePeople,
   usePortfolios,
   useProject,
+  useProjectNotes,
   useUpdateMembership,
   useUpdateProject,
 } from '../api/hooks'
@@ -611,14 +612,15 @@ function HomeBase({ project }: { project: ProjectDetail }) {
 
 /** The cross-app journal, federated — not one shared table, one merged *view*. Every connected
  * app keeps its own journal exactly as it always has; this fetches each one's `/journal`
- * (via the Depot's own per-app proxy, same server-to-server pattern as AppSummaryTile) and
- * merges the results into one reverse-chronological feed, tagged by which app each entry came
- * from. `useQueries` (not a loop of `useQuery`) because the number of connected apps is
- * dynamic — React's hook rules don't allow a variable number of `useQuery` calls. One slow or
- * unreachable app's query just sits loading/failed on its own; it never blocks the others'
- * entries from rendering. This is the real point of the whole thing: a merged record an agent
- * (or a person) can read straight through to understand how a project actually got here,
- * without opening five separate apps. */
+ * (via the Depot's own per-app proxy, same server-to-server pattern as AppSummaryTile), plus
+ * this project's own manually-authored notes (models.JournalNote — same entry shape, written
+ * from the Launchpad's JournalPanel composer, not here; see that component for why), and merges
+ * everything into one reverse-chronological feed, tagged by source. `useQueries` (not a loop of
+ * `useQuery`) because the number of connected apps is dynamic — React's hook rules don't allow a
+ * variable number of `useQuery` calls. One slow or unreachable app's query just sits
+ * loading/failed on its own; it never blocks the others' entries from rendering. This is the
+ * real point of the whole thing: a merged record an agent (or a person) can read straight
+ * through to understand how a project actually got here, without opening five separate apps. */
 function Journal({ project }: { project: ProjectDetail }) {
   const results = useQueries({
     queries: project.app_links.map((link) => ({
@@ -628,29 +630,36 @@ function Journal({ project }: { project: ProjectDetail }) {
       retry: false,
     })),
   })
+  const { data: notes, isLoading: notesLoading } = useProjectNotes(project.id)
 
-  const rows: TaggedJournalEntry[] = project.app_links.flatMap((link, i) => {
+  const appRows: TaggedJournalEntry[] = project.app_links.flatMap((link, i) => {
     const entries = results[i]?.data?.entries ?? []
     return entries.map((e) => ({ ...e, source_label: link.application_name }))
   })
+  const noteRows: TaggedJournalEntry[] = (notes?.entries ?? []).map((e) => ({
+    ...e,
+    source_label: e.author ? `${e.author}'s note` : 'A note',
+  }))
+  const rows = [...appRows, ...noteRows]
   rows.sort((a, b) => b.timestamp.localeCompare(a.timestamp))
 
-  const anyLoading = results.some((r) => r.isLoading)
+  const anyLoading = results.some((r) => r.isLoading) || notesLoading
 
   return (
     <section className="depot-section">
       <h2 className="depot-section__title">Journal</h2>
       <p className="depot-section__subtitle">
-        Merged from every connected app's own journal — how this project actually got here, not
-        just where it is now.
+        Merged from every connected app's own journal, plus notes logged here directly (from the
+        📝 Journal panel) — how this project actually got here, not just where it is now.
       </p>
 
-      {project.app_links.length === 0 && (
-        <p className="depot-section__body">Connect an application to start seeing its journal here.</p>
-      )}
-      {project.app_links.length > 0 && rows.length === 0 && (
+      {rows.length === 0 && (
         <p className="depot-section__body">
-          {anyLoading ? 'Loading…' : 'No journal entries from connected apps yet.'}
+          {anyLoading
+            ? 'Loading…'
+            : project.app_links.length === 0
+              ? 'Connect an application, or log a note from the 📝 Journal panel, to start seeing entries here.'
+              : 'No journal entries from connected apps yet.'}
         </p>
       )}
 
