@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import {
   fetchApplicationJournal,
   journalQueryKey,
+  useAppReachable,
   useApplications,
   useApplyPinPreset,
   usePinPresets,
@@ -15,6 +16,7 @@ import { usePersona } from '../lib/persona'
 import AppSummaryTile from '../components/AppSummaryTile'
 import JournalFeed, { type TaggedJournalEntry } from '../components/JournalFeed'
 import PinToggle from '../components/PinToggle'
+import { OUTBOUND_TARGET } from '../lib/embed'
 import './depot-shared.css'
 import './LaunchpadPage.css'
 
@@ -92,6 +94,28 @@ export default function LaunchpadPage() {
   const totalProjects = allProjects?.length ?? reachCount
 
   function AppCard({ app }: { app: Application }) {
+    // A pinned app on the Launchpad is one you've already adopted — selecting it should open
+    // the app itself, straight to whatever it considers home (Task Master's own board, Value
+    // Stream's map list, ...), not "Test drive"'s /about splash (that's the catalog's
+    // try-it-out door, a different action) and not this Depot's own read-only detail page.
+    // person_id rides along the same way Test drive's link already does — most apps ignore it,
+    // an identity-sharing app like Task Master picks it up instead of asking you to re-pick who
+    // you are a second time. Falls back to the detail page when there's nothing to launch yet
+    // (no url — not built/vendor) or the app isn't actually up right now.
+    const { data: reachData } = useAppReachable(app.id, !!app.url)
+    const canLaunch = !!app.url && (reachData?.reachable ?? false)
+    const launchUrl = app.url && persona
+      ? `${app.url.replace(/\/$/, '')}/?person_id=${encodeURIComponent(persona.id)}`
+      : app.url
+
+    const cardBody = (
+      <>
+        <span className="lp-app-card__name">{app.name}</span>
+        {app.capability_name && <span className="lp-app-card__cap">{app.capability_name}</span>}
+        <AppSummaryTile applicationId={app.id} />
+      </>
+    )
+
     return (
       <div
         className={`lp-app-card ${dragId === app.id ? 'lp-app-card--dragging' : ''}`}
@@ -105,11 +129,15 @@ export default function LaunchpadPage() {
         onDragEnd={() => setDragId(null)}
         title="Drag to reorder"
       >
-        <button className="lp-app-card__main" onClick={() => navigate(`/catalog/${app.id}`)}>
-          <span className="lp-app-card__name">{app.name}</span>
-          {app.capability_name && <span className="lp-app-card__cap">{app.capability_name}</span>}
-          <AppSummaryTile applicationId={app.id} />
-        </button>
+        {canLaunch && launchUrl ? (
+          <a className="lp-app-card__main" href={launchUrl} target={OUTBOUND_TARGET} rel="noreferrer">
+            {cardBody}
+          </a>
+        ) : (
+          <button className="lp-app-card__main" onClick={() => navigate(`/catalog/${app.id}`)}>
+            {cardBody}
+          </button>
+        )}
         <div className="lp-app-card__unpin">
           <PinToggle app={app} />
         </div>
