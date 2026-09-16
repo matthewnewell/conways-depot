@@ -379,8 +379,8 @@ def seed_if_empty():
             "specification and a prototype-level design, never working code. Pushes back on "
             "scope creep, asks once whether the thing needs to exist at all, and shows the "
             "spec assembling itself as you talk. Owns its own draft -> in_review -> published "
-            "lifecycle end to end; the Depot only ever sees what gets published, each one "
-            "registered here as its own Application (see, e.g., Scrap & Rework Reason Log)."
+            "lifecycle end to end, and every stage stays right here — publishing marks a spec "
+            "done, it does not register anything new in this catalog."
         ),
         owning_team="Matt (informal enabling team)",
         team_type="enabling",

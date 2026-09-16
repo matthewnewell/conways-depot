@@ -9,6 +9,9 @@ from models import (
     TEAM_TYPES,
     Application,
     Capability,
+    HiddenOrgApp,
+    Pin,
+    PinOrder,
     Project,
     ProjectAppLink,
 )
@@ -234,7 +237,17 @@ def update_application(application_id):
 
 @bp.delete("/<application_id>")
 def delete_application(application_id):
+    """Pin/HiddenOrgApp/PinOrder's own docstrings call a row left over after its app is deleted
+    "harmless orphan data" — true in spirit, but this DB enforces foreign keys (see db.py), so
+    SQLite refuses the delete outright while any such row still points at this id, rather than
+    quietly leaving one behind. Clear those (plus ProjectAppLink — a connected project loses its
+    pointer to an app that no longer exists) before the Application row itself goes, so the
+    delete actually succeeds instead of 500ing on whichever table happens to hold a stray row."""
     a = Application.query.get_or_404(application_id)
+    Pin.query.filter_by(application_id=application_id).delete()
+    HiddenOrgApp.query.filter_by(application_id=application_id).delete()
+    PinOrder.query.filter_by(application_id=application_id).delete()
+    ProjectAppLink.query.filter_by(application_id=application_id).delete()
     db.session.delete(a)
     db.session.commit()
     return "", 204
