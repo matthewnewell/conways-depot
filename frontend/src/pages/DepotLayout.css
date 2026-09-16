@@ -24,11 +24,11 @@
     var(--color-bg);
 }
 
-.depot-layout__chat-tab {
+.depot-layout__chat-tab,
+.depot-layout__journal-tab {
   flex-shrink: 0;
   width: 40px;
   border: none;
-  border-left: 1px solid var(--color-border);
   background: var(--color-surface);
   color: var(--color-text-secondary);
   font-size: 12px;
@@ -42,7 +42,16 @@
   gap: 6px;
 }
 
-.depot-layout__chat-tab:hover {
+.depot-layout__chat-tab {
+  border-left: 1px solid var(--color-border);
+}
+
+.depot-layout__journal-tab {
+  border-right: 1px solid var(--color-border);
+}
+
+.depot-layout__chat-tab:hover,
+.depot-layout__journal-tab:hover {
   background: var(--color-accent-soft);
   color: var(--color-accent);
 }

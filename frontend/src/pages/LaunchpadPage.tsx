@@ -1,9 +1,6 @@
-import { useQueries } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  fetchApplicationJournal,
-  journalQueryKey,
   useAppReachable,
   useApplications,
   useApplyPinPreset,
@@ -14,7 +11,6 @@ import {
 import type { Application, Phase, PersonProject } from '../api/types'
 import { usePersona } from '../lib/persona'
 import AppSummaryTile from '../components/AppSummaryTile'
-import JournalFeed, { type TaggedJournalEntry } from '../components/JournalFeed'
 import PinToggle from '../components/PinToggle'
 import { OUTBOUND_TARGET } from '../lib/embed'
 import './depot-shared.css'
@@ -35,11 +31,11 @@ const PHASE_LABEL: Record<Phase, string> = {
  * unconditionally in its own section and then asking people to separately pin things was the
  * same list, twice. Anyone who doesn't want a given org app on their own Launchpad can remove
  * it — via the ✕ here, or Reset it back from the Catalog — same PinToggle control as everywhere
- * else. Pinned Apps is drag-reorderable (see models.PinOrder); Recent Activity is the
- * cross-project counterpart to a single project's own Journal section — same federated feed,
- * merged here across every app on every project this persona is on, tagged by project instead
- * of app. The catalog itself moved to /catalog — this page is what you land on, browsing by
- * category is a deliberate second step now, same as Featured did for the catalog. */
+ * else. Pinned Apps is drag-reorderable (see models.PinOrder). Recent activity used to be a
+ * third section here — moved to DepotLayout's own collapsible 📓 Journal panel (available on
+ * every page now, not just found by scrolling this one), see JournalPanel.tsx. The catalog
+ * itself moved to /catalog — this page is what you land on, browsing by category is a
+ * deliberate second step now, same as Featured did for the catalog. */
 export default function LaunchpadPage() {
   const navigate = useNavigate()
   const { persona } = usePersona()
@@ -210,8 +206,6 @@ export default function LaunchpadPage() {
             </div>
           )}
         </section>
-
-        <RecentActivity projects={myProjects} />
       </div>
     </div>
   )
@@ -247,54 +241,5 @@ function PresetDropdown({ personId }: { personId: string | undefined }) {
         </option>
       ))}
     </select>
-  )
-}
-
-/** The Launchpad's counterpart to a single project's own Journal section — same federated feed
- * (see JournalFeed's own doc comment), merged here across every app on every project this
- * persona is on, tagged by project instead of app since a project's own Journal already knows
- * which project it's looking at and this one doesn't. `useQueries` over every (project, app)
- * pair for the same hook-rules reason the per-project version uses it — the pair count is
- * dynamic. Renders nothing at all if this persona has no connected apps anywhere yet, same
- * "don't show an empty shell" restraint the rest of the page uses. */
-function RecentActivity({ projects }: { projects: PersonProject[] }) {
-  const pairs = projects.flatMap((p) =>
-    p.application_ids.map((applicationId) => ({ projectId: p.id, projectName: p.name, applicationId })),
-  )
-
-  const results = useQueries({
-    queries: pairs.map((pair) => ({
-      queryKey: journalQueryKey(pair.applicationId, pair.projectId),
-      queryFn: () => fetchApplicationJournal(pair.applicationId, pair.projectId),
-      staleTime: 30_000,
-      retry: false,
-    })),
-  })
-
-  if (pairs.length === 0) return null
-
-  const rows: TaggedJournalEntry[] = pairs.flatMap((pair, i) => {
-    const entries = results[i]?.data?.entries ?? []
-    return entries.map((e) => ({ ...e, source_label: pair.projectName }))
-  })
-  rows.sort((a, b) => b.timestamp.localeCompare(a.timestamp))
-  const recent = rows.slice(0, 8)
-
-  const anyLoading = results.some((r) => r.isLoading)
-
-  return (
-    <section className="lp-section">
-      <div className="lp-section__head">
-        <span className="lp-section__title">Recent activity</span>
-        <span className="lp-section__hint">across every app on your projects</span>
-      </div>
-      {recent.length === 0 ? (
-        <p className="lp-section__empty">
-          {anyLoading ? 'Loading…' : 'Nothing logged yet from any connected app.'}
-        </p>
-      ) : (
-        <JournalFeed entries={recent} />
-      )}
-    </section>
   )
 }
