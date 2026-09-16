@@ -4,6 +4,7 @@ from flask import Flask, send_from_directory
 
 from db import init_db
 from routes.ai import bp as ai_bp
+from routes.ai_proxy import bp as ai_proxy_bp
 from routes.applications import bp as applications_bp, capabilities_bp
 from routes.notes import bp as notes_bp
 from routes.people import bp as people_bp
@@ -30,6 +31,7 @@ def create_app():
     app.register_blueprint(people_bp)
     app.register_blueprint(pins_bp)
     app.register_blueprint(ai_bp)
+    app.register_blueprint(ai_proxy_bp)
     app.register_blueprint(notes_bp)
 
     with app.app_context():
