@@ -29,6 +29,7 @@
   flex-shrink: 0;
   width: 40px;
   border: none;
+  border-left: 1px solid var(--color-border);
   background: var(--color-surface);
   color: var(--color-text-secondary);
   font-size: 12px;
@@ -40,14 +41,6 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-}
-
-.depot-layout__chat-tab {
-  border-left: 1px solid var(--color-border);
-}
-
-.depot-layout__journal-tab {
-  border-right: 1px solid var(--color-border);
 }
 
 .depot-layout__chat-tab:hover,

@@ -47,7 +47,7 @@ export default function JournalPanel({ onCollapse }: JournalPanelProps) {
       <div className="journal-panel__header">
         <h3 className="journal-panel__title">📝 Recent activity</h3>
         <button className="journal-panel__collapse" onClick={onCollapse} title="Collapse journal">
-          «
+          »
         </button>
       </div>
       <p className="journal-panel__hint">across every app on your projects</p>

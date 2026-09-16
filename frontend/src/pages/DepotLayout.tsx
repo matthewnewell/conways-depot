@@ -25,10 +25,10 @@ function readStored(key: string): boolean {
  * persistent chat pane), but it renders the same DepotNav directly, so navigation is
  * consistent everywhere.
  *
- * Journal sits on the opposite edge from Chat, same tab-then-panel shape, both independently
- * collapsible — used to be a static "Recent Activity" section at the bottom of the Launchpad
- * only, easy to miss under a full Pinned Apps grid; promoted here so it's reachable from every
- * page, not just found by scrolling one of them. */
+ * Journal sits on the right, stacked next to Chat — same tab-then-panel shape, both
+ * independently collapsible — used to be a static "Recent Activity" section at the bottom of
+ * the Launchpad only, easy to miss under a full Pinned Apps grid; promoted here so it's
+ * reachable from every page, not just found by scrolling one of them. */
 export default function DepotLayout() {
   const { projectId } = useParams<{ projectId?: string }>()
   const { data: health } = useHealth()
@@ -51,6 +51,10 @@ export default function DepotLayout() {
     <div className="depot-layout">
       <DepotNav />
       <div className="depot-layout__row">
+        <div className="depot-layout__main">
+          <Outlet />
+        </div>
+
         {journalOpen ? (
           <JournalPanel onCollapse={() => updateJournalOpen(false)} />
         ) : (
@@ -62,10 +66,6 @@ export default function DepotLayout() {
             📝 Journal
           </button>
         )}
-
-        <div className="depot-layout__main">
-          <Outlet />
-        </div>
 
         {chatOpen ? (
           <DepotChatPanel
