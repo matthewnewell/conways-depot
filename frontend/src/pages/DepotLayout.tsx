@@ -59,7 +59,7 @@ export default function DepotLayout() {
             onClick={() => updateJournalOpen(true)}
             title="Open journal"
           >
-            📓 Journal
+            📝 Journal
           </button>
         )}
 

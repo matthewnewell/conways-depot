@@ -45,7 +45,7 @@ export default function JournalPanel({ onCollapse }: JournalPanelProps) {
   return (
     <aside className="journal-panel">
       <div className="journal-panel__header">
-        <h3 className="journal-panel__title">📓 Recent activity</h3>
+        <h3 className="journal-panel__title">📝 Recent activity</h3>
         <button className="journal-panel__collapse" onClick={onCollapse} title="Collapse journal">
           «
         </button>

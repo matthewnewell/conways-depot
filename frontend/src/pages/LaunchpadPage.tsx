@@ -32,7 +32,7 @@ const PHASE_LABEL: Record<Phase, string> = {
  * same list, twice. Anyone who doesn't want a given org app on their own Launchpad can remove
  * it — via the ✕ here, or Reset it back from the Catalog — same PinToggle control as everywhere
  * else. Pinned Apps is drag-reorderable (see models.PinOrder). Recent activity used to be a
- * third section here — moved to DepotLayout's own collapsible 📓 Journal panel (available on
+ * third section here — moved to DepotLayout's own collapsible 📝 Journal panel (available on
  * every page now, not just found by scrolling this one), see JournalPanel.tsx. The catalog
  * itself moved to /catalog — this page is what you land on, browsing by category is a
  * deliberate second step now, same as Featured did for the catalog. */
