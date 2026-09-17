@@ -73,6 +73,7 @@ export function useUpdateProject(id: string) {
           | 'team_notes'
           | 'channels'
           | 'team_topology'
+          | 'has_manufacturing'
         >
       >,
     ) => api.put<ProjectDetail>(`/projects/${id}`, data),

@@ -5,7 +5,9 @@ from db import db
 from models import (
     PHASES,
     TEAM_TYPES,
+    Application,
     ExternalId,
+    JournalNote,
     Person,
     Portfolio,
     Project,
@@ -13,6 +15,7 @@ from models import (
     ProjectMembership,
     ProjectPhaseEvent,
 )
+from routes.applications import fetch_app_journal_entries
 
 bp = Blueprint("projects", __name__, url_prefix="/api/projects")
 # Flat resources for mutating a single external-id/link/membership row, matching Value Stream's
@@ -82,6 +85,39 @@ def get_project(project_id):
     return jsonify(p.to_dict())
 
 
+@bp.get("/<project_id>/journal")
+def project_journal(project_id):
+    """The merged feed the Launchpad's own Journal panel builds client-side (a fan-out over
+    every connected app's /journal plus this project's own notes), done once here instead — the
+    embeddable Journal widget (routes/embed.py) has no React/TanStack Query to do that fan-out
+    itself, and this is also the RAG-context bundle any app's own AI feature can call the same
+    way Task Master's /suggest already does (see depot_client.fetch_app_journal there).
+
+    Each entry is tagged `source_type` ("note" or "app") plus `application_id`/`application_name`
+    (null for notes) so a caller can filter to one app's contribution — e.g. a "this app only"
+    view — without a second request; the raw data already carries everything either view needs."""
+    p = Project.query.get_or_404(project_id)
+
+    notes = (
+        JournalNote.query.filter_by(project_id=project_id)
+        .order_by(JournalNote.created_at.desc())
+        .all()
+    )
+    entries = [
+        {**n.to_entry_dict(), "source_type": "note", "application_id": None, "application_name": None}
+        for n in notes
+    ]
+
+    app_ids = {l.application_id for l in p.app_links}
+    apps = Application.query.filter(Application.id.in_(app_ids)).all() if app_ids else []
+    for a in apps:
+        for e in fetch_app_journal_entries(a, project_id):
+            entries.append({**e, "source_type": "app", "application_id": a.id, "application_name": a.name})
+
+    entries.sort(key=lambda e: e["timestamp"], reverse=True)
+    return jsonify({"entries": entries})
+
+
 @bp.put("/<project_id>")
 def update_project(project_id):
     p = Project.query.get_or_404(project_id)
@@ -113,6 +149,8 @@ def update_project(project_id):
         if tt is not None and tt not in TEAM_TYPES:
             return jsonify({"error": f"team_topology must be one of {TEAM_TYPES} or null"}), 400
         p.team_topology = tt
+    if "has_manufacturing" in body:
+        p.has_manufacturing = body["has_manufacturing"]
 
     db.session.commit()
     return jsonify(p.to_dict())

@@ -33,6 +33,7 @@ REPOS=(
   "winmax"
   "task-master"
   "aarons-meadow"
+  "marti"
   # keep in sync with scripts/apps.sh whenever a new app is added
 )
 

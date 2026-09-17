@@ -46,6 +46,7 @@ _MIGRATIONS: list[tuple[str, str, str]] = [
         "project_membership", "can_manage_members",
         "ALTER TABLE project_membership ADD COLUMN can_manage_members BOOLEAN NOT NULL DEFAULT 0",
     ),
+    ("project", "has_manufacturing", "ALTER TABLE project ADD COLUMN has_manufacturing BOOLEAN"),
 ]
 
 
@@ -83,6 +84,40 @@ def _drop_dead_columns(app):
                 conn.execute(text("ALTER TABLE application DROP COLUMN phases"))
 
 
+# The third exception to additive-only: journal_note.project_id started NOT NULL (every entry
+# was project-scoped) but the personal-journal feature needs a project-less row for "plan my
+# day" notes. SQLite can't ALTER a column's NOT NULL in place, so this rebuilds the table —
+# same rebuild-not-alter shape as any real column-constraint change would need here, just never
+# needed before now. A no-op once the live table is already nullable (fresh installs create it
+# nullable straight from the model).
+def _relax_journal_note_project_id(app):
+    with app.app_context():
+        inspector = inspect(db.engine)
+        if "journal_note" not in set(inspector.get_table_names()):
+            return
+        cols = {c["name"]: c for c in inspector.get_columns("journal_note")}
+        if "project_id" not in cols or cols["project_id"]["nullable"]:
+            return
+        with db.engine.begin() as conn:
+            conn.execute(text("""
+                CREATE TABLE journal_note_new (
+                    id VARCHAR(36) NOT NULL PRIMARY KEY,
+                    project_id VARCHAR(36) REFERENCES project(id),
+                    person_id VARCHAR(36) REFERENCES person(id),
+                    body TEXT NOT NULL,
+                    created_at DATETIME NOT NULL
+                )
+            """))
+            conn.execute(text(
+                "INSERT INTO journal_note_new (id, project_id, person_id, body, created_at) "
+                "SELECT id, project_id, person_id, body, created_at FROM journal_note"
+            ))
+            conn.execute(text("DROP TABLE journal_note"))
+            conn.execute(text("ALTER TABLE journal_note_new RENAME TO journal_note"))
+            conn.execute(text("CREATE INDEX ix_journal_note_project_id ON journal_note (project_id)"))
+            conn.execute(text("CREATE INDEX ix_journal_note_person_id ON journal_note (person_id)"))
+
+
 def init_db(app):
     db_path = get_db_path(app)
     app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
@@ -96,3 +131,4 @@ def init_db(app):
 
     _run_migrations(app)
     _drop_dead_columns(app)
+    _relax_journal_note_project_id(app)

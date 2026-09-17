@@ -96,9 +96,13 @@ def seed_if_empty():
         name="Spec Authoring & Prototyping",
         description="Turning an idea into a specification and prototype-level design before anyone writes code — distinct from building the thing itself.",
     )
+    cap_material_priority = Capability(
+        name="Material, Acquisition, Routing & Priority Visibility",
+        description="Manufacturing-side project visibility: mocked S4 material/acquisition/routing status, plus Tension (org priority) and Impact (computed risk from priority vs. due date).",
+    )
     db.session.add_all([
         cap_capture, cap_vsm, cap_staffing, cap_contract_authoring, cap_task_priority,
-        cap_spec_authoring,
+        cap_spec_authoring, cap_material_priority,
     ])
     db.session.flush()
 
@@ -390,12 +394,28 @@ def seed_if_empty():
         url="http://localhost:5187",
         api_url="http://localhost:8101",
     )
+    app_marti = Application(
+        name="MARTI",
+        description=(
+            "Material, Acquisition, Routings, Tension, Impact — manufacturing-side project "
+            "visibility over mocked S4 data, plus a priority (Tension) and computed risk "
+            "(Impact) layer. Meant to eventually replace Dude, Where's My Part? and Dude, "
+            "Where's My Order? once validated."
+        ),
+        owning_team="Matt (informal enabling team)",
+        team_type="enabling",
+        scope="project",
+        category="technical",
+        capability=cap_material_priority,
+        url="http://localhost:5188",
+        api_url="http://localhost:8102",
+    )
 
     db.session.add_all([
         app_value_stream, app_winmax,
         app_good_plan, app_labor_supply_demand, app_qms, app_lham, app_portfolio_manager,
         app_contract_authoring, app_dwmp, app_fixer, app_scan_me, app_org_charts, app_dwmo,
-        app_scope_manager, app_reckon, app_task_master, app_aarons_meadow,
+        app_scope_manager, app_reckon, app_task_master, app_aarons_meadow, app_marti,
     ])
     db.session.flush()
 
@@ -450,6 +470,11 @@ def seed_if_empty():
             external_ref=VALUE_STREAM_DEMO_MAP_ID,
             link_url=f"{VALUE_STREAM_BASE_URL}/maps/{VALUE_STREAM_DEMO_MAP_ID}/timeline",
             notes="Design -> Procure -> Build -> Ship value stream for the bracket redesign.",
+        ),
+        ProjectAppLink(
+            project_id=project.id, application_id=app_marti.id, phase="execution",
+            link_url="http://localhost:5188/projects/" + project.id,
+            notes="MARTI MVP — built this session.",
         ),
     ])
 

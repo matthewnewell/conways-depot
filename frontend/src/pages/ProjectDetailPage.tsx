@@ -496,11 +496,19 @@ function HomeBase({ project }: { project: ProjectDetail }) {
   const [notes, setNotes] = useState(project.team_notes ?? '')
   const [channels, setChannels] = useState<ChannelLink[]>(project.channels ?? [])
   const [topology, setTopology] = useState<TeamTopology | ''>(project.team_topology ?? '')
+  const [hasManufacturing, setHasManufacturing] = useState<'' | 'yes' | 'no'>(
+    project.has_manufacturing === true ? 'yes' : project.has_manufacturing === false ? 'no' : '',
+  )
   const [dirty, setDirty] = useState(false)
 
   function save() {
     updateProject.mutate(
-      { team_notes: notes || null, channels, team_topology: topology || null },
+      {
+        team_notes: notes || null,
+        channels,
+        team_topology: topology || null,
+        has_manufacturing: hasManufacturing === '' ? null : hasManufacturing === 'yes',
+      },
       { onSuccess: () => setDirty(false) },
     )
   }
@@ -555,6 +563,31 @@ function HomeBase({ project }: { project: ProjectDetail }) {
               {TEAM_TOPOLOGY_INFO[t].label}
             </option>
           ))}
+        </select>
+      </div>
+
+      <div className="home-base__field">
+        <span className="home-base__field-label">
+          Manufacturing project
+          <InfoPopover label="What this means">
+            <p className="info-pop__intro">
+              Provisional — stands in for a decision a future "Project Planning" app would
+              eventually own (a manufacturing project would require a manufacturing plan there).
+              Apps like MARTI read this directly; leave unset if unknown.
+            </p>
+          </InfoPopover>
+        </span>
+        <select
+          className="home-base__topology"
+          value={hasManufacturing}
+          onChange={(e) => {
+            setHasManufacturing(e.target.value as '' | 'yes' | 'no')
+            setDirty(true)
+          }}
+        >
+          <option value="">— unknown —</option>
+          <option value="yes">Yes</option>
+          <option value="no">No</option>
         </select>
       </div>
 

@@ -182,6 +182,9 @@ export interface ProjectSummary {
   channels: ChannelLink[]
   /** The delivery team's Team Topologies shape — a stub, edited on the project detail page. */
   team_topology: TeamTopology | null
+  /** Whether this project has a manufacturing component — another stub, provisional until a
+   * future Project Planning app owns this decision authoritatively. Null = unknown/unset. */
+  has_manufacturing: boolean | null
   created_at: string
   updated_at: string
   external_ids: ExternalId[]

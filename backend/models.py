@@ -178,6 +178,14 @@ class Project(db.Model):
     # app's job. This is where reverse-Conway analysis lives — shape the team to get the
     # architecture — so it's a property of the project, not of any app.
     team_topology = db.Column(db.String(30), nullable=True)
+    # Whether this project has a manufacturing component — another stub-for-a-future-app field,
+    # same reasoning as team_topology above: it's a plain fact about the project, not any one
+    # app's private data, even though MARTI is the first (and so far only) reader of it. It
+    # stands in for a decision the not-yet-built "Project Planning" app will eventually own
+    # authoritatively (planning a project that manufactures something should require a
+    # manufacturing plan) — nullable because "unknown" is the honest default until someone,
+    # or that future app, actually says yes or no.
+    has_manufacturing = db.Column(db.Boolean, nullable=True)
     created_at = db.Column(db.DateTime, default=_now, nullable=False)
     updated_at = db.Column(db.DateTime, default=_now, onupdate=_now, nullable=False)
 
@@ -218,6 +226,7 @@ class Project(db.Model):
             "team_notes": self.team_notes,
             "channels": self.channel_list,
             "team_topology": self.team_topology,
+            "has_manufacturing": self.has_manufacturing,
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
             "external_ids": [e.to_dict() for e in self.external_ids],
@@ -280,18 +289,27 @@ class ProjectPhaseEvent(db.Model):
 
 
 class JournalNote(db.Model):
-    """A Depot-native journal entry — a person's own typed note about a project, not read from
-    any connected app. The "other" journal the original Launchpad brief asked for (a manually-
-    authored note stream), sitting alongside the federated per-app aggregation every connected
-    app's own journal already feeds into a project's Journal section (see
-    routes/applications.py's /journal proxy). `to_entry_dict()` matches that exact
-    {id, timestamp, author, summary, href} shape on purpose — a manual note and a federated
-    entry merge into one feed with zero special-casing on the frontend."""
+    """A Depot-native journal entry — a person's own typed note, not read from any connected
+    app. The "other" journal the original Launchpad brief asked for (a manually-authored note
+    stream), sitting alongside the federated per-app aggregation every connected app's own
+    journal already feeds into a project's Journal section (see routes/applications.py's
+    /journal proxy). `to_entry_dict()` matches that exact {id, timestamp, author, summary, href}
+    shape on purpose — a manual note and a federated entry merge into one feed with zero
+    special-casing on the frontend.
+
+    `project_id` is nullable: a note with a project is shared (visible to anyone looking at that
+    project, same as a federated entry — the Depot has never gated content by membership). A
+    note with `project_id IS NULL` is personal — "plan my day" material with no project yet —
+    and is only ever queried back filtered to its own `person_id` (see routes/notes.py's
+    /api/people/<id>/notes), the one place in this codebase real per-person filtering happens.
+    Not access control in the auth sense (nothing here is, see Person's docstring) — just the
+    same "personal notes aren't queried any other way" discipline Task Master's own per-person
+    task board already relies on."""
     __tablename__ = "journal_note"
 
     id = db.Column(db.String(36), primary_key=True, default=_uuid)
-    project_id = db.Column(db.String(36), db.ForeignKey("project.id"), nullable=False, index=True)
-    person_id = db.Column(db.String(36), db.ForeignKey("person.id"), nullable=True)
+    project_id = db.Column(db.String(36), db.ForeignKey("project.id"), nullable=True, index=True)
+    person_id = db.Column(db.String(36), db.ForeignKey("person.id"), nullable=True, index=True)
     body = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=_now, nullable=False)
 
@@ -303,7 +321,7 @@ class JournalNote(db.Model):
             "timestamp": self.created_at.isoformat(),
             "author": self.person.name if self.person else None,
             "summary": self.body,
-            "href": f"/projects/{self.project_id}",
+            "href": f"/projects/{self.project_id}" if self.project_id else None,
         }
 
 

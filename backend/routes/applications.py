@@ -153,6 +153,26 @@ def _translate_project_id(application_id: str, depot_project_id: str | None) -> 
     return link.external_ref if link and link.external_ref else depot_project_id
 
 
+@bp.get("/<application_id>/project-link")
+def application_project_link(application_id):
+    """The reverse of _translate_project_id — given this app's own resource id (e.g. a Value
+    Stream map id), what Depot project is it crosswalked to? Lets the embeddable Journal widget
+    (routes/embed.py) work from *inside* a sibling app without that app ever learning a Depot
+    project id itself: the app hands the widget its own external_ref, the widget calls back
+    here (browser-side, hence CORS on this route too) to resolve it. No match (unlinked
+    resource, or a stale ref) is a normal empty state — `{project_id: null}` — same as every
+    other cross-app lookup's "nothing published yet" fallback."""
+    external_ref = request.args.get("external_ref")
+    if not external_ref:
+        return jsonify({"error": "external_ref is required"}), 400
+    link = ProjectAppLink.query.filter_by(
+        application_id=application_id, external_ref=external_ref
+    ).first()
+    if not link:
+        return jsonify({"project_id": None, "project_name": None})
+    return jsonify({"project_id": link.project_id, "project_name": link.project.name})
+
+
 @bp.get("/<application_id>/summary")
 def application_summary(application_id):
     """The Launchpad's app-summary contract: this app's own backend (`api_url`), not the Depot,
@@ -185,6 +205,30 @@ def application_summary(application_id):
         return jsonify({**_NO_SUMMARY, "href": a.url})
 
 
+def fetch_app_journal_entries(a: "Application", depot_project_id: str | None) -> list[dict]:
+    """The actual proxy call, factored out so both the per-app route below and the project-wide
+    aggregator (routes/projects.py's /journal) share one implementation instead of the
+    aggregator looping back through HTTP to call its own process. Same fallback either way:
+    empty list on no api_url, a non-200, or anything that isn't valid `{entries: [...]}` JSON —
+    never an error the caller has to special-case."""
+    if not a.api_url:
+        return []
+
+    params = {}
+    if project_id := _translate_project_id(a.id, depot_project_id):
+        params["project_id"] = project_id
+
+    try:
+        r = httpx.get(f"{a.api_url.rstrip('/')}/api/journal", params=params, timeout=1.5)
+        if r.status_code != 200:
+            return []
+        data = r.json()
+        entries = data.get("entries") if isinstance(data, dict) else None
+        return entries if isinstance(entries, list) else []
+    except (httpx.HTTPError, ValueError):
+        return []
+
+
 @bp.get("/<application_id>/journal")
 def application_journal(application_id):
     """The cross-app journal contract's proxy half — same shape and same reasoning as
@@ -194,24 +238,7 @@ def application_journal(application_id):
     per-application (this route) and in bulk by the project-level aggregator in
     routes/projects.py, which is what the Launchpad's actual Journal section uses."""
     a = Application.query.get_or_404(application_id)
-    if not a.api_url:
-        return jsonify({"entries": []})
-
-    params = {}
-    if project_id := _translate_project_id(application_id, request.args.get("project_id")):
-        params["project_id"] = project_id
-
-    try:
-        r = httpx.get(f"{a.api_url.rstrip('/')}/api/journal", params=params, timeout=1.5)
-        if r.status_code != 200:
-            return jsonify({"entries": []})
-        data = r.json()
-        entries = data.get("entries") if isinstance(data, dict) else None
-        if not isinstance(entries, list):
-            return jsonify({"entries": []})
-        return jsonify({"entries": entries})
-    except (httpx.HTTPError, ValueError):
-        return jsonify({"entries": []})
+    return jsonify({"entries": fetch_app_journal_entries(a, request.args.get("project_id"))})
 
 
 @bp.put("/<application_id>")

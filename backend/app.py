@@ -9,13 +9,14 @@ from dotenv import load_dotenv
 # credentials matter more here than on any single sibling app.
 load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
 
-from flask import Flask, send_from_directory
+from flask import Flask, request, send_from_directory
 
 from db import init_db
 from routes.ai import bp as ai_bp
 from routes.ai_proxy import bp as ai_proxy_bp
 from routes.applications import bp as applications_bp, capabilities_bp
-from routes.notes import bp as notes_bp
+from routes.embed import bp as embed_bp
+from routes.notes import bp as notes_bp, people_notes_bp
 from routes.people import bp as people_bp
 from routes.pins import bp as pins_bp
 from routes.projects import bp as projects_bp, external_ids_bp, links_bp, memberships_bp, portfolios_bp
@@ -42,6 +43,22 @@ def create_app():
     app.register_blueprint(ai_bp)
     app.register_blueprint(ai_proxy_bp)
     app.register_blueprint(notes_bp)
+    app.register_blueprint(people_notes_bp)
+    app.register_blueprint(embed_bp)
+
+    # Every other cross-app call in this ecosystem is server-to-server (see ai_proxy.py's own
+    # docstring on why) — the embeddable Journal widget is the first thing that runs in a
+    # sibling app's own browser tab and fetches this Depot's API directly, so it's the first
+    # thing that actually needs CORS. Scoped to /api and /embed broadly rather than per-route:
+    # nothing here is authenticated (see models.Person's docstring), so a wildcard origin adds
+    # no real exposure beyond what already exists for any caller that knows the port.
+    @app.after_request
+    def _add_cors_headers(response):
+        if request.path.startswith("/api/") or request.path.startswith("/embed/"):
+            response.headers["Access-Control-Allow-Origin"] = "*"
+            response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
+            response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+        return response
 
     with app.app_context():
         seed_if_empty()
