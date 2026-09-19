@@ -5,46 +5,10 @@
   overflow: hidden;
 }
 
-.depot-layout__row {
-  flex: 1;
-  display: flex;
-  min-height: 0;
-}
-
-.depot-layout__main {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
+.depot-layout .cd-main {
   /* Same faint teal wash the splash uses, so every page reads as one product. Anchored to the
      top of the frame (not the scroll area) — a quiet fixed glow, not a moving gradient. */
   background:
     radial-gradient(46rem 20rem at 50% -7rem, var(--color-accent-soft), transparent 70%),
     var(--color-bg);
-}
-
-.depot-layout__chat-tab,
-.depot-layout__journal-tab {
-  flex-shrink: 0;
-  width: 40px;
-  border: none;
-  border-left: 1px solid var(--color-border);
-  background: var(--color-surface);
-  color: var(--color-text-secondary);
-  font-size: 12px;
-  font-weight: 700;
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-  padding: 16px 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
-
-.depot-layout__chat-tab:hover,
-.depot-layout__journal-tab:hover {
-  background: var(--color-accent-soft);
-  color: var(--color-accent);
 }
