@@ -34,6 +34,7 @@ REPOS=(
   "task-master"
   "aarons-meadow"
   "marti"
+  "conways-drawer"  # shared @conways/drawer package — app frontends depend on it via file:../../conways-drawer
   # keep in sync with scripts/apps.sh whenever a new app is added
 )
 
