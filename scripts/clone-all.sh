@@ -54,7 +54,7 @@ for name in "${REPOS[@]}"; do
 done
 
 echo
-echo "Next: follow each app's own README for one-time setup (backend venv, frontend npm install), then scripts/start-all.sh."
+echo "Next: scripts/bootstrap.sh (venvs, installs, shared drawer, .env template), then scripts/start-all.sh."
 echo "(demo-shell — the combined-demo parent frame — lives inside conways-depot/demo-shell, no separate step needed.)"
 if [[ ${#failed[@]} -gt 0 ]]; then
   echo
