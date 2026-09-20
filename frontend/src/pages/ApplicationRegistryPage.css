@@ -411,6 +411,24 @@
   top: 10px;
   right: 10px;
   z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.app-result-card__details {
+  border: none;
+  background: transparent;
+  color: var(--color-text-faint);
+  font-size: 12px;
+  padding: 3px 6px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.app-result-card__details:hover {
+  background: var(--color-surface-sunken);
+  color: var(--color-accent);
 }
 
 .app-result-card__main {

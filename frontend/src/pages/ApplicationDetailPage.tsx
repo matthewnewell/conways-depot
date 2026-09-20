@@ -9,7 +9,7 @@ import {
 import type { Application, Phase } from '../api/types'
 import { CATEGORY_LABEL } from '../api/types'
 import PinToggle from '../components/PinToggle'
-import { OUTBOUND_TARGET } from '../lib/embed'
+import { withDepotOrigin } from '../lib/launch'
 import { usePersona } from '../lib/persona'
 import './depot-shared.css'
 import './ApplicationDetailPage.css'
@@ -95,9 +95,8 @@ function TestDrive({ appId, url }: { appId: string; url: string }) {
       {reachable ? (
         <a
           className="depot-btn depot-btn--primary"
-          href={splashUrl}
-          target={OUTBOUND_TARGET}
-          rel="noreferrer"
+          href={withDepotOrigin(splashUrl, `/catalog/${appId}`)}
+          target="_self"
         >
           Test drive →
         </a>

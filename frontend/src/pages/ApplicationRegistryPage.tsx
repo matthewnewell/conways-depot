@@ -5,6 +5,7 @@ import type { AppCategory, Application, Phase } from '../api/types'
 import { APP_CATEGORIES, CATEGORY_INFO, CATEGORY_LABEL } from '../api/types'
 import InfoPopover from '../components/InfoPopover'
 import PinToggle from '../components/PinToggle'
+import { launchApp } from '../lib/launch'
 import { usePersona } from '../lib/persona'
 import './depot-shared.css'
 import './ApplicationRegistryPage.css'
@@ -58,6 +59,12 @@ export default function ApplicationRegistryPage() {
   const navigate = useNavigate()
   const { data: applications, isLoading } = useApplications()
   const { persona } = usePersona()
+  // Selecting an app launches it — same as a pinned tile on the Launchpad (same tab, person_id
+  // handed over, a back link home via `from`). The detail page (registry facts, connect-to-
+  // project) is one deliberate click away via each card's "Details"; an app with no url yet
+  // (vendor/not built) has nothing to launch, so it falls back to that page.
+  const open = (a: Application) =>
+    a.url ? launchApp(a.url, '/catalog', persona?.id) : navigate(`/catalog/${a.id}`)
   const [sortMode, setSortMode] = useState<'alpha' | 'popular'>('alpha')
   // The catalog defaults to the whole org-wide list. A limited persona can flip to a per-
   // project view — their projects, each collapsible to the apps it connects to. See
@@ -157,7 +164,7 @@ export default function ApplicationRegistryPage() {
             <span className="app-featured__label">Featured</span>
             <div className="app-featured__row">
               {featured.map((a) => (
-                <button key={a.id} className="app-featured__card" onClick={() => navigate(`/catalog/${a.id}`)}>
+                <button key={a.id} className="app-featured__card" onClick={() => open(a)}>
                   <span className="app-featured__name">{a.name}</span>
                   {a.capability_name && <span className="app-featured__cap">{a.capability_name}</span>}
                   {a.description && <span className="app-featured__desc">{a.description}</span>}
@@ -260,7 +267,7 @@ export default function ApplicationRegistryPage() {
                           <button
                             key={a.id}
                             className="app-group__row"
-                            onClick={() => navigate(`/catalog/${a.id}`)}
+                            onClick={() => open(a)}
                           >
                             <span className="app-group__row-name">{a.name}</span>
                             <span className="app-group__row-cap">{a.capability_name ?? '—'}</span>
@@ -299,9 +306,16 @@ export default function ApplicationRegistryPage() {
                         return (
                           <div key={a.id} className="app-result-card">
                             <div className="app-result-card__pin">
+                              <button
+                                className="app-result-card__details"
+                                onClick={() => navigate(`/catalog/${a.id}`)}
+                                title="Registry details, and connect to a project"
+                              >
+                                Details
+                              </button>
                               <PinToggle app={a} />
                             </div>
-                            <button className="app-result-card__button" onClick={() => navigate(`/catalog/${a.id}`)}>
+                            <button className="app-result-card__button" onClick={() => open(a)}>
                               <div className="app-result-card__main">
                                 <span className="app-result-card__name">{a.name}</span>
                                 {a.capability_name && <span className="app-result-card__cap">{a.capability_name}</span>}

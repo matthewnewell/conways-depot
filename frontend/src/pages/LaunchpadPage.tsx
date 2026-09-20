@@ -12,7 +12,7 @@ import type { Application, Phase, PersonProject } from '../api/types'
 import { usePersona } from '../lib/persona'
 import AppSummaryTile from '../components/AppSummaryTile'
 import PinToggle from '../components/PinToggle'
-import { OUTBOUND_TARGET } from '../lib/embed'
+import { withDepotOrigin } from '../lib/launch'
 import './depot-shared.css'
 import './LaunchpadPage.css'
 
@@ -100,9 +100,7 @@ export default function LaunchpadPage() {
     // (no url — not built/vendor) or the app isn't actually up right now.
     const { data: reachData } = useAppReachable(app.id, !!app.url)
     const canLaunch = !!app.url && (reachData?.reachable ?? false)
-    const launchUrl = app.url && persona
-      ? `${app.url.replace(/\/$/, '')}/?person_id=${encodeURIComponent(persona.id)}`
-      : app.url
+    const launchUrl = app.url ? withDepotOrigin(app.url, '/', persona?.id) : app.url
 
     const cardBody = (
       <>
@@ -126,7 +124,7 @@ export default function LaunchpadPage() {
         title="Drag to reorder"
       >
         {canLaunch && launchUrl ? (
-          <a className="lp-app-card__main" href={launchUrl} target={OUTBOUND_TARGET} rel="noreferrer">
+          <a className="lp-app-card__main" href={launchUrl} target="_self">
             {cardBody}
           </a>
         ) : (

@@ -23,7 +23,7 @@ import type { ChannelLink, Phase, ProjectDetail, TeamTopology } from '../api/typ
 import { PHASES, TEAM_TOPOLOGIES, TEAM_TOPOLOGY_INFO } from '../api/types'
 import InfoPopover from '../components/InfoPopover'
 import JournalFeed, { type TaggedJournalEntry } from '../components/JournalFeed'
-import { OUTBOUND_TARGET } from '../lib/embed'
+import { withDepotOrigin } from '../lib/launch'
 import { usePersona } from '../lib/persona'
 import './depot-shared.css'
 import './ProjectDetailPage.css'
@@ -195,6 +195,7 @@ function ThreadBlock({
 }
 
 function ConnectedApps({ project }: { project: ProjectDetail }) {
+  const { persona } = usePersona()
   const { data: applications } = useApplications()
   const createLink = useCreateLink(project.id)
   const deleteLink = useDeleteLink(project.id)
@@ -266,9 +267,8 @@ function ConnectedApps({ project }: { project: ProjectDetail }) {
               {l.link_url ? (
                 <a
                   className="app-link-card__open"
-                  href={l.link_url}
-                  target={OUTBOUND_TARGET}
-                  rel="noreferrer"
+                  href={withDepotOrigin(l.link_url, `/projects/${project.id}`, persona?.id)}
+                  target="_self"
                 >
                   Open {l.application_name} →
                 </a>
