@@ -6,7 +6,7 @@
 #
 # Each entry: "name|port|cwd|command"
 APPS=(
-  "value-stream-backend|8080|/home/matthew/ValueStream/backend|.venv/bin/python app.py"
+  "value-stream-backend|8080|/home/matthew/ValueStream/backend|AI_PROVIDER=depot .venv/bin/python app.py"
   "value-stream-frontend|5173|/home/matthew/ValueStream/frontend|source ~/.nvm/nvm.sh && npm run dev -- --host 0.0.0.0"
   "conways-depot-backend|8090|/home/matthew/conways-depot/backend|source .venv/bin/activate && DATA_DIR=/home/matthew/conways-depot/data python app.py"
   "conways-depot-frontend|5175|/home/matthew/conways-depot/frontend|source ~/.nvm/nvm.sh && npm run dev -- --host 0.0.0.0"
