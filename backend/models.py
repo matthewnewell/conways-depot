@@ -199,6 +199,9 @@ class Project(db.Model):
     # manufacturing plan) — nullable because "unknown" is the honest default until someone,
     # or that future app, actually says yes or no.
     has_manufacturing = db.Column(db.Boolean, nullable=True)
+    # A link to the contract itself (a SharePoint / contract-repository URL). A pointer, never a
+    # copy — the Depot doesn't hold the document.
+    contract_url = db.Column(db.String(500), nullable=True)
     created_at = db.Column(db.DateTime, default=_now, nullable=False)
     updated_at = db.Column(db.DateTime, default=_now, onupdate=_now, nullable=False)
 
@@ -241,6 +244,7 @@ class Project(db.Model):
             "portfolio_links": self.portfolio.channel_list if self.portfolio else [],
             "team_topology": self.team_topology,
             "has_manufacturing": self.has_manufacturing,
+            "contract_url": self.contract_url,
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
             "external_ids": [e.to_dict() for e in self.external_ids],

@@ -38,6 +38,7 @@ one id, connected only by a stored URL.
 from datetime import datetime, timedelta, timezone
 
 from db import db
+from demo_data import BRACKET_ID, INDUSTRIAL_PORTFOLIO_ID, RIVERSIDE_ID, apply_demo_data
 from models import Application, Capability, ExternalId, Portfolio, Project, ProjectAppLink, ProjectPhaseEvent
 
 
@@ -45,7 +46,7 @@ def _days_ago(n: int) -> datetime:
     return datetime.now(timezone.utc) - timedelta(days=n)
 
 # The real id of Value Stream's own seeded sample map (`Bracket Assembly`, project field
-# "Demo: Bracket Assembly Program" — `GET /api/maps/sample` there). If Value Stream's dev DB is
+# "Bracket Assembly Program" — `GET /api/maps/sample` there). If Value Stream's dev DB is
 # ever reset, this link goes stale — an accepted limitation of a plain-URL pointer, and exactly
 # the kind of drift a real crosswalk has to live with too. **This already happened once**
 # (2026-09-15, while wiring Increment 2's summary contract): the id below was updated from a
@@ -154,6 +155,7 @@ def seed_if_empty():
         category="project",
         capability=cap_staffing,
         url="http://localhost:5178",
+        api_url="http://localhost:8093",
     )
     app_labor_supply_demand = Application(
         name="Labor Supply & Demand",
@@ -169,6 +171,7 @@ def seed_if_empty():
         category="enterprise",  # 15288 Organizational Project-Enabling — Resource Management
         capability=cap_staffing,
         url="http://localhost:5184",
+        api_url="http://localhost:8098",
     )
     cap_qms = Capability(
         name="Quality Management",
@@ -253,6 +256,7 @@ def seed_if_empty():
         category="project",  # 15288 Project Processes — closest to Quality Assurance (6.3.8); no dedicated category exists
         capability=cap_rca_capa,
         url="http://localhost:5177",
+        api_url="http://localhost:8092",
     )
     cap_scan = Capability(
         name="License & Supply-Chain Compliance",
@@ -355,7 +359,8 @@ def seed_if_empty():
         scope="project",
         category="project,enterprise",
         capability=cap_performance,
-        url=None,
+        url="http://localhost:5192",
+        api_url="http://localhost:8103",
     )
     app_task_master = Application(
         name="Task Master",
@@ -425,6 +430,7 @@ def seed_if_empty():
     # customers, since that's the realistic case: a portfolio is usually an internal construct,
     # not a per-customer bucket.
     portfolio = Portfolio(
+        id=INDUSTRIAL_PORTFOLIO_ID,
         name="Industrial Programs",
         description="Manufacturing and industrial-facility work across customers.",
     )
@@ -432,7 +438,8 @@ def seed_if_empty():
     db.session.flush()
 
     project = Project(
-        name="Demo: Bracket Assembly Program",
+        id=BRACKET_ID,
+        name="Bracket Assembly Program",
         customer="Acme Aerostructures",
         phase="execution",
         portfolio=portfolio,
@@ -481,6 +488,7 @@ def seed_if_empty():
     # ── A second project, still early in its life, to show the registry covers the whole
     #    portfolio, not just late-stage work ──
     prospect = Project(
+        id=RIVERSIDE_ID,
         name="Prospect: Riverside Facility Expansion",
         customer="Riverside Logistics",
         phase="pursuit",
@@ -502,73 +510,17 @@ def seed_if_empty():
     db.session.commit()
 
 
-# Persona name -> (title, is_admin, [(project name, role_label, can_manage_members)]). Matched
-# to projects by name so this can also backfill an already-seeded dev DB (see
-# seed_people_if_empty). A project name that isn't present is skipped, not an error — a fresh DB
-# won't have the user-made ones. can_manage_members is the one real (if unenforced) flag on
-# membership — see ProjectMembership's own docstring; the PM carries it here as the plausible
-# real-world case, the two other roles don't, so the demo shows both states.
-_DEMO_PEOPLE: list[tuple[str, str, bool, list[tuple[str, str, bool]]]] = [
-    ("Admin", "Enterprise Architect", True, []),  # the "see everything" seat — the default persona
-    ("Sam Ortiz", "Program Manager", False, [
-        ("Demo: Bracket Assembly Program", "Program Manager", True),
-        ("Demo: Nacelle Fairing Retrofit", "Program Manager", True),
-    ]),
-    ("Alex Chen", "Lead Engineer", False, [
-        ("Demo: Bracket Assembly Program", "Lead Engineer", False),
-    ]),
-    ("Jess Kim", "Capture Manager", False, [
-        ("Prospect: Riverside Facility Expansion", "Capture Manager", False),
-    ]),
-]
-
-
 def seed_people_if_empty():
-    """Demo personas for the nav's "viewing as" switcher — see models.Person: not auth, no
-    enforcement. Guarded separately from seed_if_empty() so a dev DB seeded before personas
-    existed picks them up on the next backend start."""
-    from models import Person, ProjectMembership
+    """Demo personas, projects, memberships, pins and journal history — see demo_data.py (six
+    role-based personas with fixed ids). Guarded on an empty person table so it seeds a fresh
+    database once; use backend/refresh_demo.py to re-apply it to an existing one."""
+    from models import Person
 
     if Person.query.count() > 0:
         return
-
-    projects_by_name = {p.name: p for p in Project.query.all()}
-    for name, title, is_admin, memberships in _DEMO_PEOPLE:
-        person = Person(name=name, title=title, is_admin=is_admin)
-        db.session.add(person)
-        db.session.flush()
-        for project_name, role_label, can_manage_members in memberships:
-            project = projects_by_name.get(project_name)
-            if project is None:
-                continue
-            db.session.add(ProjectMembership(
-                person_id=person.id, project_id=project.id, role_label=role_label,
-                can_manage_members=can_manage_members,
-            ))
-    db.session.commit()
-
-
-# Pinned by Admin — the default "see everything" persona, so the Launchpad isn't an empty
-# Pinned Apps section on a fresh visit. Same three as the catalog's own Featured row, on
-# purpose: one consistent "these are the apps to look at first" story across both pages.
-_ADMIN_PINS = ["Good Plan", "Value Stream", "WinMax"]
+    apply_demo_data()
 
 
 def seed_pins_if_empty():
-    """Guarded separately, same reasoning as seed_people_if_empty: pins shipped after the
-    registry and personas did, so an already-seeded dev DB needs them backfilled too."""
-    from models import Application, Person, Pin
-
-    if Pin.query.count() > 0:
-        return
-
-    admin = Person.query.filter_by(is_admin=True).first()
-    if admin is None:
-        return
-
-    for app_name in _ADMIN_PINS:
-        app = Application.query.filter_by(name=app_name).first()
-        if app is None:
-            continue
-        db.session.add(Pin(person_id=admin.id, application_id=app.id))
-    db.session.commit()
+    """Kept for app.py's startup sequence; pins are part of demo_data.apply_demo_data() now."""
+    return

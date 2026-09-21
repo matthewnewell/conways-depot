@@ -845,8 +845,242 @@
   color: var(--color-text-secondary);
 }
 
-.journal-title {
+.title-with-info {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+}
+
+/* Connected-app tiles: the whole tile is the link; live status sits on the tile itself. */
+a.app-link-card {
+  color: inherit;
+  text-decoration: none;
+}
+
+.app-link-card--link {
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.app-link-card--link:hover {
+  border-color: var(--color-accent);
+  background: var(--color-accent-soft);
+}
+
+.app-link-card__badges {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.app-link-card__status {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  padding: 1px 7px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.app-link-card__status--ok { background: var(--color-success-soft, var(--color-surface)); color: var(--color-success); }
+.app-link-card__status--warn { background: var(--color-wait-soft, var(--color-surface)); color: var(--color-wait); }
+.app-link-card__status--critical { background: var(--color-critical-soft); color: var(--color-critical); }
+
+/* ── header: title + description left, labeled facts panel right ── */
+.project-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 24px;
+  align-items: start;
+}
+
+.project-head__main {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.project-facts {
+  min-width: 320px;
+  max-width: 380px;
+  padding: 14px 16px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.project-facts__list {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.project-facts__row {
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.project-facts__row dt {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-faint);
+}
+
+.project-facts__row dd {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.project-facts__none {
+  color: var(--color-text-faint);
+}
+
+.project-admin-toggle {
+  align-self: stretch;
+  padding: 7px 12px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.project-admin-toggle:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.project-admin-toggle--on {
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.team-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 8px 3px 4px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface-sunken);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.team-chip:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.team-chip__avatars {
+  display: inline-flex;
+}
+
+.team-chip__avatar {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  margin-left: -6px;
+  border-radius: 50%;
+  border: 2px solid var(--color-surface-sunken);
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.team-chip__avatar:first-child {
+  margin-left: 0;
+}
+
+.team-chip__avatar--more {
+  background: var(--color-border);
+  color: var(--color-text-secondary);
+}
+
+.team-chip__go {
+  color: var(--color-text-faint);
+}
+
+.team-chip:hover .team-chip__go {
+  color: var(--color-accent);
+}
+
+@media (max-width: 860px) {
+  .project-head {
+    grid-template-columns: 1fr;
+  }
+  .project-facts {
+    max-width: none;
+  }
+}
+
+/* The facts panel already labels this row "S4 project". */
+.project-facts .s4-headline__label {
+  display: none;
+}
+
+/* ── header tiles + slide-over panel ── */
+.project-detail-page {
+  position: relative;
+}
+
+.project-admin--stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.info-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.info-panel .project-facts__list {
+  padding: 16px 18px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.info-panel .s4-headline__label { display: none; }
+
+.contract-link {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+.contract-link:hover {
+  text-decoration: underline;
+}
+
+button.contract-link {
+  border: none;
+  background: none;
+  padding: 0;
+}
+
+.contract-link--empty {
+  font-weight: 400;
+  color: var(--color-text-faint);
 }

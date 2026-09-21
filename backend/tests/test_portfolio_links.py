@@ -55,3 +55,12 @@ def test_project_without_portfolio_has_no_portfolio_links(client):
 def test_update_portfolio_rejects_empty_name(client):
     pf = client.post("/api/portfolios", json={"name": "Industrial"}).get_json()
     assert client.put(f"/api/portfolios/{pf['id']}", json={"name": "  "}).status_code == 400
+
+
+def test_project_contract_link_round_trips_and_clears(client):
+    proj = client.post("/api/projects", json={"name": "P"}).get_json()
+    assert proj["contract_url"] is None
+    url = "https://contoso.sharepoint.com/sites/contracts/ACM-1.pdf"
+    got = client.put(f"/api/projects/{proj['id']}", json={"contract_url": f"  {url}  "}).get_json()
+    assert got["contract_url"] == url
+    assert client.put(f"/api/projects/{proj['id']}", json={"contract_url": ""}).get_json()["contract_url"] is None

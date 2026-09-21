@@ -192,6 +192,8 @@ export interface ProjectSummary {
   /** Whether this project has a manufacturing component — another stub, provisional until a
    * future Project Planning app owns this decision authoritatively. Null = unknown/unset. */
   has_manufacturing: boolean | null
+  /** Link to the contract itself (a pointer to a SharePoint / repository document). */
+  contract_url: string | null
   created_at: string
   updated_at: string
   external_ids: ExternalId[]

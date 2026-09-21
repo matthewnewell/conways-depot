@@ -151,6 +151,8 @@ def update_project(project_id):
         p.team_topology = tt
     if "has_manufacturing" in body:
         p.has_manufacturing = body["has_manufacturing"]
+    if "contract_url" in body:
+        p.contract_url = (body["contract_url"] or "").strip() or None
 
     db.session.commit()
     return jsonify(p.to_dict())

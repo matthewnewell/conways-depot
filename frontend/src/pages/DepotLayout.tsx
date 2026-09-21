@@ -1,8 +1,9 @@
 import { DrawerLayout } from '@conways/drawer'
 import { Outlet, useParams } from 'react-router-dom'
-import { useHealth } from '../api/hooks'
+import { useHealth, useProject } from '../api/hooks'
 import DepotNav from '../components/DepotNav'
 import { usePersona } from '../lib/persona'
+import { ProjectAdminPanel, ProjectInfoPanel, ProjectTeamPanel } from './ProjectDetailPage'
 import './DepotLayout.css'
 
 /** Shared parent for every operational route (Launchpad, project list/detail, catalog). The
@@ -16,6 +17,17 @@ export default function DepotLayout() {
   const { projectId } = useParams<{ projectId?: string }>()
   const { data: health } = useHealth()
   const { persona } = usePersona()
+  const { data: project } = useProject(projectId)
+
+  // On a project page the drawer gains three tabs at the top of its rail — the project's own
+  // Info / Team / Admin — alongside the usual Agent and Journal at the bottom.
+  const tabs = project
+    ? [
+        { id: 'info', icon: 'ℹ️', label: 'Project info', content: <ProjectInfoPanel project={project} /> },
+        { id: 'team', icon: '👥', label: 'Team', content: <ProjectTeamPanel project={project} /> },
+        { id: 'admin', icon: '⚙️', label: 'Admin', wide: true, content: <ProjectAdminPanel project={project} /> },
+      ]
+    : []
 
   return (
     <div className="depot-layout">
@@ -23,6 +35,7 @@ export default function DepotLayout() {
       <DrawerLayout
         storageKey="conways-depot:drawer"
         scrollMain={false}
+        tabs={tabs}
         agent={{
           chatUrl: '/api/chat',
           aiConfigured: health?.ai_configured ?? false,

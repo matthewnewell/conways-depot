@@ -165,12 +165,6 @@ export default function LaunchpadPage() {
   return (
     <div className="launchpad-page">
       <div className="launchpad-page__content">
-        <header className="launchpad-page__header">
-          <h1 className="launchpad-page__title">
-            {persona ? `Welcome, ${persona.name}.` : 'Launchpad'}
-          </h1>
-        </header>
-
         <section className="lp-section">
           <div className="lp-section__head">
             <span className="lp-section__title">Pinned apps</span>

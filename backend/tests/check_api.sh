@@ -78,7 +78,7 @@ print('ok —', {p['name']: len(p['projects']) for p in people})
 echo "== demo project has the digital-thread crosswalk and phase-scoped links =="
 PID=$(curl -s "$BASE/projects" | python3 -c "
 import json, sys
-print(next(p['id'] for p in json.load(sys.stdin) if p['name'].startswith('Demo: Bracket')))
+print(next(p['id'] for p in json.load(sys.stdin) if p['name'].startswith('Bracket')))
 ")
 curl -s "$BASE/projects/$PID" | python3 -c "
 import json, sys

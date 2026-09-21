@@ -2,11 +2,52 @@ import { Link } from 'react-router-dom'
 import DepotNav from '../components/DepotNav'
 import './SplashPage.css'
 
-// Four phase "stations" on the thread, each aligned above the app typically reached there.
-// Evenly spaced (198 apart), with equal 32px padding to the app-store frame edges.
-const COLUMNS = [138, 336, 534, 732]
+// The thread runs through four phases; each phase is a station on it, evenly spaced.
+const COLUMNS = [300, 450, 600, 750]
 const PHASES = ['Pursuit', 'Award', 'Execution', 'Closeout']
-const APPS = ['Capture', 'Contracts', 'Value stream', 'Lessons learned']
+const CHIP_W = 138
+const LANE_H = 40
+const LANE_GAP = 14
+const LANES_Y = 100
+
+// One lane per role: the stretch of the project's life where that role is most active (the soft
+// bar), and the apps that role reaches for at each phase (`at` = the phase index).
+const ROLES = [
+  {
+    name: 'Business Development',
+    span: [0, 1],
+    apps: [
+      { at: 0, label: 'WinMax' },
+      { at: 1, label: 'Scope Manager' },
+    ],
+  },
+  {
+    name: 'Program Manager',
+    span: [1, 3],
+    apps: [
+      { at: 1, label: 'Good Plan' },
+      { at: 2, label: 'Value Stream' },
+    ],
+  },
+  {
+    name: 'Functional Manager',
+    span: [1, 2],
+    apps: [
+      { at: 1, label: 'Org Charts' },
+      { at: 2, label: 'Labor Supply & Demand' },
+    ],
+  },
+  {
+    name: 'Mission Assurance',
+    span: [2, 3],
+    apps: [
+      { at: 2, label: 'The Fixer' },
+      { at: 3, label: 'Lessons Learned' },
+    ],
+  },
+]
+const laneY = (i: number) => LANES_Y + i * (LANE_H + LANE_GAP)
+const SVG_H = laneY(ROLES.length - 1) + LANE_H + 20
 
 const FEATURES = [
   {
@@ -66,9 +107,10 @@ export default function SplashPage() {
       <div className="splash-page__scroll">
         <div className="splash-container">
           <header className="splash-hero">
-            <h1 className="splash-hero__title">An app store for projects</h1>
+            <h1 className="splash-hero__title">One thread. Every role.</h1>
             <p className="splash-hero__sub">
-              Your project's applications, all in one place — install the ones that fit the work.
+              Every project gets one ID that never changes. Select and launch the tools that fit
+              your job — and swap them as the work evolves.
             </p>
             <div className="splash-hero__actions">
               <Link className="splash-btn splash-btn--primary" to="/admin">
@@ -82,97 +124,95 @@ export default function SplashPage() {
 
           <figure className="splash-figure">
             <div className="splash-figure__svg-wrap">
-            <svg viewBox="0 0 870 262" role="img" aria-labelledby="depot-diagram-title">
-              <title id="depot-diagram-title">
-                A project runs one digital thread through pursuit, award, execution and
-                closeout, connecting to applications from the store as the work needs them.
-              </title>
+              <svg viewBox={`0 0 870 ${SVG_H}`} role="img" aria-labelledby="depot-diagram-title">
+                <title id="depot-diagram-title">
+                  One project ID runs through pursuit, award, execution and closeout. Business
+                  development, program managers, functional managers and mission assurance each
+                  launch the apps that fit their job, in the phases where they are most active.
+                </title>
 
-              {/* thread origin + phase labels */}
-              <text className="splash-svg__origin" x="20" y="22">
-                PROJECT
-              </text>
-              <g className="splash-svg__phase" textAnchor="middle">
-                {PHASES.map((phase, i) => (
-                  <text key={phase} x={COLUMNS[i]} y="22">
-                    {phase.toUpperCase()}
-                  </text>
-                ))}
-              </g>
+                {/* the project id, at the thread's origin */}
+                <text className="splash-svg__origin" x="20" y="24">
+                  PROJECT ID
+                </text>
+                <rect x="14" y="66" width="92" height="22" rx="6" fill="var(--color-accent-soft)" />
+                <text className="splash-svg__id" x="60" y="81" textAnchor="middle">
+                  P-100455
+                </text>
 
-              {/* the app store — drawn first so the connectors below read as coming out of
-                  each app card, not out of the frame's edge */}
-              <text className="splash-svg__store-label" x="24" y="126">
-                APP STORE
-              </text>
-              <rect
-                x="24"
-                y="134"
-                width="822"
-                height="108"
-                rx="16"
-                fill="var(--color-surface-sunken)"
-                stroke="var(--color-border)"
-              />
-              {COLUMNS.map((x, i) => (
-                <g key={`card-${APPS[i]}`}>
+                <g className="splash-svg__phase" textAnchor="middle">
+                  {PHASES.map((phase, i) => (
+                    <text key={phase} x={COLUMNS[i]} y="24">
+                      {phase.toUpperCase()}
+                    </text>
+                  ))}
+                </g>
+
+                {/* each role's active stretch — drawn first so everything else sits on it */}
+                {ROLES.map((r, i) => (
                   <rect
-                    x={x - 82}
-                    y="158"
-                    width="164"
-                    height="52"
-                    rx="10"
-                    fill="var(--color-surface)"
-                    stroke="var(--color-border-strong)"
+                    key={`bar-${r.name}`}
+                    x={COLUMNS[r.span[0]] - CHIP_W / 2 - 8}
+                    y={laneY(i)}
+                    width={COLUMNS[r.span[1]] - COLUMNS[r.span[0]] + CHIP_W + 16}
+                    height={LANE_H}
+                    rx="12"
+                    fill="var(--color-surface-sunken)"
+                    stroke="var(--color-border)"
                   />
-                  <text className="splash-svg__app" x={x} y="189" textAnchor="middle">
-                    {APPS[i]}
-                  </text>
-                </g>
-              ))}
+                ))}
 
-              {/* the digital thread */}
-              <line
-                x1="20"
-                y1="48"
-                x2="840"
-                y2="48"
-                stroke="var(--color-accent)"
-                strokeWidth="3"
-                strokeLinecap="round"
-              />
-              <path d="M840 42 L854 48 L840 54 Z" fill="var(--color-accent)" />
-              <circle cx="20" cy="48" r="5.5" fill="var(--color-accent)" />
-
-              {/* each app plugs UP into the thread — the line starts at the app card's top edge
-                  and the arrow points into the project */}
-              {COLUMNS.map((x, i) => (
-                <g key={APPS[i]}>
+                {/* the thread's stations drop through every lane */}
+                {COLUMNS.map((x, i) => (
                   <line
+                    key={`guide-${PHASES[i]}`}
                     x1={x}
-                    y1="158"
+                    y1="60"
                     x2={x}
-                    y2="62"
+                    y2={SVG_H - 12}
                     stroke="var(--color-accent)"
-                    strokeWidth="1.5"
-                    strokeOpacity="0.55"
+                    strokeWidth="1.2"
+                    strokeDasharray="3 5"
+                    strokeOpacity="0.4"
                   />
-                  <path
-                    d={`M${x - 4} 63 L${x + 4} 63 L${x} 55 Z`}
-                    fill="var(--color-accent)"
-                  />
-                  <circle
-                    cx={x}
-                    cy="48"
-                    r="6"
-                    fill="var(--color-surface)"
-                    stroke="var(--color-accent)"
-                    strokeWidth="2.5"
-                  />
-                  <circle cx={x} cy="48" r="2.4" fill="var(--color-accent)" />
-                </g>
-              ))}
-            </svg>
+                ))}
+
+                {/* the digital thread */}
+                <line x1="20" y1="52" x2="840" y2="52" stroke="var(--color-accent)" strokeWidth="3" strokeLinecap="round" />
+                <path d="M840 46 L854 52 L840 58 Z" fill="var(--color-accent)" />
+                <circle cx="20" cy="52" r="5.5" fill="var(--color-accent)" />
+                {COLUMNS.map((x, i) => (
+                  <g key={`node-${PHASES[i]}`}>
+                    <circle cx={x} cy="52" r="6" fill="var(--color-surface)" stroke="var(--color-accent)" strokeWidth="2.5" />
+                    <circle cx={x} cy="52" r="2.4" fill="var(--color-accent)" />
+                  </g>
+                ))}
+
+                {/* role names, then the apps each one uses */}
+                {ROLES.map((r, i) => (
+                  <g key={r.name}>
+                    <text className="splash-svg__role" x="24" y={laneY(i) + LANE_H / 2 + 4}>
+                      {r.name}
+                    </text>
+                    {r.apps.map((app) => (
+                      <g key={app.label}>
+                        <rect
+                          x={COLUMNS[app.at] - CHIP_W / 2}
+                          y={laneY(i) + 6}
+                          width={CHIP_W}
+                          height={LANE_H - 12}
+                          rx="8"
+                          fill="var(--color-surface)"
+                          stroke="var(--color-border-strong)"
+                        />
+                        <text className="splash-svg__chip" x={COLUMNS[app.at]} y={laneY(i) + LANE_H / 2 + 4} textAnchor="middle">
+                          {app.label}
+                        </text>
+                      </g>
+                    ))}
+                  </g>
+                ))}
+              </svg>
             </div>
           </figure>
 

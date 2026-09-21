@@ -144,7 +144,7 @@
 }
 
 /* Header-row actions pick up the ghost look without needing the class in every JSX call. */
-.depot-section__header-row button {
+.depot-section__header-row > button {
   padding: 8px 14px;
   border: 1px solid var(--color-border-strong);
   background: var(--color-surface);
@@ -155,7 +155,7 @@
   transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
-.depot-section__header-row button:hover {
+.depot-section__header-row > button:hover {
   border-color: var(--color-accent);
   color: var(--color-accent);
   background: var(--color-surface-sunken);

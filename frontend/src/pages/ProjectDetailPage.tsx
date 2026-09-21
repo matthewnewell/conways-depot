@@ -1,6 +1,7 @@
 import { useQueries } from '@tanstack/react-query'
 import { useState } from 'react'
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { useDrawer } from '@conways/drawer'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   fetchApplicationJournal,
   journalQueryKey,
@@ -20,8 +21,7 @@ import {
   useUpdateMembership,
   useUpdateProject,
 } from '../api/hooks'
-import { api } from '../api/client'
-import type { AppSummary, Phase, ProjectDetail, TeamTopology } from '../api/types'
+import type { Phase, ProjectDetail, TeamTopology } from '../api/types'
 import { PHASES, TEAM_TOPOLOGIES, TEAM_TOPOLOGY_INFO } from '../api/types'
 import AppSummaryTile from '../components/AppSummaryTile'
 import { LinkList, LinksEditor } from '../components/Links'
@@ -44,101 +44,112 @@ const PHASE_ORDER: Record<Phase, number> = Object.fromEntries(
   PHASES.map((p, i) => [p, i]),
 ) as Record<Phase, number>
 
-/** A project's detail page IS its home base. Two tabs: **Overview** is the operating surface for
- * everyone (connected apps to launch, the merged journal, who's on it), in a wide two-column
- * layout; **Admin** holds everything an owner changes (details, phase, members, connections,
- * crosswalk IDs, team setup) plus Delete in a danger zone. Like every admin affordance in this
- * app the Admin tab is signposting, not enforcement — there is no auth or role check yet. The
- * tab lives in the URL (`?tab=admin`) so it's linkable. */
+/** A project's detail page IS its home base: the operating surface for everyone — connected apps to
+ * launch, the merged journal, the project's links — in a wide two-column layout. Everything about
+ * the project *itself* lives in the shared drawer's top tabs (see DepotLayout): **Project info**
+ * (what it is), **Team** (who's on it, and adding/removing them) and **Admin** (what an owner
+ * changes, plus Delete). Like every admin affordance in this app, Admin is signposting, not
+ * enforcement — there is no auth or role check yet. */
 export default function ProjectDetailPage() {
   const { projectId } = useParams<{ projectId: string }>()
-  const navigate = useNavigate()
-  const [params, setParams] = useSearchParams()
   const { data: project, isLoading } = useProject(projectId)
-  const deleteProject = useDeleteProject()
+  const { openTab } = useDrawer()
 
   if (!projectId) return null
   if (isLoading || !project) return <div className="project-detail-page__loading">Loading…</div>
-
-  const tab = params.get('tab') === 'admin' ? 'admin' : 'overview'
-  function setTab(t: 'overview' | 'admin') {
-    setParams(
-      (prev) => {
-        const next = new URLSearchParams(prev)
-        if (t === 'admin') next.set('tab', 'admin')
-        else next.delete('tab')
-        return next
-      },
-      { replace: true },
-    )
-  }
-
-  function handleDelete() {
-    deleteProject.mutate(project!.id)
-    navigate('/')
-  }
 
   return (
     <div className="project-detail-page">
       <div className="project-detail-page__content">
         <header className="project-head">
-          <S4Headline project={project} onSetUp={() => setTab('admin')} />
-          <h1 className="project-head__title">{project.name}</h1>
-          <div className="project-head__meta">
-            <span className="project-head__phase">{PHASE_LABEL[project.phase]}</span>
-            {project.portfolio_name && <span>{project.portfolio_name}</span>}
-            {project.customer && <span>{project.customer}</span>}
+          <div className="project-head__main">
+            <h1 className="project-head__title">{project.name}</h1>
+            {project.description && <p className="project-head__desc">{project.description}</p>}
           </div>
-          {project.description && <p className="project-head__desc">{project.description}</p>}
         </header>
 
-        <div className="project-tabs" role="tablist">
-          <button
-            role="tab"
-            aria-selected={tab === 'overview'}
-            className={`project-tabs__tab${tab === 'overview' ? ' project-tabs__tab--active' : ''}`}
-            onClick={() => setTab('overview')}
-          >
-            Overview
-          </button>
-          <button
-            role="tab"
-            aria-selected={tab === 'admin'}
-            className={`project-tabs__tab${tab === 'admin' ? ' project-tabs__tab--active' : ''}`}
-            onClick={() => setTab('admin')}
-          >
-            Admin
-          </button>
+        <div className="project-overview">
+          <div className="project-overview__main">
+            <ConnectedApps project={project} />
+            <Journal project={project} />
+          </div>
+          <aside className="project-overview__side">
+            <JumpStation project={project} onSetUp={() => openTab('admin')} />
+          </aside>
         </div>
-
-        {tab === 'overview' ? (
-          <div className="project-overview">
-            <div className="project-overview__main">
-              <ProjectHealth project={project} />
-              <ConnectedApps project={project} />
-              <Journal project={project} />
-            </div>
-            <aside className="project-overview__side">
-              <JumpStation project={project} onSetUp={() => setTab('admin')} />
-              <Members project={project} readOnly />
-            </aside>
-          </div>
-        ) : (
-          <div className="project-admin">
-            <div className="project-admin__col">
-              <Details project={project} />
-              <Members project={project} />
-              <PhaseHistory project={project} />
-            </div>
-            <div className="project-admin__col">
-              <ConnectedApps project={project} manage />
-              <ProjectLinks key={project.updated_at} project={project} />
-              <HomeBase key={project.updated_at} project={project} />
-            </div>
-            <DangerZone project={project} onDelete={handleDelete} />
-          </div>
-        )}
       </div>
+    </div>
+  )
+}
+
+/** Drawer tab: what this project is — the labeled facts, then how it got to its current phase. */
+export function ProjectInfoPanel({ project }: { project: ProjectDetail }) {
+  const { openTab } = useDrawer()
+  return (
+    <div className="info-panel">
+      <dl className="project-facts__list">
+        <div className="project-facts__row">
+          <dt>Phase</dt>
+          <dd>
+            <span className="project-head__phase">{PHASE_LABEL[project.phase]}</span>
+          </dd>
+        </div>
+        <div className="project-facts__row">
+          <dt>Portfolio</dt>
+          <dd>{project.portfolio_name ?? <span className="project-facts__none">—</span>}</dd>
+        </div>
+        <div className="project-facts__row">
+          <dt>Customer</dt>
+          <dd>{project.customer ?? <span className="project-facts__none">—</span>}</dd>
+        </div>
+        <div className="project-facts__row">
+          <dt>S4 project</dt>
+          <dd>
+            <S4Headline project={project} onSetUp={() => openTab('admin')} />
+          </dd>
+        </div>
+        <div className="project-facts__row">
+          <dt>Contract</dt>
+          <dd>
+            {project.contract_url ? (
+              <a className="contract-link" href={project.contract_url} target="_blank" rel="noopener noreferrer">
+                Open contract ↗
+              </a>
+            ) : (
+              <button className="contract-link contract-link--empty" onClick={() => openTab('admin')}>
+                Not linked — add it in Admin
+              </button>
+            )}
+          </dd>
+        </div>
+      </dl>
+      <PhaseHistory project={project} />
+    </div>
+  )
+}
+
+/** Drawer tab: the people on this project — add, remove, grant the manage flag. */
+export function ProjectTeamPanel({ project }: { project: ProjectDetail }) {
+  return <Members project={project} />
+}
+
+/** Drawer tab: everything an owner changes, with Delete at the bottom behind a typed confirmation. */
+export function ProjectAdminPanel({ project }: { project: ProjectDetail }) {
+  const navigate = useNavigate()
+  const deleteProject = useDeleteProject()
+  return (
+    <div className="project-admin project-admin--stack">
+      <Details project={project} />
+      <ConnectedApps project={project} manage />
+      <ProjectLinks key={project.updated_at} project={project} />
+      <HomeBase key={project.updated_at} project={project} />
+      <DangerZone
+        project={project}
+        onDelete={() => {
+          deleteProject.mutate(project.id)
+          navigate('/')
+        }}
+      />
     </div>
   )
 }
@@ -282,6 +293,19 @@ function Details({ project }: { project: ProjectDetail }) {
             value={project.customer ?? ''}
             placeholder="—"
             onChange={(e) => updateProject.mutate({ customer: e.target.value })}
+          />
+        </label>
+        <label className="admin-field">
+          <span>Contract link</span>
+          <input
+            key={project.contract_url ?? ''}
+            defaultValue={project.contract_url ?? ''}
+            placeholder="https://… (SharePoint or contract repository)"
+            onBlur={(e) => {
+              const raw = e.target.value.trim()
+              const next = raw && !/^[a-z][a-z0-9+.-]*:/i.test(raw) ? `https://${raw}` : raw
+              if (next !== (project.contract_url ?? '')) updateProject.mutate({ contract_url: next || null })
+            }}
           />
         </label>
         <label className="admin-field">
@@ -461,16 +485,20 @@ function ConnectedApps({ project, manage = false }: { project: ProjectDetail; ma
   return (
     <section className="depot-section">
       <div className="depot-section__header-row">
-        <h2 className="depot-section__title">Connected applications</h2>
+        <h2 className="depot-section__title title-with-info">
+          Applications
+          <InfoPopover label="About connected applications">
+            <p className="info-pop__intro">
+              {manage
+                ? 'Connect or remove the tools this project has a record in.'
+                : "The tools this project has a record in. Each is a stored pointer — click through to open the app, it's never a live connection."}
+            </p>
+          </InfoPopover>
+        </h2>
         {manage && !adding && connectable.length > 0 && (
           <button onClick={() => setAdding(true)}>+ Connect an application</button>
         )}
       </div>
-      <p className="depot-section__subtitle">
-        {manage
-          ? 'Connect or remove the tools this project has a record in.'
-          : "The tools this project has a record in. Each is a stored pointer — click through to open the app, it's never a live connection."}
-      </p>
 
       {links.length === 0 && !adding && (
         <p className="depot-section__body">Nothing connected yet.</p>
@@ -521,10 +549,17 @@ function ConnectedApps({ project, manage = false }: { project: ProjectDetail; ma
   )
 }
 
-/** One connected app on the project page. Outside Admin it shows the app's live summary tile for
- * *this project* (the same contract the personal Launchpad renders — the app decides headline,
- * label and status; the Depot never interprets them) and tints its edge by status. An app that
- * publishes nothing just shows its stored ref/notes, as before. */
+/** One connected app on the project page. Outside Admin the whole tile is the link (no separate
+ * "Open" text) and carries the app's live status for *this project* — the same summary contract
+ * the personal Launchpad renders: the app decides headline, label and status, the Depot never
+ * interprets them. An app that publishes nothing just shows its stored ref/notes. In Admin it's
+ * a plain manage card with Remove. */
+const STATUS_TEXT: Record<string, string> = {
+  ok: '✓ On track',
+  warn: '▲ Needs attention',
+  critical: '● Critical',
+}
+
 function AppLinkCard({
   link: l,
   projectId,
@@ -539,77 +574,46 @@ function AppLinkCard({
   onRemove: () => void
 }) {
   const { data: summary } = useApplicationSummary(l.application_id, projectId, !manage)
-  const status = !manage && summary?.headline ? summary.status ?? 'neutral' : null
-  const href = l.link_url ?? summary?.href ?? null
+  const live = !manage && !!summary?.headline
+  const status = live ? summary?.status ?? 'neutral' : null
+  // Once an app reports for this project, its own link (a specific plan, board or case list) beats
+  // the generic address stored when it was connected — a project should land on ITS plan, not the app's home.
+  const href = live && summary?.href ? summary.href : (l.link_url ?? summary?.href ?? null)
+  const clickable = !manage && !!href
+  const className = `app-link-card${status ? ` app-link-card--${status}` : ''}${clickable ? ' app-link-card--link' : ''}`
 
-  return (
-    <div className={`app-link-card${status ? ` app-link-card--${status}` : ''}`}>
+  const body = (
+    <>
       <div className="app-link-card__top">
         <span className="app-link-card__name">{l.application_name}</span>
-        <span className="app-link-card__phase">{PHASE_LABEL[l.phase]}</span>
+        <span className="app-link-card__badges">
+          {status && status !== 'neutral' && (
+            <span className={`app-link-card__status app-link-card__status--${status}`}>{STATUS_TEXT[status]}</span>
+          )}
+          {manage && <span className="app-link-card__phase">{PHASE_LABEL[l.phase]}</span>}
+        </span>
       </div>
       {!manage && <AppSummaryTile applicationId={l.application_id} projectId={projectId} />}
       {l.external_ref && <div className="app-link-card__ref">{l.external_ref}</div>}
       {l.notes && <div className="app-link-card__notes">{l.notes}</div>}
-      <div className="app-link-card__actions">
-        {href ? (
-          <a
-            className="app-link-card__open"
-            href={withDepotOrigin(href, `/projects/${projectId}`, personId)}
-            target="_self"
-          >
-            Open {l.application_name} →
-          </a>
-        ) : (
-          <span className="app-link-card__nolink">no reachable URL</span>
-        )}
-        {manage && (
+      {!manage && !href && <span className="app-link-card__nolink">no reachable URL</span>}
+      {manage && (
+        <div className="app-link-card__actions">
+          <span />
           <button className="app-link-card__remove" onClick={onRemove}>
             Remove
           </button>
-        )}
-      </div>
-    </div>
+        </div>
+      )}
+    </>
   )
-}
 
-/** One-line rollup of every connected app's live status for this project — how many are fine,
- * how many want attention, how many aren't reporting. Uses the same query keys as each card's
- * tile, so it costs no extra requests. */
-function ProjectHealth({ project }: { project: ProjectDetail }) {
-  const results = useQueries({
-    queries: project.app_links.map((l) => ({
-      queryKey: ['applications', l.application_id, 'summary', project.id],
-      queryFn: () =>
-        api.get<AppSummary>(`/applications/${l.application_id}/summary?project_id=${encodeURIComponent(project.id)}`),
-      staleTime: 30_000,
-      retry: false,
-    })),
-  })
-  if (project.app_links.length === 0) return null
-
-  let ok = 0
-  let warn = 0
-  let critical = 0
-  let quiet = 0
-  for (const r of results) {
-    const d = r.data
-    if (!d || !d.headline) quiet++
-    else if (d.status === 'critical') critical++
-    else if (d.status === 'warn') warn++
-    else ok++
-  }
-  const loading = results.some((r) => r.isLoading)
-
-  return (
-    <div className="project-health">
-      <span className="project-health__title">Live status</span>
-      {loading && <span className="project-health__chip">checking…</span>}
-      {critical > 0 && <span className="project-health__chip project-health__chip--critical">● {critical} critical</span>}
-      {warn > 0 && <span className="project-health__chip project-health__chip--warn">▲ {warn} need attention</span>}
-      {ok > 0 && <span className="project-health__chip project-health__chip--ok">✓ {ok} on track</span>}
-      {quiet > 0 && !loading && <span className="project-health__chip">{quiet} not reporting</span>}
-    </div>
+  return clickable ? (
+    <a className={className} href={withDepotOrigin(href!, `/projects/${projectId}`, personId)} target="_self">
+      {body}
+    </a>
+  ) : (
+    <div className={className}>{body}</div>
   )
 }
 
@@ -653,7 +657,7 @@ function Members({ project, readOnly = false }: { project: ProjectDetail; readOn
   }
 
   return (
-    <section className="depot-section">
+    <section className="depot-section" id="members">
       <div className="depot-section__header-row">
         <h2 className="depot-section__title">Members</h2>
         {canEdit && !adding && addable.length > 0 && (
@@ -851,7 +855,7 @@ function Journal({ project }: { project: ProjectDetail }) {
   })
   const noteRows: TaggedJournalEntry[] = (notes?.entries ?? []).map((e) => ({
     ...e,
-    source_label: e.author ? `${e.author}'s note` : 'A note',
+    source_label: null, // a manual note needs no label — the author shows on the right
   }))
   const rows = [...appRows, ...noteRows]
   rows.sort((a, b) => b.timestamp.localeCompare(a.timestamp))
@@ -860,7 +864,7 @@ function Journal({ project }: { project: ProjectDetail }) {
 
   return (
     <section className="depot-section">
-      <h2 className="depot-section__title journal-title">
+      <h2 className="depot-section__title title-with-info">
         Journal
         <InfoPopover label="What the Journal is">
           <p className="info-pop__intro">

@@ -20,8 +20,18 @@ export default function JournalFeed({ entries }: { entries: TaggedJournalEntry[]
     <div className="journal-feed">
       {entries.map((e) => (
         <div key={`${e.source_label}-${e.id}`} className="journal-entry">
-          <div className="journal-entry__meta">
+          <div className="journal-entry__main">
             {e.source_label && <span className="journal-entry__source">{e.source_label}</span>}
+            {e.href ? (
+              <a className="journal-entry__summary" href={e.href} target={OUTBOUND_TARGET} rel="noreferrer">
+                {e.summary}
+              </a>
+            ) : (
+              <p className="journal-entry__summary">{e.summary}</p>
+            )}
+          </div>
+          <div className="journal-entry__who">
+            {e.author && <span className="journal-entry__author">{e.author}</span>}
             <span className="journal-entry__time">
               {new Date(e.timestamp).toLocaleString(undefined, {
                 year: 'numeric',
@@ -31,15 +41,7 @@ export default function JournalFeed({ entries }: { entries: TaggedJournalEntry[]
                 minute: '2-digit',
               })}
             </span>
-            {e.author && <span className="journal-entry__author">{e.author}</span>}
           </div>
-          {e.href ? (
-            <a className="journal-entry__summary" href={e.href} target={OUTBOUND_TARGET} rel="noreferrer">
-              {e.summary}
-            </a>
-          ) : (
-            <p className="journal-entry__summary">{e.summary}</p>
-          )}
         </div>
       ))}
     </div>
