@@ -59,12 +59,16 @@ export default function ApplicationRegistryPage() {
   const navigate = useNavigate()
   const { data: applications, isLoading } = useApplications()
   const { persona } = usePersona()
-  // Selecting an app launches it — same as a pinned tile on the Launchpad (same tab, person_id
-  // handed over, a back link home via `from`). The detail page (registry facts, connect-to-
-  // project) is one deliberate click away via each card's "Details"; an app with no url yet
-  // (vendor/not built) has nothing to launch, so it falls back to that page.
+  // Selecting an app launches it — same tab, person_id handed over, a back link home via
+  // `from`. Unlike a pinned Launchpad tile (an app you've adopted, which opens at its home),
+  // the catalog is the try-it door, so it lands on the app's splash (/about) — its front door.
+  // The detail page (registry facts, connect-to-project) is one deliberate click away via each
+  // card's "Details"; an app with no url yet (vendor/not built) has nothing to launch, so it
+  // falls back to that page.
   const open = (a: Application) =>
-    a.url ? launchApp(a.url, '/catalog', persona?.id) : navigate(`/catalog/${a.id}`)
+    a.url
+      ? launchApp(`${a.url.replace(/\/$/, '')}/about`, '/catalog', persona?.id)
+      : navigate(`/catalog/${a.id}`)
   const [sortMode, setSortMode] = useState<'alpha' | 'popular'>('alpha')
   // The catalog defaults to the whole org-wide list. A limited persona can flip to a per-
   // project view — their projects, each collapsible to the apps it connects to. See
@@ -222,7 +226,7 @@ export default function ApplicationRegistryPage() {
               </div>
             )}
             {limitedPersona!.projects.map((proj) => {
-              const open = !collapsed.has(proj.id)
+              const expanded = !collapsed.has(proj.id)
               const apps = proj.application_ids
                 .map((id) => appsById.get(id))
                 .filter((a): a is Application => !!a && catVisible(a))
@@ -233,10 +237,10 @@ export default function ApplicationRegistryPage() {
                     <button
                       className="app-group__toggle"
                       onClick={() => toggleProject(proj.id)}
-                      aria-expanded={open}
+                      aria-expanded={expanded}
                     >
                       <span className="app-group__chev" aria-hidden="true">
-                        {open ? '▾' : '▸'}
+                        {expanded ? '▾' : '▸'}
                       </span>
                       <span className="app-group__name">{proj.name}</span>
                       <span className={`app-group__phase app-group__phase--${proj.phase}`}>
@@ -254,7 +258,7 @@ export default function ApplicationRegistryPage() {
                       Open →
                     </button>
                   </div>
-                  {open && (
+                  {expanded && (
                     <div className="app-group__body">
                       {apps.length === 0 ? (
                         <p className="app-group__empty">

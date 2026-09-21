@@ -34,6 +34,10 @@ APPS=(
   "aarons-meadow-frontend|5187|/home/matthew/aarons-meadow/frontend|source ~/.nvm/nvm.sh && npm run dev -- --host 0.0.0.0"
   "marti-backend|8102|/home/matthew/marti/backend|AI_PROVIDER=depot .venv/bin/python app.py"
   "marti-frontend|5188|/home/matthew/marti/frontend|source ~/.nvm/nvm.sh && npm run dev -- --host 0.0.0.0"
+  "lets-have-a-meeting-frontend|5189|/home/matthew/lets-have-a-meeting/frontend|source ~/.nvm/nvm.sh && npm run dev -- --host 0.0.0.0"
+  "portfolio-manager-frontend|5190|/home/matthew/portfolio-manager/frontend|source ~/.nvm/nvm.sh && npm run dev -- --host 0.0.0.0"
+  "qms-frontend|5191|/home/matthew/qms/frontend|source ~/.nvm/nvm.sh && npm run dev -- --host 0.0.0.0"
+  "reckon-frontend|5192|/home/matthew/reckon/frontend|source ~/.nvm/nvm.sh && npm run dev -- --host 0.0.0.0"
   "demo-shell|5180|/home/matthew/conways-depot/demo-shell|python3 -m http.server 5180 --bind 0.0.0.0"
 )
 # BurnedValue (port 5000) removed 2026-09-12 - being retired in favor of "Good Plan" (labor

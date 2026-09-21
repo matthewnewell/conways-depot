@@ -182,3 +182,33 @@
   border-color: var(--color-critical);
   background: var(--color-critical-soft);
 }
+
+.admin-portfolios {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 10px;
+}
+
+.admin-portfolio {
+  padding: 14px;
+  background: var(--color-surface-sunken);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.admin-portfolio__head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.admin-portfolio__name {
+  font-weight: 700;
+}
+
+.admin-portfolio__count {
+  font-size: 12px;
+  color: var(--color-text-faint);
+}

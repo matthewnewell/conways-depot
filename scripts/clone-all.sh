@@ -35,6 +35,10 @@ REPOS=(
   "aarons-meadow"
   "marti"
   "conways-drawer"  # shared @conways/drawer package — app frontends depend on it via file:../../conways-drawer
+  "lets-have-a-meeting"
+  "portfolio-manager"
+  "qms"
+  "reckon"
   # keep in sync with scripts/apps.sh whenever a new app is added
 )
 

@@ -88,6 +88,18 @@ export function usePortfolios() {
   })
 }
 
+export function useUpdatePortfolio(id: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (data: Partial<Pick<Portfolio, 'name' | 'description' | 'channels'>>) =>
+      api.put<Portfolio>(`/portfolios/${id}`, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['portfolios'] })
+      qc.invalidateQueries({ queryKey: ['projects'] })
+    },
+  })
+}
+
 export function useDeleteProject() {
   const qc = useQueryClient()
   return useMutation({

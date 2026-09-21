@@ -462,6 +462,8 @@
   flex-direction: column;
   align-items: flex-end;
   gap: 6px;
+  /* Clears the absolutely-positioned Details + pin cluster in the card's top-right corner. */
+  padding-top: 26px;
 }
 
 .app-result-card__pills {
@@ -501,5 +503,6 @@
     flex-direction: row;
     justify-content: space-between;
     width: 100%;
+    padding-top: 0;
   }
 }

@@ -1,11 +1,12 @@
 import { useQueries } from '@tanstack/react-query'
 import { useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
   fetchApplicationJournal,
   journalQueryKey,
   useAddExternalId,
   useAddMember,
+  useApplicationSummary,
   useApplications,
   useCreateLink,
   useDeleteExternalId,
@@ -19,11 +20,15 @@ import {
   useUpdateMembership,
   useUpdateProject,
 } from '../api/hooks'
-import type { ChannelLink, Phase, ProjectDetail, TeamTopology } from '../api/types'
+import { api } from '../api/client'
+import type { AppSummary, Phase, ProjectDetail, TeamTopology } from '../api/types'
 import { PHASES, TEAM_TOPOLOGIES, TEAM_TOPOLOGY_INFO } from '../api/types'
+import AppSummaryTile from '../components/AppSummaryTile'
+import { LinkList, LinksEditor } from '../components/Links'
 import InfoPopover from '../components/InfoPopover'
 import JournalFeed, { type TaggedJournalEntry } from '../components/JournalFeed'
 import { withDepotOrigin } from '../lib/launch'
+import { S4_SYSTEM, s4ExternalId } from '../lib/s4'
 import { usePersona } from '../lib/persona'
 import './depot-shared.css'
 import './ProjectDetailPage.css'
@@ -39,22 +44,36 @@ const PHASE_ORDER: Record<Phase, number> = Object.fromEntries(
   PHASES.map((p, i) => [p, i]),
 ) as Record<Phase, number>
 
-/** A project's detail page IS its home base — everything a PM needs for one project: the
- * digital thread, the tools wired up to it, the crosswalk to external systems, the phase
- * history, and the team / channels. (This absorbed the standalone "Launchpad" app; the Depot's
- * project list + Application Registry remain the portfolio-level view above it.) */
+/** A project's detail page IS its home base. Two tabs: **Overview** is the operating surface for
+ * everyone (connected apps to launch, the merged journal, who's on it), in a wide two-column
+ * layout; **Admin** holds everything an owner changes (details, phase, members, connections,
+ * crosswalk IDs, team setup) plus Delete in a danger zone. Like every admin affordance in this
+ * app the Admin tab is signposting, not enforcement — there is no auth or role check yet. The
+ * tab lives in the URL (`?tab=admin`) so it's linkable. */
 export default function ProjectDetailPage() {
   const { projectId } = useParams<{ projectId: string }>()
   const navigate = useNavigate()
+  const [params, setParams] = useSearchParams()
   const { data: project, isLoading } = useProject(projectId)
-  const updateProject = useUpdateProject(projectId ?? '')
   const deleteProject = useDeleteProject()
 
   if (!projectId) return null
   if (isLoading || !project) return <div className="project-detail-page__loading">Loading…</div>
 
+  const tab = params.get('tab') === 'admin' ? 'admin' : 'overview'
+  function setTab(t: 'overview' | 'admin') {
+    setParams(
+      (prev) => {
+        const next = new URLSearchParams(prev)
+        if (t === 'admin') next.set('tab', 'admin')
+        else next.delete('tab')
+        return next
+      },
+      { replace: true },
+    )
+  }
+
   function handleDelete() {
-    if (!confirm(`Delete "${project!.name}"? This cannot be undone.`)) return
     deleteProject.mutate(project!.id)
     navigate('/')
   }
@@ -62,74 +81,324 @@ export default function ProjectDetailPage() {
   return (
     <div className="project-detail-page">
       <div className="project-detail-page__content">
-        <div className="project-detail-page__toolbar">
+        <header className="project-head">
+          <S4Headline project={project} onSetUp={() => setTab('admin')} />
+          <h1 className="project-head__title">{project.name}</h1>
+          <div className="project-head__meta">
+            <span className="project-head__phase">{PHASE_LABEL[project.phase]}</span>
+            {project.portfolio_name && <span>{project.portfolio_name}</span>}
+            {project.customer && <span>{project.customer}</span>}
+          </div>
+          {project.description && <p className="project-head__desc">{project.description}</p>}
+        </header>
+
+        <div className="project-tabs" role="tablist">
+          <button
+            role="tab"
+            aria-selected={tab === 'overview'}
+            className={`project-tabs__tab${tab === 'overview' ? ' project-tabs__tab--active' : ''}`}
+            onClick={() => setTab('overview')}
+          >
+            Overview
+          </button>
+          <button
+            role="tab"
+            aria-selected={tab === 'admin'}
+            className={`project-tabs__tab${tab === 'admin' ? ' project-tabs__tab--active' : ''}`}
+            onClick={() => setTab('admin')}
+          >
+            Admin
+          </button>
+        </div>
+
+        {tab === 'overview' ? (
+          <div className="project-overview">
+            <div className="project-overview__main">
+              <ProjectHealth project={project} />
+              <ConnectedApps project={project} />
+              <Journal project={project} />
+            </div>
+            <aside className="project-overview__side">
+              <JumpStation project={project} onSetUp={() => setTab('admin')} />
+              <Members project={project} readOnly />
+            </aside>
+          </div>
+        ) : (
+          <div className="project-admin">
+            <div className="project-admin__col">
+              <Details project={project} />
+              <Members project={project} />
+              <PhaseHistory project={project} />
+            </div>
+            <div className="project-admin__col">
+              <ConnectedApps project={project} manage />
+              <ProjectLinks key={project.updated_at} project={project} />
+              <HomeBase key={project.updated_at} project={project} />
+            </div>
+            <DangerZone project={project} onDelete={handleDelete} />
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+/** The S4 project id as the project's headline identifier — the thing people search and quote. If
+ * it isn't recorded yet, a quiet prompt points at Admin instead of leaving a blank. */
+function S4Headline({ project, onSetUp }: { project: ProjectDetail; onSetUp: () => void }) {
+  const [copied, setCopied] = useState(false)
+  const s4 = s4ExternalId(project)
+
+  if (!s4) {
+    return (
+      <button className="s4-headline s4-headline--empty" onClick={onSetUp}>
+        S4 project ID not set — add it in Admin
+      </button>
+    )
+  }
+
+  function copy() {
+    navigator.clipboard?.writeText(s4!.external_id).then(
+      () => {
+        setCopied(true)
+        setTimeout(() => setCopied(false), 1200)
+      },
+      () => {},
+    )
+  }
+
+  return (
+    <button className="s4-headline" onClick={copy} title="Copy S4 project id">
+      <span className="s4-headline__label">S4 project</span>
+      <code className="s4-headline__id">{s4.external_id}</code>
+      <span className="s4-headline__copy">{copied ? 'copied' : 'copy'}</span>
+    </button>
+  )
+}
+
+/** Admin field for the S4 project id. Stored as a normal crosswalk entry (system "S4") so every
+ * other reader of external IDs keeps working; this just gives it a dedicated, obvious input
+ * instead of leaving it as one chip among many. */
+function S4Field({ project }: { project: ProjectDetail }) {
+  const addExternalId = useAddExternalId(project.id)
+  const deleteExternalId = useDeleteExternalId(project.id)
+  const current = s4ExternalId(project)
+  const [value, setValue] = useState(current?.external_id ?? '')
+  const [saving, setSaving] = useState(false)
+  const trimmed = value.trim()
+  const dirty = trimmed !== (current?.external_id ?? '')
+
+  async function save() {
+    setSaving(true)
+    try {
+      if (current) await deleteExternalId.mutateAsync(current.id)
+      if (trimmed) await addExternalId.mutateAsync({ system: S4_SYSTEM, external_id: trimmed })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="admin-field">
+      <span>S4 project ID</span>
+      <div className="admin-field__row">
+        <input
+          value={value}
+          placeholder="e.g. P-100234"
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && dirty && save()}
+        />
+        {dirty && (
+          <button className="admin-field__save" onClick={save} disabled={saving}>
+            {saving ? 'Saving…' : 'Save'}
+          </button>
+        )}
+      </div>
+      <small className="admin-field__hint">
+        The system of record for this project's charges and WBS. Shown as the project's headline ID.
+      </small>
+    </div>
+  )
+}
+
+function PhaseHistory({ project }: { project: ProjectDetail }) {
+  return (
+    <section className="depot-section">
+      <h2 className="depot-section__title">Phase History</h2>
+      <p className="depot-section__subtitle">
+        When this project actually moved, not just where it is now.
+      </p>
+      <div className="phase-history">
+        {project.phase_events.map((e) => (
+          <div key={e.id} className="phase-history__event">
+            <span className="phase-history__transition">
+              {e.from_phase ? PHASE_LABEL[e.from_phase] : 'Created'}
+              <span className="phase-history__arrow">→</span>
+              {PHASE_LABEL[e.to_phase]}
+            </span>
+            <span className="phase-history__date">
+              {new Date(e.occurred_at).toLocaleDateString(undefined, {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+              })}
+            </span>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+/** Owner-facing facts: name, customer, portfolio, phase, and the Depot's own thread id. The
+ * Depot id stays here as an internal handle — the S4 project id is meant to become the headline
+ * identifier (see the External System IDs crosswalk). */
+function Details({ project }: { project: ProjectDetail }) {
+  const updateProject = useUpdateProject(project.id)
+  const [copied, setCopied] = useState(false)
+
+  function copyId() {
+    navigator.clipboard?.writeText(project.id).then(
+      () => {
+        setCopied(true)
+        setTimeout(() => setCopied(false), 1200)
+      },
+      () => {},
+    )
+  }
+
+  return (
+    <section className="depot-section">
+      <h2 className="depot-section__title">Details</h2>
+      <div className="admin-fields">
+        <S4Field key={s4ExternalId(project)?.id ?? 'none'} project={project} />
+        <label className="admin-field">
+          <span>Name</span>
+          <input value={project.name} onChange={(e) => updateProject.mutate({ name: e.target.value })} />
+        </label>
+        <label className="admin-field">
+          <span>Customer</span>
           <input
-            className="project-detail-page__title"
-            value={project.name}
-            onChange={(e) => updateProject.mutate({ name: e.target.value })}
+            value={project.customer ?? ''}
+            placeholder="—"
+            onChange={(e) => updateProject.mutate({ customer: e.target.value })}
           />
+        </label>
+        <label className="admin-field">
+          <span>Portfolio</span>
           <select
-            className="project-detail-page__portfolio-select"
             value={project.portfolio_id ?? ''}
             onChange={(e) => updateProject.mutate({ portfolio_id: e.target.value || null })}
           >
             <option value="">No portfolio</option>
             <Portfolios />
           </select>
-          <select
-            className="project-detail-page__phase-select"
-            value={project.phase}
-            onChange={(e) => updateProject.mutate({ phase: e.target.value as Phase })}
-          >
+        </label>
+        <label className="admin-field">
+          <span>Phase</span>
+          <select value={project.phase} onChange={(e) => updateProject.mutate({ phase: e.target.value as Phase })}>
             {PHASES.map((ph) => (
               <option key={ph} value={ph}>
                 {PHASE_LABEL[ph]}
               </option>
             ))}
           </select>
-          <button className="project-detail-page__delete" onClick={handleDelete}>
-            Delete
+        </label>
+        <div className="admin-field">
+          <span>Depot ID (internal)</span>
+          <button className="thread-block__id" onClick={copyId} title="Copy id">
+            <code>{project.id}</code>
+            <span className="thread-block__copy">{copied ? 'copied' : 'copy'}</span>
           </button>
         </div>
-
-        <ThreadBlock project={project} onCustomer={(v) => updateProject.mutate({ customer: v })} />
-
-        <ConnectedApps project={project} />
-
-        <ExternalIds project={project} />
-
-        <section className="depot-section">
-          <h2 className="depot-section__title">Phase History</h2>
-          <p className="depot-section__subtitle">
-            When this project actually moved, not just where it is now.
-          </p>
-          <div className="phase-history">
-            {project.phase_events.map((e) => (
-              <div key={e.id} className="phase-history__event">
-                <span className="phase-history__transition">
-                  {e.from_phase ? PHASE_LABEL[e.from_phase] : 'Created'}
-                  <span className="phase-history__arrow">→</span>
-                  {PHASE_LABEL[e.to_phase]}
-                </span>
-                <span className="phase-history__date">
-                  {new Date(e.occurred_at).toLocaleDateString(undefined, {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric',
-                  })}
-                </span>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <Members project={project} />
-
-        <HomeBase key={project.updated_at} project={project} />
-
-        <Journal project={project} />
       </div>
-    </div>
+    </section>
+  )
+}
+
+/** Delete lives at the bottom of Admin behind a typed confirmation, not beside the title. */
+function DangerZone({ project, onDelete }: { project: ProjectDetail; onDelete: () => void }) {
+  const [typed, setTyped] = useState('')
+  const matches = typed.trim() === project.name.trim()
+  return (
+    <section className="depot-section project-danger">
+      <h2 className="depot-section__title">Delete this project</h2>
+      <p className="depot-section__subtitle">
+        Removes the project and its links, members and history from the Depot. It can't be undone.
+        Type the project name to confirm.
+      </p>
+      <div className="project-danger__row">
+        <input
+          className="project-danger__input"
+          placeholder={project.name}
+          value={typed}
+          onChange={(e) => setTyped(e.target.value)}
+        />
+        <button className="project-detail-page__delete" disabled={!matches} onClick={onDelete}>
+          Delete project
+        </button>
+      </div>
+    </section>
+  )
+}
+
+/** The project's external jumpstation — Teams channel, SharePoint, Azure DevOps, documents. Just
+ * links (stored pointers, never a live integration): the Depot doesn't mirror what's behind them.
+ * The project's own links come first, then its portfolio's shared links (read-only here, edited
+ * once on the Admin page) — a link the project also lists itself isn't repeated. */
+function JumpStation({ project, onSetUp }: { project: ProjectDetail; onSetUp: () => void }) {
+  const own = (project.channels ?? []).filter((c) => c.url)
+  const ownUrls = new Set(own.map((c) => c.url))
+  const shared = (project.portfolio_links ?? []).filter((c) => c.url && !ownUrls.has(c.url))
+  return (
+    <section className="depot-section">
+      <h2 className="depot-section__title">Project links</h2>
+      {own.length === 0 && shared.length === 0 ? (
+        <p className="depot-section__body">
+          No links yet.{' '}
+          <button className="jump-empty" onClick={onSetUp}>
+            Add the Teams channel, SharePoint or Azure DevOps in Admin
+          </button>
+        </p>
+      ) : (
+        <>
+          {own.length > 0 && <LinkList links={own} />}
+          {shared.length > 0 && (
+            <>
+              <h3 className="jump-group">From {project.portfolio_name ?? 'portfolio'}</h3>
+              <LinkList links={shared} />
+            </>
+          )}
+        </>
+      )}
+    </section>
+  )
+}
+
+/** Admin editor for the project's own links. Portfolio-shared links are listed as a note with a
+ * pointer to where they're managed, so nobody re-enters them here. */
+function ProjectLinks({ project }: { project: ProjectDetail }) {
+  const updateProject = useUpdateProject(project.id)
+  const sharedCount = (project.portfolio_links ?? []).filter((c) => c.url).length
+  return (
+    <section className="depot-section">
+      <h2 className="depot-section__title">Project links</h2>
+      <p className="depot-section__subtitle">
+        The jumpstation on the Overview — the project's Teams channel, SharePoint, Azure DevOps and
+        key documents. Paste a link and its type is detected.
+      </p>
+      {sharedCount > 0 && (
+        <p className="link-shared-note">
+          {sharedCount} shared link{sharedCount === 1 ? '' : 's'} from {project.portfolio_name}{' '}
+          {sharedCount === 1 ? 'also appears' : 'also appear'} on the Overview — manage them under <Link to="/admin">Admin → Portfolios</Link>.
+        </p>
+      )}
+      <LinksEditor
+        initial={project.channels ?? []}
+        pending={updateProject.isPending}
+        onSave={(links, done) => updateProject.mutate({ channels: links }, { onSuccess: done })}
+      />
+    </section>
   )
 }
 
@@ -146,55 +415,7 @@ function Portfolios() {
   )
 }
 
-function ThreadBlock({
-  project,
-  onCustomer,
-}: {
-  project: ProjectDetail
-  onCustomer: (v: string) => void
-}) {
-  const [copied, setCopied] = useState(false)
-
-  function copyId() {
-    navigator.clipboard?.writeText(project.id).then(
-      () => {
-        setCopied(true)
-        setTimeout(() => setCopied(false), 1200)
-      },
-      () => {},
-    )
-  }
-
-  return (
-    <section className="thread-block">
-      <div className="thread-block__row">
-        <span className="thread-block__label">Digital thread</span>
-        <button className="thread-block__id" onClick={copyId} title="Copy id">
-          <code>{project.id}</code>
-          <span className="thread-block__copy">{copied ? 'copied' : 'copy'}</span>
-        </button>
-      </div>
-      <div className="thread-block__row">
-        <span className="thread-block__label">Customer</span>
-        <input
-          className="thread-block__customer"
-          value={project.customer ?? ''}
-          placeholder="—"
-          onChange={(e) => onCustomer(e.target.value)}
-        />
-      </div>
-      {project.portfolio_name && (
-        <div className="thread-block__row">
-          <span className="thread-block__label">Portfolio</span>
-          <span>{project.portfolio_name}</span>
-        </div>
-      )}
-      {project.description && <p className="thread-block__desc">{project.description}</p>}
-    </section>
-  )
-}
-
-function ConnectedApps({ project }: { project: ProjectDetail }) {
+function ConnectedApps({ project, manage = false }: { project: ProjectDetail; manage?: boolean }) {
   const { persona } = usePersona()
   const { data: applications } = useApplications()
   const createLink = useCreateLink(project.id)
@@ -241,13 +462,14 @@ function ConnectedApps({ project }: { project: ProjectDetail }) {
     <section className="depot-section">
       <div className="depot-section__header-row">
         <h2 className="depot-section__title">Connected applications</h2>
-        {!adding && connectable.length > 0 && (
+        {manage && !adding && connectable.length > 0 && (
           <button onClick={() => setAdding(true)}>+ Connect an application</button>
         )}
       </div>
       <p className="depot-section__subtitle">
-        The tools this project has a record in. Each is a stored pointer — click through to open
-        the app, it's never a live connection.
+        {manage
+          ? 'Connect or remove the tools this project has a record in.'
+          : "The tools this project has a record in. Each is a stored pointer — click through to open the app, it's never a live connection."}
       </p>
 
       {links.length === 0 && !adding && (
@@ -256,34 +478,18 @@ function ConnectedApps({ project }: { project: ProjectDetail }) {
 
       <div className="connected-apps">
         {links.map((l) => (
-          <div key={l.id} className="app-link-card">
-            <div className="app-link-card__top">
-              <span className="app-link-card__name">{l.application_name}</span>
-              <span className="app-link-card__phase">{PHASE_LABEL[l.phase]}</span>
-            </div>
-            {l.external_ref && <div className="app-link-card__ref">{l.external_ref}</div>}
-            {l.notes && <div className="app-link-card__notes">{l.notes}</div>}
-            <div className="app-link-card__actions">
-              {l.link_url ? (
-                <a
-                  className="app-link-card__open"
-                  href={withDepotOrigin(l.link_url, `/projects/${project.id}`, persona?.id)}
-                  target="_self"
-                >
-                  Open {l.application_name} →
-                </a>
-              ) : (
-                <span className="app-link-card__nolink">no reachable URL</span>
-              )}
-              <button className="app-link-card__remove" onClick={() => deleteLink.mutate(l.id)}>
-                Remove
-              </button>
-            </div>
-          </div>
+          <AppLinkCard
+            key={l.id}
+            link={l}
+            projectId={project.id}
+            manage={manage}
+            personId={persona?.id}
+            onRemove={() => deleteLink.mutate(l.id)}
+          />
         ))}
       </div>
 
-      {adding && (
+      {manage && adding && (
         <div className="depot-inline-form depot-inline-form--stacked">
           <select value={appId} onChange={(e) => setAppId(e.target.value)}>
             <option value="">Select application…</option>
@@ -315,63 +521,95 @@ function ConnectedApps({ project }: { project: ProjectDetail }) {
   )
 }
 
-function ExternalIds({ project }: { project: ProjectDetail }) {
-  const addExternalId = useAddExternalId(project.id)
-  const deleteExternalId = useDeleteExternalId(project.id)
-  const [show, setShow] = useState(false)
-  const [system, setSystem] = useState('')
-  const [value, setValue] = useState('')
+/** One connected app on the project page. Outside Admin it shows the app's live summary tile for
+ * *this project* (the same contract the personal Launchpad renders — the app decides headline,
+ * label and status; the Depot never interprets them) and tints its edge by status. An app that
+ * publishes nothing just shows its stored ref/notes, as before. */
+function AppLinkCard({
+  link: l,
+  projectId,
+  manage,
+  personId,
+  onRemove,
+}: {
+  link: ProjectDetail['app_links'][number]
+  projectId: string
+  manage: boolean
+  personId: string | undefined
+  onRemove: () => void
+}) {
+  const { data: summary } = useApplicationSummary(l.application_id, projectId, !manage)
+  const status = !manage && summary?.headline ? summary.status ?? 'neutral' : null
+  const href = l.link_url ?? summary?.href ?? null
 
   return (
-    <section className="depot-section">
-      <div className="depot-section__header-row">
-        <h2 className="depot-section__title">External System IDs</h2>
-        <button onClick={() => setShow((v) => !v)}>+ Add</button>
+    <div className={`app-link-card${status ? ` app-link-card--${status}` : ''}`}>
+      <div className="app-link-card__top">
+        <span className="app-link-card__name">{l.application_name}</span>
+        <span className="app-link-card__phase">{PHASE_LABEL[l.phase]}</span>
       </div>
-      {project.external_ids.length === 0 && (
-        <p className="depot-section__body">
-          No crosswalk entries yet — the Depot's own id is the only thread so far.
-        </p>
-      )}
-      <div className="external-id-list">
-        {project.external_ids.map((e) => (
-          <div key={e.id} className="external-id-chip">
-            <span className="external-id-chip__system">{e.system}</span>
-            <span className="external-id-chip__value">{e.external_id}</span>
-            <button
-              className="external-id-chip__remove"
-              onClick={() => deleteExternalId.mutate(e.id)}
-              title="Remove"
-            >
-              ×
-            </button>
-          </div>
-        ))}
-      </div>
-      {show && (
-        <div className="depot-inline-form">
-          <input placeholder="System (e.g. WinMax)" value={system} onChange={(e) => setSystem(e.target.value)} />
-          <input placeholder="External ID (e.g. OPP-8891)" value={value} onChange={(e) => setValue(e.target.value)} />
-          <button
-            disabled={!system.trim() || !value.trim()}
-            onClick={() =>
-              addExternalId.mutate(
-                { system: system.trim(), external_id: value.trim() },
-                {
-                  onSuccess: () => {
-                    setSystem('')
-                    setValue('')
-                    setShow(false)
-                  },
-                },
-              )
-            }
+      {!manage && <AppSummaryTile applicationId={l.application_id} projectId={projectId} />}
+      {l.external_ref && <div className="app-link-card__ref">{l.external_ref}</div>}
+      {l.notes && <div className="app-link-card__notes">{l.notes}</div>}
+      <div className="app-link-card__actions">
+        {href ? (
+          <a
+            className="app-link-card__open"
+            href={withDepotOrigin(href, `/projects/${projectId}`, personId)}
+            target="_self"
           >
-            Save
+            Open {l.application_name} →
+          </a>
+        ) : (
+          <span className="app-link-card__nolink">no reachable URL</span>
+        )}
+        {manage && (
+          <button className="app-link-card__remove" onClick={onRemove}>
+            Remove
           </button>
-        </div>
-      )}
-    </section>
+        )}
+      </div>
+    </div>
+  )
+}
+
+/** One-line rollup of every connected app's live status for this project — how many are fine,
+ * how many want attention, how many aren't reporting. Uses the same query keys as each card's
+ * tile, so it costs no extra requests. */
+function ProjectHealth({ project }: { project: ProjectDetail }) {
+  const results = useQueries({
+    queries: project.app_links.map((l) => ({
+      queryKey: ['applications', l.application_id, 'summary', project.id],
+      queryFn: () =>
+        api.get<AppSummary>(`/applications/${l.application_id}/summary?project_id=${encodeURIComponent(project.id)}`),
+      staleTime: 30_000,
+      retry: false,
+    })),
+  })
+  if (project.app_links.length === 0) return null
+
+  let ok = 0
+  let warn = 0
+  let critical = 0
+  let quiet = 0
+  for (const r of results) {
+    const d = r.data
+    if (!d || !d.headline) quiet++
+    else if (d.status === 'critical') critical++
+    else if (d.status === 'warn') warn++
+    else ok++
+  }
+  const loading = results.some((r) => r.isLoading)
+
+  return (
+    <div className="project-health">
+      <span className="project-health__title">Live status</span>
+      {loading && <span className="project-health__chip">checking…</span>}
+      {critical > 0 && <span className="project-health__chip project-health__chip--critical">● {critical} critical</span>}
+      {warn > 0 && <span className="project-health__chip project-health__chip--warn">▲ {warn} need attention</span>}
+      {ok > 0 && <span className="project-health__chip project-health__chip--ok">✓ {ok} on track</span>}
+      {quiet > 0 && !loading && <span className="project-health__chip">{quiet} not reporting</span>}
+    </div>
   )
 }
 
@@ -381,7 +619,7 @@ function ExternalIds({ project }: { project: ProjectDetail }) {
  * "signposting, not enforcement" gate — same as every other admin-only affordance in this app
  * (there's no real auth anywhere) — not a permission system. See ProjectMembership's backend
  * docstring for why this one flag exists at all when nothing else here is checked. */
-function Members({ project }: { project: ProjectDetail }) {
+function Members({ project, readOnly = false }: { project: ProjectDetail; readOnly?: boolean }) {
   const { persona } = usePersona()
   const { data: people } = usePeople()
   const addMember = useAddMember(project.id)
@@ -394,7 +632,7 @@ function Members({ project }: { project: ProjectDetail }) {
   const [canManage, setCanManage] = useState(false)
 
   const activeMembership = persona ? project.members.find((m) => m.person_id === persona.id) : undefined
-  const canEdit = !!persona?.is_admin || !!activeMembership?.can_manage_members
+  const canEdit = !readOnly && (!!persona?.is_admin || !!activeMembership?.can_manage_members)
 
   const memberIds = new Set(project.members.map((m) => m.person_id))
   const addable = (people ?? []).filter((p) => !p.is_admin && !memberIds.has(p.id))
@@ -493,8 +731,6 @@ function Members({ project }: { project: ProjectDetail }) {
 
 function HomeBase({ project }: { project: ProjectDetail }) {
   const updateProject = useUpdateProject(project.id)
-  const [notes, setNotes] = useState(project.team_notes ?? '')
-  const [channels, setChannels] = useState<ChannelLink[]>(project.channels ?? [])
   const [topology, setTopology] = useState<TeamTopology | ''>(project.team_topology ?? '')
   const [hasManufacturing, setHasManufacturing] = useState<'' | 'yes' | 'no'>(
     project.has_manufacturing === true ? 'yes' : project.has_manufacturing === false ? 'no' : '',
@@ -504,8 +740,6 @@ function HomeBase({ project }: { project: ProjectDetail }) {
   function save() {
     updateProject.mutate(
       {
-        team_notes: notes || null,
-        channels,
         team_topology: topology || null,
         has_manufacturing: hasManufacturing === '' ? null : hasManufacturing === 'yes',
       },
@@ -513,15 +747,10 @@ function HomeBase({ project }: { project: ProjectDetail }) {
     )
   }
 
-  function updateChannel(i: number, patch: Partial<ChannelLink>) {
-    setChannels((cs) => cs.map((c, idx) => (idx === i ? { ...c, ...patch } : c)))
-    setDirty(true)
-  }
-
   return (
     <section className="depot-section">
       <div className="depot-section__header-row">
-        <h2 className="depot-section__title">Team &amp; channels</h2>
+        <h2 className="depot-section__title">Project attributes</h2>
         {dirty && (
           <button onClick={save} disabled={updateProject.isPending}>
             {updateProject.isPending ? 'Saving…' : 'Save'}
@@ -529,7 +758,7 @@ function HomeBase({ project }: { project: ProjectDetail }) {
         )}
       </div>
       <p className="depot-section__subtitle">
-        The working context for this project's team — who's on it, where they talk.
+        How this project is shaped — other apps read these (MARTI uses the manufacturing flag).
       </p>
 
       <div className="home-base__field">
@@ -590,55 +819,6 @@ function HomeBase({ project }: { project: ProjectDetail }) {
           <option value="no">No</option>
         </select>
       </div>
-
-      <label className="home-base__field">
-        <span>Team / notes</span>
-        <textarea
-          rows={3}
-          value={notes}
-          onChange={(e) => {
-            setNotes(e.target.value)
-            setDirty(true)
-          }}
-          placeholder="PM, leads, key contacts, standing meetings — anything the team needs on hand."
-        />
-      </label>
-
-      <div className="home-base__field">
-        <span>Channels</span>
-        {channels.map((c, i) => (
-          <div key={i} className="home-base__channel">
-            <input
-              value={c.label}
-              onChange={(e) => updateChannel(i, { label: e.target.value })}
-              placeholder="Label (e.g. Slack)"
-            />
-            <input
-              value={c.url}
-              onChange={(e) => updateChannel(i, { url: e.target.value })}
-              placeholder="https://…"
-            />
-            <button
-              className="home-base__channel-remove"
-              onClick={() => {
-                setChannels((cs) => cs.filter((_, idx) => idx !== i))
-                setDirty(true)
-              }}
-            >
-              Remove
-            </button>
-          </div>
-        ))}
-        <button
-          className="home-base__channel-add"
-          onClick={() => {
-            setChannels((cs) => [...cs, { label: '', url: '' }])
-            setDirty(true)
-          }}
-        >
-          + Add channel
-        </button>
-      </div>
     </section>
   )
 }
@@ -680,11 +860,15 @@ function Journal({ project }: { project: ProjectDetail }) {
 
   return (
     <section className="depot-section">
-      <h2 className="depot-section__title">Journal</h2>
-      <p className="depot-section__subtitle">
-        Merged from every connected app's own journal, plus notes logged here directly (from the
-        📝 Journal panel) — how this project actually got here, not just where it is now.
-      </p>
+      <h2 className="depot-section__title journal-title">
+        Journal
+        <InfoPopover label="What the Journal is">
+          <p className="info-pop__intro">
+            Merged from every connected app's own journal, plus notes logged here directly (from the
+            📝 Journal panel) — how this project actually got here, not just where it is now.
+          </p>
+        </InfoPopover>
+      </h2>
 
       {rows.length === 0 && (
         <p className="depot-section__body">

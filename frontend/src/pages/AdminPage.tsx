@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useCreateProject, useDeleteProject, useProjects } from '../api/hooks'
-import type { Phase } from '../api/types'
+import { useCreateProject, useDeleteProject, usePortfolios, useProjects, useUpdatePortfolio } from '../api/hooks'
+import { LinksEditor } from '../components/Links'
+import type { Phase, Portfolio } from '../api/types'
 import './depot-shared.css'
 import './AdminPage.css'
 
@@ -18,6 +19,7 @@ const PHASE_LABEL: Record<Phase, string> = {
  * link is just as reachable as any other nav item on purpose, for now. */
 export default function AdminPage() {
   const { data: projects, isLoading } = useProjects()
+  const { data: portfolios } = usePortfolios()
   const createProject = useCreateProject()
   const deleteProject = useDeleteProject()
   const navigate = useNavigate()
@@ -116,7 +118,44 @@ export default function AdminPage() {
             </table>
           )}
         </section>
+
+        <section className="depot-section">
+          <h2 className="depot-section__title">Portfolios</h2>
+          <p className="depot-section__subtitle">
+            Links set here (a shared Teams team, SharePoint site, Azure DevOps project…) appear on
+            every project in the portfolio, beneath the project's own links.
+          </p>
+          {(portfolios ?? []).length === 0 && <p className="depot-section__body">No portfolios yet.</p>}
+          <div className="admin-portfolios">
+            {(portfolios ?? []).map((pf) => (
+              <PortfolioLinks
+                key={`${pf.id}:${JSON.stringify(pf.channels)}`}
+                portfolio={pf}
+                projectCount={(projects ?? []).filter((p) => p.portfolio_id === pf.id).length}
+              />
+            ))}
+          </div>
+        </section>
       </div>
+    </div>
+  )
+}
+
+function PortfolioLinks({ portfolio, projectCount }: { portfolio: Portfolio; projectCount: number }) {
+  const update = useUpdatePortfolio(portfolio.id)
+  return (
+    <div className="admin-portfolio">
+      <div className="admin-portfolio__head">
+        <span className="admin-portfolio__name">{portfolio.name}</span>
+        <span className="admin-portfolio__count">
+          {projectCount} project{projectCount === 1 ? '' : 's'}
+        </span>
+      </div>
+      <LinksEditor
+        initial={portfolio.channels ?? []}
+        pending={update.isPending}
+        onSave={(links, done) => update.mutate({ channels: links }, { onSuccess: done })}
+      />
     </div>
   )
 }

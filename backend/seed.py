@@ -98,7 +98,7 @@ def seed_if_empty():
     )
     cap_material_priority = Capability(
         name="Material, Acquisition, Routing & Priority Visibility",
-        description="Manufacturing-side project visibility: mocked S4 material/acquisition/routing status, plus Tension (org priority) and Impact (computed risk from priority vs. due date).",
+        description="Manufacturing-side project visibility: mocked S4 material/acquisition/routing status, plus Tradeoffs (org priority) and Impact (computed risk from priority vs. due date).",
     )
     db.session.add_all([
         cap_capture, cap_vsm, cap_staffing, cap_contract_authoring, cap_task_priority,
@@ -397,8 +397,8 @@ def seed_if_empty():
     app_marti = Application(
         name="MARTI",
         description=(
-            "Material, Acquisition, Routings, Tension, Impact — manufacturing-side project "
-            "visibility over mocked S4 data, plus a priority (Tension) and computed risk "
+            "Material, Acquisition, Routings, Tradeoffs, Impact — manufacturing-side project "
+            "visibility over mocked S4 data, plus a priority (Tradeoffs) and computed risk "
             "(Impact) layer. Meant to eventually replace Dude, Where's My Part? and Dude, "
             "Where's My Order? once validated."
         ),

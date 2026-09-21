@@ -8,7 +8,7 @@
 set -uo pipefail
 source ~/.nvm/nvm.sh 2>/dev/null || true
 
-APPS=(conways-depot ValueStream marti winmax the-fixer task-master)  # apps using @conways/drawer
+APPS=(conways-depot ValueStream marti winmax the-fixer task-master good-plan aarons-meadow labor-supply-demand org-charts scan-me scope-manager lets-have-a-meeting portfolio-manager qms reckon)  # apps using @conways/drawer
 
 for app in "${APPS[@]}"; do
   dir="$HOME/$app/frontend"
@@ -25,4 +25,6 @@ for app in "${APPS[@]}"; do
   )
 done
 echo
-echo "Restart each app's frontend dev server so Vite re-bundles the new copy."
+echo "IMPORTANT: restart every running frontend dev server now (scripts/stop-all.sh && scripts/start-all.sh)."
+echo "A server left running keeps serving stale bundle URLs — the page goes blank with"
+echo "'504 Outdated Optimize Dep' in the console until it's restarted."

@@ -302,6 +302,27 @@ def create_portfolio():
         return jsonify({"error": "name is required"}), 400
 
     p = Portfolio(name=name, description=body.get("description"))
+    if body.get("channels"):
+        p.channel_list = body["channels"]
     db.session.add(p)
     db.session.commit()
     return jsonify(p.to_dict()), 201
+
+
+@portfolios_bp.put("/<portfolio_id>")
+def update_portfolio(portfolio_id):
+    """Edit a portfolio's name, description, or shared links. `channels` replaces the whole list
+    (same "send the full list" shape Project.channels uses)."""
+    p = Portfolio.query.get_or_404(portfolio_id)
+    body = request.get_json(force=True) or {}
+    if "name" in body:
+        name = (body["name"] or "").strip()
+        if not name:
+            return jsonify({"error": "name cannot be empty"}), 400
+        p.name = name
+    if "description" in body:
+        p.description = body["description"] or None
+    if "channels" in body:
+        p.channel_list = body["channels"] or None
+    db.session.commit()
+    return jsonify(p.to_dict())

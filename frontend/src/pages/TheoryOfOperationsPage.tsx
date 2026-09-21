@@ -117,6 +117,67 @@ export default function TheoryOfOperationsPage() {
           </svg>
         </figure>
 
+        <section className="theory-matters">
+          <h2>Why this matters</h2>
+          <p>
+            Implementations of workplace technology can be difficult because organizations treat
+            software as an external artifact dropped onto an existing structure. The challenge
+            is especially difficult when integrating AI workflow applications, where the cost of
+            that mismatch is stark:
+          </p>
+          <ul className="theory-matters__stats">
+            <li>
+              <span className="theory-matters__stat-label">High project failure rates</span>
+              Roughly 80% of enterprise AI implementations fail — nearly double the failure
+              rate of standard non&#8209;AI IT deployments.{' '}
+              <a
+                className="theory-matters__source"
+                href="https://www.rand.org/pubs/research_reports/RRA2680-1.html"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                RAND Corporation
+              </a>
+            </li>
+            <li>
+              <span className="theory-matters__stat-label">Pilot purgatory</span>
+              95% of generative&#8209;AI pilot programs never reach enterprise&#8209;scale
+              production or meaningful revenue impact.{' '}
+              <a
+                className="theory-matters__source"
+                href="https://nanda.media.mit.edu/ai_report_2025.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                MIT NANDA Initiative
+              </a>
+            </li>
+            <li>
+              <span className="theory-matters__stat-label">Wasted capital, scrapped initiatives</span>
+              42% of AI initiatives are abandoned mid&#8209;stream — primarily from workflow and
+              integration bottlenecks, not raw algorithmic limits.{' '}
+              <a
+                className="theory-matters__source"
+                href="https://www.spglobal.com/market-intelligence/en/news-insights/research/2025/10/generative-ai-shows-rapid-growth-but-yields-mixed-results"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                S&amp;P Global Market Intelligence
+              </a>
+            </li>
+          </ul>
+          <p>
+            When an AI tool fails, it&rsquo;s rarely the model&rsquo;s underlying performance — it&rsquo;s
+            that the tool was built without mapping to the real communication paths and
+            handoffs of the team using it.
+          </p>
+          <p>
+            Designing AI&#8209;augmented workflows around actual human communication boundaries —
+            instead of forcing a rigid software model onto legacy operations — is what turns
+            isolated AI experiments into capabilities that hold up at enterprise scale.
+          </p>
+        </section>
+
         <section className="theory-glossary">
           <div className="theory-entry">
             <p className="theory-entry__term">
@@ -210,67 +271,6 @@ export default function TheoryOfOperationsPage() {
               people and roles on that project, not a blanket key that opens everything.
             </p>
           </div>
-        </section>
-
-        <section className="theory-matters">
-          <h2>Why this matters</h2>
-          <p>
-            Implementations of workplace technology can be difficult because organizations treat
-            software as an external artifact dropped onto an existing structure. The challenge
-            is especially difficult when integrating AI workflow applications, where the cost of
-            that mismatch is stark:
-          </p>
-          <ul className="theory-matters__stats">
-            <li>
-              <span className="theory-matters__stat-label">High project failure rates</span>
-              Roughly 80% of enterprise AI implementations fail — nearly double the failure
-              rate of standard non&#8209;AI IT deployments.{' '}
-              <a
-                className="theory-matters__source"
-                href="https://www.rand.org/pubs/research_reports/RRA2680-1.html"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                RAND Corporation
-              </a>
-            </li>
-            <li>
-              <span className="theory-matters__stat-label">Pilot purgatory</span>
-              95% of generative&#8209;AI pilot programs never reach enterprise&#8209;scale
-              production or meaningful revenue impact.{' '}
-              <a
-                className="theory-matters__source"
-                href="https://nanda.media.mit.edu/ai_report_2025.pdf"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                MIT NANDA Initiative
-              </a>
-            </li>
-            <li>
-              <span className="theory-matters__stat-label">Wasted capital, scrapped initiatives</span>
-              42% of AI initiatives are abandoned mid&#8209;stream — primarily from workflow and
-              integration bottlenecks, not raw algorithmic limits.{' '}
-              <a
-                className="theory-matters__source"
-                href="https://www.spglobal.com/market-intelligence/en/news-insights/research/2025/10/generative-ai-shows-rapid-growth-but-yields-mixed-results"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                S&amp;P Global Market Intelligence
-              </a>
-            </li>
-          </ul>
-          <p>
-            When an AI tool fails, it&rsquo;s rarely the model&rsquo;s underlying performance — it&rsquo;s
-            that the tool was built without mapping to the real communication paths and
-            handoffs of the team using it.
-          </p>
-          <p>
-            Designing AI&#8209;augmented workflows around actual human communication boundaries —
-            instead of forcing a rigid software model onto legacy operations — is what turns
-            isolated AI experiments into capabilities that hold up at enterprise scale.
-          </p>
         </section>
 
         <footer className="theory-footer">

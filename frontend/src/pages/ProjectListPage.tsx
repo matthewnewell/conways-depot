@@ -1,3 +1,4 @@
+import { s4ExternalId } from '../lib/s4'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { usePortfolios, useProjects } from '../api/hooks'
@@ -172,6 +173,9 @@ export default function ProjectListPage() {
                 <th className="proj-table__sortable" onClick={() => toggleSort('phase')}>
                   Phase{sortIndicator('phase')}
                 </th>
+                <th className="proj-table__s4-col" title="S4 project ID — the system of record">
+                  S4 ID
+                </th>
                 <th className="proj-table__sortable" onClick={() => toggleSort('name')}>
                   Project name{sortIndicator('name')}
                 </th>
@@ -192,6 +196,9 @@ export default function ProjectListPage() {
                     <span className={`proj-table__phase proj-table__phase--${p.phase}`}>
                       {PHASE_LABEL[p.phase]}
                     </span>
+                  </td>
+                  <td className="proj-table__s4-col">
+                    {s4ExternalId(p)?.external_id ?? <span className="proj-table__muted">—</span>}
                   </td>
                   <td className="proj-table__name">{p.name}</td>
                   <td className="proj-table__num-col proj-table__count">

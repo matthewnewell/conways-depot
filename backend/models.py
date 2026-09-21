@@ -143,15 +143,28 @@ class Portfolio(db.Model):
     id = db.Column(db.String(36), primary_key=True, default=_uuid)
     name = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=True)
+    # Shared jumpstation links (a portfolio-wide Teams team, SharePoint site, …) — the same
+    # `[{label, url, kind?}]` JSON shape as Project.channels. Every project in the portfolio shows
+    # these beneath its own links, so an owner doesn't re-enter them per project.
+    channels = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=_now, nullable=False)
 
     projects = db.relationship("Project", back_populates="portfolio")
+
+    @property
+    def channel_list(self) -> list[dict]:
+        return json.loads(self.channels) if self.channels else []
+
+    @channel_list.setter
+    def channel_list(self, value: list[dict] | None) -> None:
+        self.channels = json.dumps(list(value)) if value else None
 
     def to_dict(self) -> dict:
         return {
             "id": self.id,
             "name": self.name,
             "description": self.description,
+            "channels": self.channel_list,
             "created_at": self.created_at.isoformat(),
         }
 
@@ -225,6 +238,7 @@ class Project(db.Model):
             "portfolio_name": self.portfolio.name if self.portfolio else None,
             "team_notes": self.team_notes,
             "channels": self.channel_list,
+            "portfolio_links": self.portfolio.channel_list if self.portfolio else [],
             "team_topology": self.team_topology,
             "has_manufacturing": self.has_manufacturing,
             "created_at": self.created_at.isoformat(),

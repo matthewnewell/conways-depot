@@ -86,10 +86,13 @@ export interface Capability {
   description: string | null
 }
 
-/** One comm-channel link on a project's home base. */
+/** One external link on a project's jumpstation (Teams channel, SharePoint, Azure DevOps, …).
+ * `kind` is optional — older entries predate it, and the UI falls back to detecting it from the
+ * URL (see lib/links.ts). Stored in the project's `channels` JSON column, so no migration. */
 export interface ChannelLink {
   label: string
   url: string
+  kind?: 'teams' | 'sharepoint' | 'azure-devops' | 'document' | 'other'
 }
 
 export interface Application {
@@ -165,6 +168,8 @@ export interface Portfolio {
   id: string
   name: string
   description: string | null
+  /** Shared jumpstation links every project in the portfolio shows beneath its own. */
+  channels: ChannelLink[]
   created_at: string
 }
 
@@ -180,6 +185,8 @@ export interface ProjectSummary {
    * Workspace before Launchpad was folded into the project detail page). */
   team_notes: string | null
   channels: ChannelLink[]
+  /** The project's portfolio's shared links (read-only here; edited on the Admin page). */
+  portfolio_links: ChannelLink[]
   /** The delivery team's Team Topologies shape — a stub, edited on the project detail page. */
   team_topology: TeamTopology | null
   /** Whether this project has a manufacturing component — another stub, provisional until a

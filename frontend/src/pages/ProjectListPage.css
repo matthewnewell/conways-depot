@@ -144,3 +144,10 @@
     display: none;
   }
 }
+
+.proj-table__s4-col {
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
