@@ -197,6 +197,43 @@ export function useApplications() {
   })
 }
 
+export interface MyChargeAssignment {
+  id: string
+  project_name: string
+  position_label: string
+  category: string
+  charge_number: string | null
+  start_date: string | null
+  end_date: string | null
+}
+
+export interface MyChargeActual {
+  id: string
+  project: string
+  charge_number: string | null
+  period_start: string
+  hours: number
+}
+
+export interface MyChargesResponse {
+  person_name: string | null
+  assignments: MyChargeAssignment[]
+  actuals: MyChargeActual[]
+}
+
+/** What a person is supposed to charge to, and what they actually charged — proxied through
+ * Labor Supply & Demand (see backend routes/applications.py's my-charges proxy). Empty for
+ * anyone who isn't an individual contributor with a real Assignment (most of the six demo
+ * personas are managers), which is a normal, expected answer, not a broken one. */
+export function useMyCharges(personId: string | undefined) {
+  return useQuery({
+    queryKey: ['my-charges', personId ?? 'none'],
+    queryFn: () => api.get<MyChargesResponse>(`/my-charges?person_id=${encodeURIComponent(personId ?? '')}`),
+    enabled: !!personId,
+    staleTime: 30_000,
+  })
+}
+
 export function useApplication(id: string | undefined) {
   return useQuery({
     queryKey: ['applications', id],

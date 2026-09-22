@@ -59,22 +59,6 @@
   color: var(--color-text-faint);
 }
 
-.lp-preset-select {
-  margin-left: auto;
-  border: 1px solid var(--color-border-strong);
-  background: var(--color-surface);
-  color: var(--color-text-secondary);
-  border-radius: var(--radius-sm);
-  padding: 4px 8px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.lp-preset-select:hover {
-  border-color: var(--color-accent);
-  color: var(--color-accent);
-}
-
 .lp-section__link {
   border: none;
   background: none;
@@ -127,6 +111,7 @@
 
 .lp-app-card__main {
   display: flex;
+  text-decoration: none;
   flex-direction: column;
   gap: 6px;
   width: 100%;

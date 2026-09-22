@@ -18,6 +18,7 @@ from models import (
 
 bp = Blueprint("applications", __name__, url_prefix="/api/applications")
 capabilities_bp = Blueprint("capabilities", __name__, url_prefix="/api/capabilities")
+my_charges_bp = Blueprint("my_charges", __name__, url_prefix="/api")
 
 
 def _project_counts() -> dict[str, int]:
@@ -203,6 +204,29 @@ def application_summary(application_id):
         })
     except (httpx.HTTPError, ValueError):
         return jsonify({**_NO_SUMMARY, "href": a.url})
+
+
+@my_charges_bp.get("/my-charges")
+def my_charges():
+    """The Launchpad drawer's "what am I supposed to charge to" tile — proxied server-to-server
+    to Labor Supply & Demand the same way an app's own summary tile is (see application_summary
+    above): the Depot never computes a charge number itself, LSD does, this just calls it and
+    passes the answer through. No app found or unreachable is the same quiet empty state as
+    everywhere else, not an error the frontend has to special-case."""
+    person_id = request.args.get("person_id")
+    empty = {"person_name": None, "assignments": [], "actuals": []}
+    if not person_id:
+        return jsonify(empty)
+    a = Application.query.filter_by(name="Labor Supply & Demand").first()
+    if not a or not a.api_url:
+        return jsonify(empty)
+    try:
+        r = httpx.get(f"{a.api_url.rstrip('/')}/api/my-charges", params={"person_id": person_id}, timeout=2.0)
+        if r.status_code != 200:
+            return jsonify(empty)
+        return jsonify(r.json())
+    except (httpx.HTTPError, ValueError):
+        return jsonify(empty)
 
 
 def fetch_app_journal_entries(a: "Application", depot_project_id: str | None) -> list[dict]:

@@ -3,8 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import {
   useAppReachable,
   useApplications,
-  useApplyPinPreset,
-  usePinPresets,
   useProjects,
   useReorderPins,
 } from '../api/hooks'
@@ -140,13 +138,11 @@ export default function LaunchpadPage() {
   }
 
   function ProjectCard({ proj }: { proj: PersonProject }) {
-    const tag = persona?.is_admin ? 'Admin' : proj.role_label ?? '—'
     const chipApps = proj.application_ids.slice(0, 4)
     return (
       <button className="lp-project-card" onClick={() => navigate(`/projects/${proj.id}`)}>
         <div className="lp-project-card__top">
           <span className="lp-project-card__name">{proj.name}</span>
-          <span className="lp-project-card__tag">{tag}</span>
         </div>
         <div className="lp-project-card__phase">{PHASE_LABEL[proj.phase]}</div>
         {chipApps.length > 0 && (
@@ -168,8 +164,6 @@ export default function LaunchpadPage() {
         <section className="lp-section">
           <div className="lp-section__head">
             <span className="lp-section__title">Pinned apps</span>
-            <PresetDropdown personId={persona?.id} />
-            <button className="lp-section__link" onClick={() => navigate('/catalog')}>Browse catalog →</button>
           </div>
           {appsLoading ? (
             <p className="launchpad-page__loading">Loading…</p>
@@ -200,38 +194,5 @@ export default function LaunchpadPage() {
         </section>
       </div>
     </div>
-  )
-}
-
-/** "Apply a preset" — a curated starting set of pins for a role (see backend presets.py). Not
- * a persistent choice: picking one replaces the whole pinned set right away and the select
- * resets to its placeholder — same one-time-action shape as clicking a button, just packaged
- * as a dropdown because there are five of them. "Default" is the reset case (all organizational
- * apps, nothing else), not a separate control. */
-function PresetDropdown({ personId }: { personId: string | undefined }) {
-  const { data: presets } = usePinPresets()
-  const applyPreset = useApplyPinPreset()
-
-  if (!personId || !presets || presets.length === 0) return null
-
-  return (
-    <select
-      className="lp-preset-select"
-      value=""
-      disabled={applyPreset.isPending}
-      onChange={(e) => {
-        const preset = e.target.value
-        if (preset) applyPreset.mutate({ person_id: personId, preset })
-      }}
-    >
-      <option value="" disabled>
-        Apply preset…
-      </option>
-      {presets.map((p) => (
-        <option key={p.key} value={p.key} title={p.description}>
-          {p.label}
-        </option>
-      ))}
-    </select>
   )
 }

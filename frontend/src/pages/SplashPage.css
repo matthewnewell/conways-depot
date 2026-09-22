@@ -362,3 +362,17 @@
   font-style: italic;
   fill: var(--color-text-secondary);
 }
+
+.splash-svg__project text {
+  font-size: 13.5px;
+  font-weight: 700;
+  fill: var(--color-accent);
+}
+
+.splash-svg__project--link {
+  cursor: pointer;
+}
+
+.splash-svg__project--link:hover text {
+  text-decoration: underline;
+}

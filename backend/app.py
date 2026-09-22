@@ -14,7 +14,7 @@ from flask import Flask, request, send_from_directory
 from db import init_db
 from routes.ai import bp as ai_bp
 from routes.ai_proxy import bp as ai_proxy_bp
-from routes.applications import bp as applications_bp, capabilities_bp
+from routes.applications import bp as applications_bp, capabilities_bp, my_charges_bp
 from routes.embed import bp as embed_bp
 from routes.notes import bp as notes_bp, people_notes_bp
 from routes.people import bp as people_bp
@@ -37,6 +37,7 @@ def create_app():
     app.register_blueprint(memberships_bp)
     app.register_blueprint(portfolios_bp)
     app.register_blueprint(applications_bp)
+    app.register_blueprint(my_charges_bp)
     app.register_blueprint(capabilities_bp)
     app.register_blueprint(people_bp)
     app.register_blueprint(pins_bp)

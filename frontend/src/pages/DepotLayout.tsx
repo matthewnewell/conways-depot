@@ -1,7 +1,9 @@
 import { DrawerLayout } from '@conways/drawer'
-import { Outlet, useParams } from 'react-router-dom'
+import { Outlet, useLocation, useParams } from 'react-router-dom'
 import { useHealth, useProject } from '../api/hooks'
 import DepotNav from '../components/DepotNav'
+import LaunchpadChargesPanel from '../components/LaunchpadChargesPanel'
+import LaunchpadCustomizePanel from '../components/LaunchpadCustomizePanel'
 import { usePersona } from '../lib/persona'
 import { ProjectAdminPanel, ProjectInfoPanel, ProjectTeamPanel } from './ProjectDetailPage'
 import './DepotLayout.css'
@@ -18,16 +20,24 @@ export default function DepotLayout() {
   const { data: health } = useHealth()
   const { persona } = usePersona()
   const { data: project } = useProject(projectId)
+  const onLaunchpad = useLocation().pathname === '/'
 
-  // On a project page the drawer gains three tabs at the top of its rail — the project's own
-  // Info / Team / Admin — alongside the usual Agent and Journal at the bottom.
+  // On the Launchpad it gains two, in order: My Charges (what YOU charge to — a person's own
+  // answer) above Customize (role presets, pinned-apps manager, catalog link). On a project page
+  // the drawer instead gains three tabs — the project's own Info / Team / Admin — alongside the
+  // usual Agent and Journal at the bottom.
   const tabs = project
     ? [
         { id: 'info', icon: 'ℹ️', label: 'Project info', content: <ProjectInfoPanel project={project} /> },
         { id: 'team', icon: '👥', label: 'Team', content: <ProjectTeamPanel project={project} /> },
         { id: 'admin', icon: '⚙️', label: 'Admin', wide: true, content: <ProjectAdminPanel project={project} /> },
       ]
-    : []
+    : onLaunchpad
+      ? [
+          { id: 'charges', icon: '🧾', label: 'What I charge to', content: <LaunchpadChargesPanel /> },
+          { id: 'customize', icon: '🎛️', label: 'Customize your Launchpad', content: <LaunchpadCustomizePanel /> },
+        ]
+      : []
 
   return (
     <div className="depot-layout">

@@ -1,0 +1,133 @@
+.lp-charges {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 16px 18px 24px;
+}
+
+.lp-charges__section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lp-charges__title {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-secondary);
+}
+
+.lp-charges__hint {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+  padding: 16px 18px;
+}
+
+.lp-charges__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lp-charges__row {
+  padding: 10px 12px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.lp-charges__row-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.lp-charges__project {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.lp-charges__position {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.lp-charges__dates {
+  font-size: 11px;
+  color: var(--color-text-faint);
+}
+
+.lp-charges__charge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lp-charges__charge code {
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.lp-charges__no-charge {
+  font-size: 11px;
+  font-style: italic;
+  color: var(--color-text-faint);
+}
+
+.lp-charges__copy {
+  padding: 3px 10px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.lp-charges__copy:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.lp-charges__list--flat {
+  gap: 0;
+}
+
+.lp-charges__actual {
+  display: grid;
+  grid-template-columns: 60px 1fr auto auto;
+  gap: 10px;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.lp-charges__actual code {
+  font-family: ui-monospace, monospace;
+  font-size: 11px;
+  color: var(--color-text-faint);
+}
+
+.lp-charges__actual strong {
+  color: var(--color-text);
+  text-align: right;
+}

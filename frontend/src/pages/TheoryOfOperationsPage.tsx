@@ -176,6 +176,20 @@ export default function TheoryOfOperationsPage() {
             instead of forcing a rigid software model onto legacy operations — is what turns
             isolated AI experiments into capabilities that hold up at enterprise scale.
           </p>
+          <p className="theory-matters__proof">
+            Microsoft reached the same conclusion from the inside. Broad AI rollout on its own
+            barely moved the needle; the shift came from redesigning whole workflows around real
+            handoffs, not just speeding up individual steps — cycle times fell as much as 75% in
+            the workflows it rebuilt this way.{' '}
+            <a
+              className="theory-matters__source"
+              href="https://blogs.microsoft.com/blog/2026/09/17/what-weve-learned-from-microsofts-own-ai-transformation/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Microsoft
+            </a>
+          </p>
         </section>
 
         <section className="theory-glossary">
@@ -239,8 +253,9 @@ export default function TheoryOfOperationsPage() {
               <em>Integration</em>
             </p>
             <p className="theory-entry__def">
-              Because every tool shares the same thread, an assistant can answer questions across
-              the whole project — instead of a person stitching five systems together by hand.
+              Because every tool shares the same thread, each app&rsquo;s own assistant can read
+              straight from the ones next to it — a project&rsquo;s status, a person&rsquo;s load, a
+              plan&rsquo;s price — instead of a person stitching that together by hand.
             </p>
           </div>
 

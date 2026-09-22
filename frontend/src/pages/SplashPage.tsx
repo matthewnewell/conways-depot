@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { useApplications } from '../api/hooks'
+import { useApplications, useProjects } from '../api/hooks'
 import DepotNav from '../components/DepotNav'
 import { withDepotOrigin } from '../lib/launch'
 import { usePersona } from '../lib/persona'
@@ -11,19 +11,11 @@ const PHASES = ['Pursuit', 'Award', 'Execution', 'Closeout']
 const CHIP_W = 138
 const LANE_H = 40
 const LANE_GAP = 14
-const LANES_Y = 100
+const LANES_Y = 112
 
 // One lane per role: the stretch of the project's life where that role is most active (the soft
 // bar), and the apps that role reaches for at each phase (`at` = the phase index).
 const ROLES = [
-  {
-    name: 'Business Development',
-    span: [0, 1],
-    apps: [
-      { at: 0, label: 'WinMax' },
-      { at: 1, label: 'Scope Manager' },
-    ],
-  },
   {
     name: 'Project Manager',
     span: [1, 3],
@@ -34,12 +26,26 @@ const ROLES = [
     ],
   },
 ]
+// Business development works ahead of the project, so it sits in the strip above the thread with
+// a line down to it from each app, at pursuit and at award.
+const BIZDEV = {
+  name: 'Business Development',
+  span: [0, 1],
+  apps: [
+    { at: 0, label: 'WinMax' },
+    { at: 1, label: 'Scope Manager' },
+  ],
+}
+// The demo project the graphic follows; its name links to the project's page.
+const PROJECT_NAME = 'Bracket Assembly Program'
 const laneY = (i: number) => LANES_Y + i * (LANE_H + LANE_GAP)
 const INNER_H = laneY(ROLES.length - 1) + LANE_H + 20
 // The portfolio is the outer box a project sits inside: a header strip for the portfolio and its
 // manager's app, and a margin around the project.
 const FRAME_PAD = 16
-const FRAME_HEAD = 46
+const FRAME_HEAD = 62
+// Top of the business-development strip inside the box.
+const BIZ_Y = 14
 const BOX_W = 870 + FRAME_PAD * 2
 // A portfolio manager oversees many projects: the project box has two more peeking out behind it.
 const STACK = 10
@@ -53,7 +59,7 @@ const SVG_H = TOP + PF_H + 6
 // names the role; `app` is the registry app it launches.
 const TOP_TILES = [
   { label: 'Portfolio Manager', app: 'Portfolio Manager', x: FRAME_PAD + 4 + CHIP_W / 2, note: 'project success' },
-  { label: 'Functional Manager', app: 'Labor Supply & Demand', x: FRAME_PAD + COLUMNS[2], note: 'allocates labor' },
+  { label: 'Functional Manager', app: 'Labor Supply & Demand', x: FRAME_PAD + COLUMNS[2], note: 'labor allocation' },
   { label: 'Mission Assurance', app: 'The Fixer', x: FRAME_PAD + COLUMNS[3], note: 'continuous improvement' },
 ]
 const FUNCTION_APPS = [
@@ -96,7 +102,7 @@ const FEATURES = [
     ),
   },
   {
-    title: 'Agentic AI',
+    title: 'AI Assistant',
     body: "AI runs through every app, reading each project's data and journal, so it can explain what changed, suggest the next move, and flag trouble early.",
     icon: (
       <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -127,6 +133,8 @@ export default function SplashPage() {
   // (Lessons Learned) stays a plain, muted chip rather than a dead link.
   const { data: applications } = useApplications()
   const { persona } = usePersona()
+  const { data: projects } = useProjects()
+  const projectId = projects?.find((p) => p.name === PROJECT_NAME)?.id
   const appHref = (label: string) => {
     const url = applications?.find((a) => a.name === label)?.url
     return url ? withDepotOrigin(`${url.replace(/\/$/, '')}/about`, '/about', persona?.id) : undefined
@@ -139,9 +147,10 @@ export default function SplashPage() {
       <div className="splash-page__scroll">
         <div className="splash-container">
           <header className="splash-hero">
-            <h1 className="splash-hero__title">One thread. Every role.</h1>
+            <h1 className="splash-hero__title">AI-Enhanced Workflows for Every Role.</h1>
             <p className="splash-hero__sub">
-              AI-enhanced tools for every role, working as one, from pursuit to closeout.
+              A single digital thread to streamline cross-functional communication,
+              deliver objective evidence, support quality, clear bottlenecks, and deliver value.
             </p>
           </header>
 
@@ -150,8 +159,10 @@ export default function SplashPage() {
               <svg viewBox={`0 0 ${SVG_W} ${SVG_H}`} role="img" aria-labelledby="depot-diagram-title">
                 <title id="depot-diagram-title">
                   One project ID runs through pursuit, award, execution and closeout. Business
-                  development and project managers each
-                  launch the apps that fit their job, in the phases where they are most active. Above the project, a portfolio manager oversees many such projects, functional managers name people to them, and mission assurance keeps the quality of the work in check.
+                  development and project managers launch the apps that fit their job inside the
+                  project, in the phases where they are most active. Above it, a portfolio manager
+                  oversees many such projects, functional managers handle labor allocation, and mission
+                  assurance drives continuous improvement.
                 </title>
 
                 {/* portfolio, functional and mission-assurance managers: tiles above the project,
@@ -203,20 +214,72 @@ export default function SplashPage() {
                   stroke="var(--color-border-strong)"
                 />
 
+                {/* business development: above the thread, with a line down to it from each app */}
+                <rect
+                  x={FRAME_PAD + COLUMNS[BIZDEV.span[0]] - CHIP_W / 2 - 8}
+                  y={BIZ_Y}
+                  width={COLUMNS[BIZDEV.span[1]] - COLUMNS[BIZDEV.span[0]] + CHIP_W + 16}
+                  height={LANE_H}
+                  rx="12"
+                  fill="var(--color-surface-sunken)"
+                  stroke="var(--color-border)"
+                />
+                <text className="splash-svg__role" x={FRAME_PAD + 24} y={BIZ_Y + LANE_H / 2 + 4}>
+                  {BIZDEV.name}
+                </text>
+                {BIZDEV.apps.map((app) => (
+                  <g key={app.label}>
+                    <path
+                      d={`M${FRAME_PAD + COLUMNS[app.at]} ${BIZ_Y + LANE_H} V${FRAME_HEAD + 44} m-4 -6 l4 6 l4 -6`}
+                      fill="none"
+                      stroke="var(--color-accent)"
+                      strokeWidth="1.6"
+                      strokeDasharray="3 4"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <SvgAppChip href={appHref(app.label)}>
+                      <rect
+                        x={FRAME_PAD + COLUMNS[app.at] - CHIP_W / 2}
+                        y={BIZ_Y + 6}
+                        width={CHIP_W}
+                        height={LANE_H - 12}
+                        rx="8"
+                        fill="var(--color-surface)"
+                        stroke="var(--color-border-strong)"
+                      />
+                      <text className="splash-svg__chip" x={FRAME_PAD + COLUMNS[app.at]} y={BIZ_Y + LANE_H / 2 + 4} textAnchor="middle">
+                        {app.label}
+                      </text>
+                    </SvgAppChip>
+                  </g>
+                ))}
+
                 <g transform={`translate(${FRAME_PAD} ${FRAME_HEAD})`}>
 
                 {/* the project id, at the thread's origin */}
-                <text className="splash-svg__origin" x="20" y="24">
-                  PROJECT ID
-                </text>
+                {/* the project, by name (a link to its page), with its permanent ID under the thread */}
+                {projectId ? (
+                  <Link to={`/projects/${projectId}`} className="splash-svg__project splash-svg__project--link">
+                    <text x="20" y="30">
+                      {PROJECT_NAME}
+                    </text>
+                  </Link>
+                ) : (
+                  <g className="splash-svg__project">
+                    <text x="20" y="30">
+                      {PROJECT_NAME}
+                    </text>
+                  </g>
+                )}
                 <rect x="14" y="66" width="92" height="22" rx="6" fill="var(--color-accent-soft)" />
                 <text className="splash-svg__id" x="60" y="81" textAnchor="middle">
                   P-100455
                 </text>
 
-                <g className="splash-svg__phase" textAnchor="middle">
+                <g className="splash-svg__phase">
                   {PHASES.map((phase, i) => (
-                    <text key={phase} x={COLUMNS[i]} y="24">
+                    <text key={phase} x={COLUMNS[i] + 10} y="43">
                       {phase.toUpperCase()}
                     </text>
                   ))}
@@ -233,21 +296,6 @@ export default function SplashPage() {
                     rx="12"
                     fill="var(--color-surface-sunken)"
                     stroke="var(--color-border)"
-                  />
-                ))}
-
-                {/* the thread's stations drop through every lane */}
-                {COLUMNS.map((x, i) => (
-                  <line
-                    key={`guide-${PHASES[i]}`}
-                    x1={x}
-                    y1="60"
-                    x2={x}
-                    y2={INNER_H - 12}
-                    stroke="var(--color-accent)"
-                    strokeWidth="1.2"
-                    strokeDasharray="3 5"
-                    strokeOpacity="0.4"
                   />
                 ))}
 
@@ -269,7 +317,17 @@ export default function SplashPage() {
                       {r.name}
                     </text>
                     {r.apps.map((app) => (
-                      <SvgAppChip key={app.label} href={appHref(app.label)}>
+                      <g key={app.label}>
+                      <path
+                        d={`M${COLUMNS[app.at]} ${laneY(i) + 4} V${60} m-4 6 l4 -6 l4 6`}
+                        fill="none"
+                        stroke="var(--color-accent)"
+                        strokeWidth="1.6"
+                        strokeDasharray="3 4"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <SvgAppChip href={appHref(app.label)}>
                         <rect
                           x={COLUMNS[app.at] - CHIP_W / 2}
                           y={laneY(i) + 6}
@@ -283,6 +341,7 @@ export default function SplashPage() {
                           {app.label}
                         </text>
                       </SvgAppChip>
+                      </g>
                     ))}
                   </g>
                 ))}
