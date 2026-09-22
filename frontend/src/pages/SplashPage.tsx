@@ -1,5 +1,8 @@
 import { Link } from 'react-router-dom'
+import { useApplications } from '../api/hooks'
 import DepotNav from '../components/DepotNav'
+import { withDepotOrigin } from '../lib/launch'
+import { usePersona } from '../lib/persona'
 import './SplashPage.css'
 
 // The thread runs through four phases; each phase is a station on it, evenly spaced.
@@ -22,37 +25,45 @@ const ROLES = [
     ],
   },
   {
-    name: 'Program Manager',
+    name: 'Project Manager',
     span: [1, 3],
     apps: [
       { at: 1, label: 'Good Plan' },
-      { at: 2, label: 'Value Stream' },
-    ],
-  },
-  {
-    name: 'Functional Manager',
-    span: [1, 2],
-    apps: [
-      { at: 1, label: 'Org Charts' },
-      { at: 2, label: 'Labor Supply & Demand' },
-    ],
-  },
-  {
-    name: 'Mission Assurance',
-    span: [2, 3],
-    apps: [
-      { at: 2, label: 'The Fixer' },
+      { at: 2, label: 'Reckon' },
       { at: 3, label: 'Lessons Learned' },
     ],
   },
 ]
 const laneY = (i: number) => LANES_Y + i * (LANE_H + LANE_GAP)
-const SVG_H = laneY(ROLES.length - 1) + LANE_H + 20
+const INNER_H = laneY(ROLES.length - 1) + LANE_H + 20
+// The portfolio is the outer box a project sits inside: a header strip for the portfolio and its
+// manager's app, and a margin around the project.
+const FRAME_PAD = 16
+const FRAME_HEAD = 46
+const BOX_W = 870 + FRAME_PAD * 2
+// A portfolio manager oversees many projects: the project box has two more peeking out behind it.
+const STACK = 10
+const SVG_W = BOX_W + STACK * 2
+const PF_H = INNER_H + FRAME_HEAD + FRAME_PAD
+// Above the project box: the portfolio manager, with an arrow down into the project.
+const TOP = 82
+const SVG_H = TOP + PF_H + 6
+// Roles that work across or beside projects rather than in a lane: each is a tile above the
+// project box with an arrow down into it, aimed at the phase where it matters most. The tile
+// names the role; `app` is the registry app it launches.
+const TOP_TILES = [
+  { label: 'Portfolio Manager', app: 'Portfolio Manager', x: FRAME_PAD + 4 + CHIP_W / 2, note: 'project success' },
+  { label: 'Functional Manager', app: 'Labor Supply & Demand', x: FRAME_PAD + COLUMNS[2], note: 'allocates labor' },
+  { label: 'Mission Assurance', app: 'The Fixer', x: FRAME_PAD + COLUMNS[3], note: 'continuous improvement' },
+]
+const FUNCTION_APPS = [
+  { at: 2, label: 'Labor Supply & Demand' },
+]
 
 const FEATURES = [
   {
-    title: 'A digital thread',
-    body: "A single id per project. Every app's records are scoped to that one id so people and agents can't wander into another project's data.",
+    title: 'Digital Thread',
+    body: "One ID per project, from pursuit to closeout. Every app's records hang on it, so people and AI stay inside the right project's data.",
     icon: (
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <circle cx="5" cy="12" r="2.4" />
@@ -62,8 +73,8 @@ const FEATURES = [
     ),
   },
   {
-    title: 'An app store',
-    body: 'Browse a catalog of applications. The project installs the applications its work needs. Users pin their favorites.',
+    title: 'App Store',
+    body: 'A catalog of the tools your work needs. Install the ones you need, and swap them as the work changes.',
     icon: (
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <rect x="4" y="4" width="7" height="7" rx="1.5" />
@@ -74,8 +85,8 @@ const FEATURES = [
     ),
   },
   {
-    title: 'A launchpad',
-    body: 'A personal launchpad, customized for each user. A project launchpad, for its connected apps and data.',
+    title: 'Launchpad',
+    body: "Your home base, shaped by your role. Pin your favorites, and see live status for each project's connected apps.",
     icon: (
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M12 4v10" />
@@ -85,8 +96,8 @@ const FEATURES = [
     ),
   },
   {
-    title: 'AI assistant',
-    body: "A top-level AI that reads every connected app's data and journal, over MCP — so you can understand what changed and why, and take meaningful next steps.",
+    title: 'Agentic AI',
+    body: "AI runs through every app, reading each project's data and journal, so it can explain what changed, suggest the next move, and flag trouble early.",
     icon: (
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M12 3l1.7 4.8L18.5 9.5l-4.8 1.7L12 16l-1.7-4.8L5.5 9.5l4.8-1.7z" />
@@ -96,10 +107,31 @@ const FEATURES = [
   },
 ]
 
+/** An app chip: launches the app's own splash (/about), its front door, when the app is
+ * registered with a URL. Same launch as a catalog card — same tab, person and back link handed
+ * over. */
+function SvgAppChip({ href, children }: { href: string | undefined; children: React.ReactNode }) {
+  if (!href) return <g className="splash-svg__app">{children}</g>
+  return (
+    <a href={href} className="splash-svg__app splash-svg__app--link">
+      {children}
+    </a>
+  )
+}
+
 /** The nav brand links here — the "what this is and why" page. Hero + one readable diagram of
  * the core idea (a project runs one thread and connects to apps from the store), a short
  * feature triad, and the Conway's Law grounding. */
 export default function SplashPage() {
+  // Chips launch the app's splash, matched by registry name; an app that isn't registered
+  // (Lessons Learned) stays a plain, muted chip rather than a dead link.
+  const { data: applications } = useApplications()
+  const { persona } = usePersona()
+  const appHref = (label: string) => {
+    const url = applications?.find((a) => a.name === label)?.url
+    return url ? withDepotOrigin(`${url.replace(/\/$/, '')}/about`, '/about', persona?.id) : undefined
+  }
+
   return (
     <div className="splash-page">
       <DepotNav />
@@ -109,27 +141,69 @@ export default function SplashPage() {
           <header className="splash-hero">
             <h1 className="splash-hero__title">One thread. Every role.</h1>
             <p className="splash-hero__sub">
-              Every project gets one ID that never changes. Select and launch the tools that fit
-              your job — and swap them as the work evolves.
+              AI-enhanced tools for every role, working as one, from pursuit to closeout.
             </p>
-            <div className="splash-hero__actions">
-              <Link className="splash-btn splash-btn--primary" to="/admin">
-                Create a project
-              </Link>
-              <Link className="splash-btn splash-btn--ghost" to="/catalog">
-                Browse the app store
-              </Link>
-            </div>
           </header>
 
           <figure className="splash-figure">
             <div className="splash-figure__svg-wrap">
-              <svg viewBox={`0 0 870 ${SVG_H}`} role="img" aria-labelledby="depot-diagram-title">
+              <svg viewBox={`0 0 ${SVG_W} ${SVG_H}`} role="img" aria-labelledby="depot-diagram-title">
                 <title id="depot-diagram-title">
                   One project ID runs through pursuit, award, execution and closeout. Business
-                  development, program managers, functional managers and mission assurance each
-                  launch the apps that fit their job, in the phases where they are most active.
+                  development and project managers each
+                  launch the apps that fit their job, in the phases where they are most active. Above the project, a portfolio manager oversees many such projects, functional managers name people to them, and mission assurance keeps the quality of the work in check.
                 </title>
+
+                {/* portfolio, functional and mission-assurance managers: tiles above the project,
+                    each with an arrow down into it */}
+                {TOP_TILES.map((t) => (
+                  <g key={t.label}>
+                    <SvgAppChip href={appHref(t.app)}>
+                      <rect x={t.x - CHIP_W / 2} y="4" width={CHIP_W} height="26" rx="8" fill="var(--color-surface)" stroke="var(--color-border-strong)" />
+                      <text className="splash-svg__chip" x={t.x} y="21" textAnchor="middle">
+                        {t.label}
+                      </text>
+                    </SvgAppChip>
+                    <path
+                      d={`M${t.x} 32 V${TOP - 2} m-4 -6 l4 6 l4 -6`}
+                      fill="none"
+                      stroke="var(--color-accent)"
+                      strokeWidth="1.6"
+                      strokeDasharray="3 4"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <text className="splash-svg__note" x={t.x + 12} y={TOP / 2 + 8}>
+                      {t.note}
+                    </text>
+                  </g>
+                ))}
+
+                <g transform={`translate(0 ${TOP})`}>
+                {/* the project is a box; the two behind it are the portfolio's other projects */}
+                {[2, 1].map((k) => (
+                  <rect
+                    key={`stack-${k}`}
+                    x={1 + STACK * k}
+                    y={1 + 8 * k}
+                    width={BOX_W - 2}
+                    height={PF_H - 2 - 16 * k}
+                    rx="14"
+                    fill="var(--color-surface)"
+                    stroke="var(--color-border)"
+                  />
+                ))}
+                <rect
+                  x="1"
+                  y="1"
+                  width={BOX_W - 2}
+                  height={PF_H - 2}
+                  rx="14"
+                  fill="var(--color-surface)"
+                  stroke="var(--color-border-strong)"
+                />
+
+                <g transform={`translate(${FRAME_PAD} ${FRAME_HEAD})`}>
 
                 {/* the project id, at the thread's origin */}
                 <text className="splash-svg__origin" x="20" y="24">
@@ -169,7 +243,7 @@ export default function SplashPage() {
                     x1={x}
                     y1="60"
                     x2={x}
-                    y2={SVG_H - 12}
+                    y2={INNER_H - 12}
                     stroke="var(--color-accent)"
                     strokeWidth="1.2"
                     strokeDasharray="3 5"
@@ -195,7 +269,7 @@ export default function SplashPage() {
                       {r.name}
                     </text>
                     {r.apps.map((app) => (
-                      <g key={app.label}>
+                      <SvgAppChip key={app.label} href={appHref(app.label)}>
                         <rect
                           x={COLUMNS[app.at] - CHIP_W / 2}
                           y={laneY(i) + 6}
@@ -208,10 +282,13 @@ export default function SplashPage() {
                         <text className="splash-svg__chip" x={COLUMNS[app.at]} y={laneY(i) + LANE_H / 2 + 4} textAnchor="middle">
                           {app.label}
                         </text>
-                      </g>
+                      </SvgAppChip>
                     ))}
                   </g>
                 ))}
+                </g>
+
+                </g>
               </svg>
             </div>
           </figure>

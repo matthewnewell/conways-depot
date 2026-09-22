@@ -340,3 +340,25 @@
     align-items: flex-start;
   }
 }
+
+.splash-svg__app--link {
+  cursor: pointer;
+}
+
+.splash-svg__app--link:hover .splash-svg__chip {
+  text-decoration: underline;
+}
+
+.splash-svg__app--link:hover rect {
+  stroke: var(--color-accent);
+}
+
+.splash-svg__app:not(.splash-svg__app--link) {
+  opacity: 0.6;
+}
+
+.splash-svg__note {
+  font-size: 10.5px;
+  font-style: italic;
+  fill: var(--color-text-secondary);
+}
