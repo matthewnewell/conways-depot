@@ -376,3 +376,23 @@
 .splash-svg__project--link:hover text {
   text-decoration: underline;
 }
+
+.splash-svg__role-link {
+  cursor: pointer;
+}
+
+.splash-svg__role-link:hover text {
+  text-decoration: underline;
+}
+
+.splash-svg__id-group--link {
+  cursor: pointer;
+}
+
+.splash-svg__id-group--link:hover rect {
+  fill: var(--color-accent);
+}
+
+.splash-svg__id-group--link:hover text {
+  fill: var(--color-surface);
+}

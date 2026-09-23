@@ -132,13 +132,18 @@ export default function SplashPage() {
   // Chips launch the app's splash, matched by registry name; an app that isn't registered
   // (Lessons Learned) stays a plain, muted chip rather than a dead link.
   const { data: applications } = useApplications()
-  const { persona } = usePersona()
+  const { persona, people, setPersonaId } = usePersona()
   const { data: projects } = useProjects()
   const projectId = projects?.find((p) => p.name === PROJECT_NAME)?.id
   const appHref = (label: string) => {
     const url = applications?.find((a) => a.name === label)?.url
     return url ? withDepotOrigin(`${url.replace(/\/$/, '')}/about`, '/about', persona?.id) : undefined
   }
+  // The role lanes' names link to that role's own Launchpad — switch "viewing as" to the demo
+  // persona who holds that title, then land on "/", same lens the nav's own persona switcher uses.
+  // Falls back to plain (unlinked) text if no seeded persona carries that title.
+  const businessDevPersonaId = people.find((p) => p.title?.includes('Business Development'))?.id
+  const projectManagerPersonaId = people.find((p) => p.title === 'Program Manager')?.id
 
   return (
     <div className="splash-page">
@@ -149,8 +154,8 @@ export default function SplashPage() {
           <header className="splash-hero">
             <h1 className="splash-hero__title">AI-Enhanced Workflows for Every Role.</h1>
             <p className="splash-hero__sub">
-              A single digital thread to streamline cross-functional communication,
-              deliver objective evidence, support quality, clear bottlenecks, and deliver value.
+              Improve cross-functional collaboration, do better work, clear bottlenecks,
+              and deliver more value.
             </p>
           </header>
 
@@ -224,9 +229,21 @@ export default function SplashPage() {
                   fill="var(--color-surface-sunken)"
                   stroke="var(--color-border)"
                 />
-                <text className="splash-svg__role" x={FRAME_PAD + 24} y={BIZ_Y + LANE_H / 2 + 4}>
-                  {BIZDEV.name}
-                </text>
+                {businessDevPersonaId ? (
+                  <Link
+                    to="/"
+                    onClick={() => setPersonaId(businessDevPersonaId)}
+                    className="splash-svg__role-link"
+                  >
+                    <text className="splash-svg__role" x={FRAME_PAD + 24} y={BIZ_Y + LANE_H / 2 + 4}>
+                      {BIZDEV.name}
+                    </text>
+                  </Link>
+                ) : (
+                  <text className="splash-svg__role" x={FRAME_PAD + 24} y={BIZ_Y + LANE_H / 2 + 4}>
+                    {BIZDEV.name}
+                  </text>
+                )}
                 {BIZDEV.apps.map((app) => (
                   <g key={app.label}>
                     <path
@@ -272,10 +289,21 @@ export default function SplashPage() {
                     </text>
                   </g>
                 )}
-                <rect x="14" y="66" width="92" height="22" rx="6" fill="var(--color-accent-soft)" />
-                <text className="splash-svg__id" x="60" y="81" textAnchor="middle">
-                  P-100455
-                </text>
+                {projectId ? (
+                  <Link to={`/projects/${projectId}`} className="splash-svg__id-group splash-svg__id-group--link">
+                    <rect x="14" y="66" width="92" height="22" rx="6" fill="var(--color-accent-soft)" />
+                    <text className="splash-svg__id" x="60" y="81" textAnchor="middle">
+                      P-100455
+                    </text>
+                  </Link>
+                ) : (
+                  <g className="splash-svg__id-group">
+                    <rect x="14" y="66" width="92" height="22" rx="6" fill="var(--color-accent-soft)" />
+                    <text className="splash-svg__id" x="60" y="81" textAnchor="middle">
+                      P-100455
+                    </text>
+                  </g>
+                )}
 
                 <g className="splash-svg__phase">
                   {PHASES.map((phase, i) => (
@@ -313,9 +341,21 @@ export default function SplashPage() {
                 {/* role names, then the apps each one uses */}
                 {ROLES.map((r, i) => (
                   <g key={r.name}>
-                    <text className="splash-svg__role" x="24" y={laneY(i) + LANE_H / 2 + 4}>
-                      {r.name}
-                    </text>
+                    {projectManagerPersonaId ? (
+                      <Link
+                        to="/"
+                        onClick={() => setPersonaId(projectManagerPersonaId)}
+                        className="splash-svg__role-link"
+                      >
+                        <text className="splash-svg__role" x="24" y={laneY(i) + LANE_H / 2 + 4}>
+                          {r.name}
+                        </text>
+                      </Link>
+                    ) : (
+                      <text className="splash-svg__role" x="24" y={laneY(i) + LANE_H / 2 + 4}>
+                        {r.name}
+                      </text>
+                    )}
                     {r.apps.map((app) => (
                       <g key={app.label}>
                       <path

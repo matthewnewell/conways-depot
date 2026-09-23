@@ -1,12 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { usePersona } from '../lib/persona'
 import './PersonaMenu.css'
 
 /** The "viewing as" switcher that sits by ⚙ Admin. A demo lens, not a login — the menu says
- * so. Picking a persona re-scopes the project and application lists to that person's work;
- * the admin persona ("Enterprise Architect") is the see-everything seat. */
+ * so. Picking a persona re-scopes the project and application lists to that person's work, and
+ * takes you to their Launchpad — "home base, shaped by your role" (see the splash page's own
+ * Launchpad tile) means switching who you're viewing as should actually land you there, not
+ * leave you on whatever page you happened to be on. */
 export default function PersonaMenu() {
   const { persona, people, setPersonaId } = usePersona()
+  const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
 
@@ -63,6 +67,7 @@ export default function PersonaMenu() {
               onClick={() => {
                 setPersonaId(p.id)
                 setOpen(false)
+                navigate('/')
               }}
             >
               <span className="persona-menu__check" aria-hidden="true">
