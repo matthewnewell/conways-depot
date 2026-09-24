@@ -46,7 +46,7 @@ def _days_ago(n: int) -> datetime:
     return datetime.now(timezone.utc) - timedelta(days=n)
 
 # The real id of Value Stream's own seeded sample map (`Bracket Assembly`, project field
-# "Bracket Assembly Program" — `GET /api/maps/sample` there). If Value Stream's dev DB is
+# "Bracket Assembly Project" — `GET /api/maps/sample` there). If Value Stream's dev DB is
 # ever reset, this link goes stale — an accepted limitation of a plain-URL pointer, and exactly
 # the kind of drift a real crosswalk has to live with too. **This already happened once**
 # (2026-09-15, while wiring Increment 2's summary contract): the id below was updated from a
@@ -81,6 +81,10 @@ def seed_if_empty():
         name="Value Stream Mapping / Bottleneck Analysis",
         description="Modeling a workflow's steps and wait times to find and act on the constraint.",
     )
+    cap_budget = Capability(
+        name="Project Budget & Cost Planning",
+        description="A project's budget built bottom-up: labor, materials, and other direct costs on its WBS work packages, planned over time against the contract value.",
+    )
     cap_staffing = Capability(
         name="Labor Demand & Capacity Planning",
         description="Projecting labor demand across awarded work and pipeline, against available capacity.",
@@ -102,7 +106,7 @@ def seed_if_empty():
         description="Manufacturing-side project visibility over S4: what each build needs and where its material is, where every assembly is in its routing, leadership's stack rank of projects (Triage), and the forecast of which need-by dates slip (Impact).",
     )
     db.session.add_all([
-        cap_capture, cap_vsm, cap_staffing, cap_contract_authoring, cap_task_priority,
+        cap_capture, cap_vsm, cap_staffing, cap_budget, cap_contract_authoring, cap_task_priority,
         cap_spec_authoring, cap_material_priority,
     ])
     db.session.flush()
@@ -145,15 +149,15 @@ def seed_if_empty():
     app_good_plan = Application(
         name="Good Plan",
         description=(
-            "For projects: a project defines its own labor demand — role, FTE, and dates — "
-            "before anyone commits a real person to it. The organizational counterpart is "
-            "Labor Supply & Demand."
+            "For projects: the project's budget, built bottom-up (labor, materials, and other "
+            "direct costs) and planned over time against the contract value. Its labor lines are "
+            "what Labor Supply & Demand staffs; scope itself lives in Scope Manager."
         ),
         owning_team="Matt (informal enabling team)",
         team_type="enabling",
         scope="project",
         category="project",
-        capability=cap_staffing,
+        capability=cap_budget,
         url="http://localhost:5178",
         api_url="http://localhost:8093",
     )
@@ -181,7 +185,11 @@ def seed_if_empty():
         name="Portfolio Management",
         description="Authorizing, monitoring, and controlling the organization's ongoing projects as a set — deciding what continues, what changes, and what stops.",
     )
-    db.session.add_all([cap_qms, cap_portfolio_mgmt])
+    cap_knowledge = Capability(
+        name="Knowledge Management",
+        description="What the organization has shown it can do: delivered scope, actual cost and schedule, and lessons from closed-out work, kept so new business and follow-on work can draw on it.",
+    )
+    db.session.add_all([cap_qms, cap_portfolio_mgmt, cap_knowledge])
     db.session.flush()
     app_qms = Application(
         name="QMS",
@@ -192,6 +200,21 @@ def seed_if_empty():
         category="enterprise",
         capability=cap_qms,
         url=None,
+    )
+    app_capability_models = Application(
+        name="Capability Models",
+        description=(
+            "Not yet built — what the organization has shown it can do, fed by every project at "
+            "closeout. Business development and solution architects draw on it for new business, "
+            "program managers for follow-on work. 15288 Organizational Project-Enabling: Knowledge "
+            "Management (6.2.6)."
+        ),
+        owning_team=None,
+        team_type=None,
+        scope="organizational",
+        category="enterprise",
+        capability=cap_knowledge,
+        url="http://localhost:5193",
     )
     app_lham = Application(
         name="Let's Have a Meeting",
@@ -313,11 +336,10 @@ def seed_if_empty():
     app_reckon = Application(
         name="Reckon",
         description=(
-            "Not yet built — a cost, schedule, and technical performance dashboard, read-only "
-            "across Good Plan, Scope Manager, and a mocked S4 actuals feed, computing real "
-            "earned value per charge number. Scales from a single project's own view up to an "
-            "organization-wide/portfolio rollup — the same underlying data, just aggregated "
-            "differently."
+            "The portfolio as badges: each project's cost, schedule and progress (earned value "
+            "from Good Plan's budget, Scope Manager's progress and S4 actuals), its period of "
+            "performance, and its risks and opportunities. Click through to any project; pursuits "
+            "show their odds and B&P spend."
         ),
         owning_team="Matt (informal enabling team)",
         team_type="enabling",
@@ -383,7 +405,7 @@ def seed_if_empty():
 
     db.session.add_all([
         app_value_stream, app_winmax,
-        app_good_plan, app_labor_supply_demand, app_qms, app_lham, app_portfolio_manager,
+        app_good_plan, app_labor_supply_demand, app_qms, app_capability_models, app_lham, app_portfolio_manager,
         app_contract_authoring, app_fixer, app_scan_me, app_org_charts,
         app_scope_manager, app_reckon, app_task_master, app_aarons_meadow, app_marti,
     ])
@@ -404,7 +426,7 @@ def seed_if_empty():
 
     project = Project(
         id=BRACKET_ID,
-        name="Bracket Assembly Program",
+        name="Bracket Assembly Project",
         customer="Acme Aerostructures",
         phase="execution",
         portfolio=portfolio,

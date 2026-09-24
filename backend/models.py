@@ -202,6 +202,10 @@ class Project(db.Model):
     # A link to the contract itself (a SharePoint / contract-repository URL). A pointer, never a
     # copy — the Depot doesn't hold the document.
     contract_url = db.Column(db.String(500), nullable=True)
+    # The contract's period of performance: the dates the work is authorized for. Reckon measures
+    # schedule against it (time elapsed, and whether the work finishes inside it).
+    pop_start = db.Column(db.Date, nullable=True)
+    pop_end = db.Column(db.Date, nullable=True)
     created_at = db.Column(db.DateTime, default=_now, nullable=False)
     updated_at = db.Column(db.DateTime, default=_now, onupdate=_now, nullable=False)
 
@@ -245,6 +249,8 @@ class Project(db.Model):
             "team_topology": self.team_topology,
             "has_manufacturing": self.has_manufacturing,
             "contract_url": self.contract_url,
+            "pop_start": self.pop_start.isoformat() if self.pop_start else None,
+            "pop_end": self.pop_end.isoformat() if self.pop_end else None,
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
             "external_ids": [e.to_dict() for e in self.external_ids],

@@ -1,3 +1,4 @@
+import { AppHeader, tabClass } from '@conways/drawer'
 import { NavLink } from 'react-router-dom'
 import { IS_EMBEDDED } from '../lib/embed'
 import PersonaMenu from './PersonaMenu'
@@ -31,35 +32,26 @@ export default function DepotNav() {
     )
   }
 
+  // The ecosystem's shared header, the same one every app uses; the Depot passes its own user
+  // menu because switching persona here reshapes the whole Launchpad.
   return (
-    <nav className="depot-nav">
-      <NavLink to="/about" className="depot-nav__brand">
-        Conway's Depot
+    <AppHeader
+      brand={
+        <NavLink to="/about" className="ch-brand">
+          Conway's Depot
+        </NavLink>
+      }
+      user={<PersonaMenu />}
+    >
+      <NavLink to="/" end className={({ isActive }) => tabClass(isActive)}>
+        Launchpad
       </NavLink>
-      <div className="depot-nav__links">
-        <NavLink
-          to="/"
-          end
-          className={({ isActive }) => `depot-nav__link ${isActive ? 'depot-nav__link--active' : ''}`}
-        >
-          Launchpad
-        </NavLink>
-        <NavLink
-          to="/projects"
-          className={({ isActive }) => `depot-nav__link ${isActive ? 'depot-nav__link--active' : ''}`}
-        >
-          Projects
-        </NavLink>
-        <NavLink
-          to="/catalog"
-          className={({ isActive }) => `depot-nav__link ${isActive ? 'depot-nav__link--active' : ''}`}
-        >
-          Catalog
-        </NavLink>
-      </div>
-      <div className="depot-nav__right">
-        <PersonaMenu />
-      </div>
-    </nav>
+      <NavLink to="/projects" className={({ isActive }) => tabClass(isActive)}>
+        Projects
+      </NavLink>
+      <NavLink to="/catalog" className={({ isActive }) => tabClass(isActive)}>
+        Catalog
+      </NavLink>
+    </AppHeader>
   )
 }

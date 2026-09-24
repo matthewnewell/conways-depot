@@ -7,6 +7,7 @@ import {
   useReorderPins,
 } from '../api/hooks'
 import type { Application, Phase, PersonProject } from '../api/types'
+import { builtByOther, STUB_ROLE_TITLES } from '../lib/apps'
 import { usePersona } from '../lib/persona'
 import AppSummaryTile from '../components/AppSummaryTile'
 import PinToggle from '../components/PinToggle'
@@ -104,6 +105,7 @@ export default function LaunchpadPage() {
       <>
         <span className="lp-app-card__name">{app.name}</span>
         {app.capability_name && <span className="lp-app-card__cap">{app.capability_name}</span>}
+        {builtByOther(app) && <span className="built-by">Built by {builtByOther(app)}</span>}
         <AppSummaryTile applicationId={app.id} />
       </>
     )
@@ -161,6 +163,13 @@ export default function LaunchpadPage() {
   return (
     <div className="launchpad-page">
       <div className="launchpad-page__content">
+        {persona && STUB_ROLE_TITLES.has(persona.title ?? '') && (
+          <div className="lp-stub-note">
+            <strong>This {persona.title?.toLowerCase()} Launchpad is a starting point.</strong> The apps built for
+            this role are still to come. Until then it pins the ecosystem apps the role already uses, and apps other
+            departments build can plug in here too. Find them in the <a href="/catalog">catalog</a>.
+          </div>
+        )}
         <section className="lp-section">
           <div className="lp-section__head">
             <span className="lp-section__title">Pinned apps</span>

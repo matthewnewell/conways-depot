@@ -270,31 +270,40 @@
   color: var(--color-text-secondary);
 }
 
-/* ── closing CTA band ────────────────────────────────────────────────────── */
+/* ── footer: a quiet close with the way back in, not another call to action ── */
 
-.splash-cta-band {
+.splash-footer {
   margin-top: 56px;
-  padding: 26px 32px;
+  padding: 20px 0 8px;
+  border-top: 1px solid var(--color-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
+  gap: 12px 24px;
   flex-wrap: wrap;
-  background: var(--color-text);
-  border-radius: var(--radius-lg);
-}
-
-.splash-cta-band__title {
-  margin: 0;
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: #fff;
-}
-
-.splash-cta-band__sub {
-  margin: 4px 0 0;
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.66);
+  color: var(--color-text-secondary);
+}
+
+.splash-footer__brand {
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.splash-footer__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+}
+
+.splash-footer__links a {
+  color: var(--color-text-secondary);
+  text-decoration: none;
+}
+
+.splash-footer__links a:hover {
+  color: var(--color-accent);
+  text-decoration: underline;
 }
 
 /* ── Theory of Operations — folded into the same Conway's Law tile instead of
@@ -335,10 +344,6 @@
     padding: 22px;
   }
 
-  .splash-cta-band {
-    flex-direction: column;
-    align-items: flex-start;
-  }
 }
 
 .splash-svg__app--link {
@@ -395,4 +400,18 @@
 
 .splash-svg__id-group--link:hover text {
   fill: var(--color-surface);
+}
+
+/* Capability models: a knowledge store, not a role, so a small cylinder, styled like the role
+   boxes (white, grey outline) so it doesn't shout louder than them. */
+.splash-svg__store-body,
+.splash-svg__store-top {
+  fill: var(--color-surface);
+  stroke: var(--color-border-strong);
+  stroke-width: 1;
+}
+
+.splash-svg__app--link:hover .splash-svg__store-body,
+.splash-svg__app--link:hover .splash-svg__store-top {
+  stroke: var(--color-accent);
 }

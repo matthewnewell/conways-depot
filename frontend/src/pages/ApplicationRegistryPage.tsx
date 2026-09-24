@@ -6,6 +6,7 @@ import { APP_CATEGORIES, CATEGORY_INFO, CATEGORY_LABEL } from '../api/types'
 import InfoPopover from '../components/InfoPopover'
 import PinToggle from '../components/PinToggle'
 import { launchApp } from '../lib/launch'
+import { builtByOther } from '../lib/apps'
 import { usePersona } from '../lib/persona'
 import './depot-shared.css'
 import './ApplicationRegistryPage.css'
@@ -79,10 +80,9 @@ export default function ApplicationRegistryPage() {
 
   // Category is the browse axis — the app store's aisle(s), a fixed 15288-derived taxonomy. Most
   // apps have one; a few straddle two. Shown whole (even empty aisles) so a gap reads as "we
-  // have no tool for that process group yet". Every category starts hidden — the catalog opens
-  // on the Featured row alone, not a full unfiltered dump; picking a category is what actually
-  // browses the aisles.
-  const [hiddenCategories, setHiddenCategories] = useState<Set<AppCategory>>(new Set(APP_CATEGORIES))
+  // have no tool for that process group yet". Every category starts checked, so the catalog opens
+  // showing every app; unchecking a category narrows it.
+  const [hiddenCategories, setHiddenCategories] = useState<Set<AppCategory>>(new Set())
   const appCats = (a: Application): AppCategory[] =>
     a.categories?.length ? a.categories : [a.category ?? 'general']
   // Visible if it's filed under at least one category that isn't hidden.
@@ -148,15 +148,7 @@ export default function ApplicationRegistryPage() {
             </button>
             <button
               className={`depot-scope-toggle__option ${scope === 'mine' ? 'depot-scope-toggle__option--active' : ''}`}
-              onClick={() => {
-                setScope('mine')
-                // "My Apps" is already a small, curated list — starting every category
-                // hidden (right for the big flat catalog, where Featured fills the gap) would
-                // just show an empty group with no explanation. Reveal all categories the first
-                // time someone switches here, same as this view's behavior before Featured
-                // existed; leave it alone once they've touched the filter themselves.
-                if (hiddenCategories.size === APP_CATEGORIES.length) setHiddenCategories(new Set())
-              }}
+              onClick={() => setScope('mine')}
             >
               My Apps
             </button>
@@ -170,6 +162,7 @@ export default function ApplicationRegistryPage() {
               {featured.map((a) => (
                 <button key={a.id} className="app-featured__card" onClick={() => open(a)}>
                   <span className="app-featured__name">{a.name}</span>
+                  {builtByOther(a) && <span className="built-by">Built by {builtByOther(a)}</span>}
                   {a.capability_name && <span className="app-featured__cap">{a.capability_name}</span>}
                   {a.description && <span className="app-featured__desc">{a.description}</span>}
                 </button>
@@ -323,6 +316,7 @@ export default function ApplicationRegistryPage() {
                               <div className="app-result-card__main">
                                 <span className="app-result-card__name">{a.name}</span>
                                 {a.capability_name && <span className="app-result-card__cap">{a.capability_name}</span>}
+                                {builtByOther(a) && <span className="built-by">Built by {builtByOther(a)}</span>}
                                 {a.description && <p className="app-result-card__desc">{a.description}</p>}
                               </div>
                               <div className="app-result-card__meta">

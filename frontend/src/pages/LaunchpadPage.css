@@ -219,3 +219,17 @@
 .lp-chip .app-summary-tile__headline {
   font-size: 1rem;
 }
+
+.lp-stub-note {
+  margin-bottom: 18px;
+  padding: 12px 14px;
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+}
+
+.lp-stub-note strong {
+  color: var(--color-text);
+}

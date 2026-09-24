@@ -50,6 +50,11 @@ const PHASE_ORDER: Record<Phase, number> = Object.fromEntries(
  * (what it is), **Team** (who's on it, and adding/removing them) and **Admin** (what an owner
  * changes, plus Delete). Like every admin affordance in this app, Admin is signposting, not
  * enforcement — there is no auth or role check yet. */
+/** "Aug 17, 2026" from an ISO date, without a timezone shift. */
+function popDate(iso: string): string {
+  return new Date(`${iso}T00:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+}
+
 export default function ProjectDetailPage() {
   const { projectId } = useParams<{ projectId: string }>()
   const { data: project, isLoading } = useProject(projectId)
@@ -118,6 +123,18 @@ export function ProjectInfoPanel({ project }: { project: ProjectDetail }) {
             ) : (
               <button className="contract-link contract-link--empty" onClick={() => openTab('admin')}>
                 Not linked — add it in Admin
+              </button>
+            )}
+          </dd>
+        </div>
+        <div className="project-facts__row">
+          <dt>Period of performance</dt>
+          <dd>
+            {project.pop_start && project.pop_end ? (
+              `${popDate(project.pop_start)} – ${popDate(project.pop_end)}`
+            ) : (
+              <button className="contract-link contract-link--empty" onClick={() => openTab('admin')}>
+                Not set — add it in Admin
               </button>
             )}
           </dd>
@@ -306,6 +323,22 @@ function Details({ project }: { project: ProjectDetail }) {
               const next = raw && !/^[a-z][a-z0-9+.-]*:/i.test(raw) ? `https://${raw}` : raw
               if (next !== (project.contract_url ?? '')) updateProject.mutate({ contract_url: next || null })
             }}
+          />
+        </label>
+        <label className="admin-field">
+          <span>Period of performance starts</span>
+          <input
+            type="date"
+            value={project.pop_start ?? ''}
+            onChange={(e) => updateProject.mutate({ pop_start: e.target.value || null })}
+          />
+        </label>
+        <label className="admin-field">
+          <span>Period of performance ends</span>
+          <input
+            type="date"
+            value={project.pop_end ?? ''}
+            onChange={(e) => updateProject.mutate({ pop_end: e.target.value || null })}
           />
         </label>
         <label className="admin-field">
@@ -510,6 +543,7 @@ function ConnectedApps({ project, manage = false }: { project: ProjectDetail; ma
             key={l.id}
             link={l}
             projectId={project.id}
+            projectName={project.name}
             manage={manage}
             personId={persona?.id}
             onRemove={() => deleteLink.mutate(l.id)}
@@ -563,12 +597,14 @@ const STATUS_TEXT: Record<string, string> = {
 function AppLinkCard({
   link: l,
   projectId,
+  projectName,
   manage,
   personId,
   onRemove,
 }: {
   link: ProjectDetail['app_links'][number]
   projectId: string
+  projectName: string
   manage: boolean
   personId: string | undefined
   onRemove: () => void
@@ -576,9 +612,10 @@ function AppLinkCard({
   const { data: summary } = useApplicationSummary(l.application_id, projectId, !manage)
   const live = !manage && !!summary?.headline
   const status = live ? summary?.status ?? 'neutral' : null
-  // Once an app reports for this project, its own link (a specific plan, board or case list) beats
-  // the generic address stored when it was connected — a project should land on ITS plan, not the app's home.
-  const href = live && summary?.href ? summary.href : (l.link_url ?? summary?.href ?? null)
+  // The app's own link for this project (a specific plan, board or filtered case list) beats the
+  // generic address stored when it was connected, even when the app has nothing to report yet: a
+  // project with zero cases should still land on ITS empty case list, not the app's home.
+  const href = summary?.href ?? l.link_url ?? null
   const clickable = !manage && !!href
   const className = `app-link-card${status ? ` app-link-card--${status}` : ''}${clickable ? ' app-link-card--link' : ''}`
 
@@ -609,7 +646,7 @@ function AppLinkCard({
   )
 
   return clickable ? (
-    <a className={className} href={withDepotOrigin(href!, `/projects/${projectId}`, personId)} target="_self">
+    <a className={className} href={withDepotOrigin(href!, `/projects/${projectId}`, personId, projectName)} target="_self">
       {body}
     </a>
   ) : (

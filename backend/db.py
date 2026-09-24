@@ -50,6 +50,8 @@ _MIGRATIONS: list[tuple[str, str, str]] = [
     ("project", "contract_url", "ALTER TABLE project ADD COLUMN contract_url VARCHAR(500)"),
     ("portfolio", "channels", "ALTER TABLE portfolio ADD COLUMN channels TEXT"),
     ("person", "standing_charge_number", "ALTER TABLE person ADD COLUMN standing_charge_number VARCHAR(64)"),
+    ("project", "pop_start", "ALTER TABLE project ADD COLUMN pop_start DATE"),
+    ("project", "pop_end", "ALTER TABLE project ADD COLUMN pop_end DATE"),
 ]
 
 

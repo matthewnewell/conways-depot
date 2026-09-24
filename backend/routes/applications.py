@@ -15,6 +15,7 @@ from models import (
     PinOrder,
     Project,
     ProjectAppLink,
+    ProjectMembership,
 )
 
 bp = Blueprint("applications", __name__, url_prefix="/api/applications")
@@ -215,12 +216,11 @@ def my_charges():
     just calls it and passes the answer through. No app found or unreachable is the same quiet
     empty state as everywhere else, not an error the frontend has to special-case.
 
-    Not everyone's chargeable time is a labor-plan position, though — Business Development's
-    proposal/capture work, for instance, isn't in LSD at all. For that, this falls back to the
-    person's own standing charge number (Person.standing_charge_number) as a synthetic
-    assignment, so their drawer still shows something real-looking instead of "couldn't find
-    you" — a placeholder in the same honest spirit as LSD's own charge_numbers.py, not a claim
-    that Business Development charge lines are actually modeled anywhere."""
+    Not everyone's chargeable time is a labor-plan position, though. Capture and proposal work
+    isn't in LSD at all: it charges to each pursuit's own B&P number from S4 (the project's
+    "S4 B&P" crosswalk entry), so someone on pursuits gets one line per pursuit. Failing that, a
+    person's standing charge number (Person.standing_charge_number) is shown as a synthetic
+    assignment. Both are placeholders in the same spirit as LSD's charge_numbers.py."""
     person_id = request.args.get("person_id")
     empty = {"person_name": None, "assignments": [], "actuals": []}
     if not person_id:
@@ -237,6 +237,24 @@ def my_charges():
             pass
 
     person = db.session.get(Person, person_id)
+    if person and not data.get("assignments"):
+        pursuits = []
+        for m in ProjectMembership.query.filter_by(person_id=person.id).all():
+            project = db.session.get(Project, m.project_id)
+            bp = next((e.external_id for e in (project.external_ids if project else []) if e.system == "S4 B&P"), None)
+            if bp and project.phase == "pursuit":
+                pursuits.append({
+                    "id": f"bp-{project.id}",
+                    "project_name": project.name,
+                    "position_label": m.role_label or person.title,
+                    "start_date": None,
+                    "end_date": None,
+                    "charge_number": bp,
+                })
+        if pursuits:
+            data = dict(data)
+            data["person_name"] = data.get("person_name") or person.name
+            data["assignments"] = sorted(pursuits, key=lambda a: a["project_name"])
     if person and person.standing_charge_number and not data.get("assignments"):
         data = dict(data)
         data["person_name"] = data.get("person_name") or person.name

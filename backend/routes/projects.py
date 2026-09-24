@@ -1,3 +1,5 @@
+from datetime import date
+
 from flask import Blueprint, jsonify, request
 from sqlalchemy import func
 
@@ -153,6 +155,15 @@ def update_project(project_id):
         p.has_manufacturing = body["has_manufacturing"]
     if "contract_url" in body:
         p.contract_url = (body["contract_url"] or "").strip() or None
+    for field in ("pop_start", "pop_end"):
+        if field in body:
+            raw = body[field]
+            try:
+                setattr(p, field, date.fromisoformat(raw) if raw else None)
+            except (TypeError, ValueError):
+                return jsonify({"error": f"{field} must be a date (YYYY-MM-DD)"}), 400
+    if p.pop_start and p.pop_end and p.pop_end < p.pop_start:
+        return jsonify({"error": "the period of performance can't end before it starts"}), 400
 
     db.session.commit()
     return jsonify(p.to_dict())

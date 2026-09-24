@@ -33,6 +33,7 @@ APPS=(
   "lets-have-a-meeting-frontend|5189|/home/matthew/lets-have-a-meeting/frontend|source ~/.nvm/nvm.sh && npm run dev -- --host 0.0.0.0"
   "portfolio-manager-frontend|5190|/home/matthew/portfolio-manager/frontend|source ~/.nvm/nvm.sh && npm run dev -- --host 0.0.0.0"
   "qms-frontend|5191|/home/matthew/qms/frontend|source ~/.nvm/nvm.sh && npm run dev -- --host 0.0.0.0"
+  "capability-models-frontend|5193|/home/matthew/capability-models/frontend|source ~/.nvm/nvm.sh && npm run dev -- --host 0.0.0.0"
   "reckon-backend|8103|/home/matthew/reckon/backend|.venv/bin/python app.py"
   "reckon-frontend|5192|/home/matthew/reckon/frontend|source ~/.nvm/nvm.sh && npm run dev -- --host 0.0.0.0"
   "demo-shell|5180|/home/matthew/conways-depot/demo-shell|python3 -m http.server 5180 --bind 0.0.0.0"

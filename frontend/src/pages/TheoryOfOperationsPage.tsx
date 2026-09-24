@@ -116,10 +116,9 @@ export default function TheoryOfOperationsPage() {
         <section className="theory-matters">
           <h2>Why this matters</h2>
           <p>
-            Implementations of workplace technology can be difficult because organizations treat
-            software as an external artifact dropped onto an existing structure. The challenge
-            is especially difficult when integrating AI workflow applications, where the cost of
-            that mismatch is stark:
+            Workplace technology tends to fail when it&rsquo;s dropped onto an organization from
+            outside instead of shaped around how the work actually moves. With AI workflow
+            tools, the cost of that mismatch is starker:
           </p>
           <ul className="theory-matters__stats">
             <li>
@@ -173,17 +172,17 @@ export default function TheoryOfOperationsPage() {
             isolated AI experiments into capabilities that hold up at enterprise scale.
           </p>
           <p className="theory-matters__proof">
-            Microsoft reached the same conclusion from the inside. Broad AI rollout on its own
-            barely moved the needle; the shift came from redesigning whole workflows around real
-            handoffs, not just speeding up individual steps — cycle times fell as much as 75% in
-            the workflows it rebuilt this way.{' '}
+            At Microsoft, a broad AI rollout fell short on its own. As the company put it,
+            &ldquo;access and usage do not equal transformation.&rdquo; The gains came from redesigning whole workflows
+            end to end instead of speeding up single steps, and cycle time fell by up to 75% in
+            the workflows it rebuilt.{' '}
             <a
               className="theory-matters__source"
               href="https://blogs.microsoft.com/blog/2026/09/17/what-weve-learned-from-microsofts-own-ai-transformation/"
               target="_blank"
               rel="noopener noreferrer"
             >
-              Microsoft
+              Microsoft, Sep 17, 2026
             </a>
           </p>
         </section>
@@ -202,15 +201,17 @@ export default function TheoryOfOperationsPage() {
 
           <div className="theory-entry">
             <p className="theory-entry__term">
-              One thread
+              One ID
               <br />
               per project
-              <em>Digital thread</em>
+              <em>On top of S4 and Active Directory</em>
             </p>
             <p className="theory-entry__def">
-              Every project gets a single ID the moment it&rsquo;s pursued, and that ID never
-              changes. It&rsquo;s the thread that ties every record, in every tool, back to the same
-              piece of work.
+              The established systems stay in charge of what they already own: S4 for projects and
+              cost, Active Directory for people and the organization. The apps read from them rather
+              than replacing or copying them. Every project gets a single ID the moment it&rsquo;s
+              pursued, and that ID never changes: it ties every record, in every tool, back to the
+              same piece of work.
             </p>
           </div>
 

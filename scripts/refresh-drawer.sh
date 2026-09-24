@@ -8,7 +8,7 @@
 set -uo pipefail
 source ~/.nvm/nvm.sh 2>/dev/null || true
 
-APPS=(conways-depot ValueStream marti winmax the-fixer task-master good-plan aarons-meadow labor-supply-demand org-charts scan-me scope-manager lets-have-a-meeting portfolio-manager qms reckon)  # apps using @conways/drawer
+APPS=(conways-depot ValueStream marti winmax the-fixer task-master good-plan aarons-meadow labor-supply-demand org-charts scan-me scope-manager lets-have-a-meeting portfolio-manager qms reckon capability-models)  # apps using @conways/drawer
 
 for app in "${APPS[@]}"; do
   dir="$HOME/$app/frontend"

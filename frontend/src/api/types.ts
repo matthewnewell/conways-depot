@@ -194,6 +194,9 @@ export interface ProjectSummary {
   has_manufacturing: boolean | null
   /** Link to the contract itself (a pointer to a SharePoint / repository document). */
   contract_url: string | null
+  /** The contract's period of performance (ISO dates). */
+  pop_start: string | null
+  pop_end: string | null
   created_at: string
   updated_at: string
   external_ids: ExternalId[]

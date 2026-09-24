@@ -25,3 +25,5 @@ Thumbs.db
 # scripts/start-all.sh runtime state — pid files and per-app logs, not source
 .run/
 logs/
+
+data-backup/

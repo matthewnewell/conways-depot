@@ -230,7 +230,7 @@
   margin-top: 12px;
 }
 
-/* The Microsoft paragraph isn't another failure statistic — it's a peer confirming the fix, so
+/* The Microsoft paragraph isn't another failure statistic — it's a real-world example of the fix, so
    it gets the same evidence border-left the stats list uses, not folded into that list. */
 .theory-matters p.theory-matters__proof {
   margin-top: 18px;

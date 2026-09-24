@@ -10,7 +10,7 @@ database (seed.seed_people_if_empty) and by hand against a live one (backend/ref
 It never touches personas or projects outside this file (e.g. a project someone made by hand).
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 
 from db import db
 from models import (
@@ -37,6 +37,11 @@ PRIYA_ID = "5b0e3f0a-6c1d-4a52-9d0e-7d2a1c8b4f11"  # Mission Assurance
 MARCUS_ID = "8c2d7e14-3f5a-4b96-a1c7-92e5b6d0a3c2"  # Portfolio Manager
 JESS_ID = "c96051dc-b435-476f-8600-2283a6039df4"  # Business Development
 JORDAN_ID = "80eb0042-d7b5-436b-9a88-9784aef22858"  # Production Support Engineer
+# Roles whose own apps aren't built yet: their Launchpads are stubs, pinning what already exists
+# (and, for contracts, Legal / Contracts' own authoring app).
+NATHAN_ID = "3f6c1e2a-8b47-4d09-a5e3-6d2b9c0f7a14"  # Project Engineer
+ELLIS_ID = "7a2e9d41-5c3b-4f86-b0d2-1e8c4a6f9b35"  # Contracts Manager
+THEO_ID = "c1d84b6e-2f9a-47c3-8e15-5b0a7d3c2e98"  # Solutions Architect
 
 # Portfolios
 INDUSTRIAL_PORTFOLIO_ID = "9b8d3480-2052-439d-9a24-3f90c824c31a"
@@ -76,16 +81,29 @@ PEOPLE = {
     MARCUS_ID: ("Marcus Webb", "Portfolio Manager", False),
     JESS_ID: ("Jess Kim", "Business Development Lead", False),
     JORDAN_ID: ("Jordan Park", "Production Support Engineer", False),
+    # The program manager faces the customer and leadership and chases follow-on work; the
+    # project engineer runs the project's execution. Nathan Cole is a real Project Engineer in
+    # Org Charts, so Labor Supply & Demand can find him by name.
+    NATHAN_ID: ("Nathan Cole", "Project Engineer", False),
+    ELLIS_ID: ("Ellis Warburton", "Contracts Manager", False),
+    THEO_ID: ("Theo Brandt", "Solutions Architect", False),
 }
 
-# A standing S4 charge number for whoever's time isn't a project labor-plan position at all —
-# Business Development's proposal/capture work charges to an indirect Bid & Proposal pool, not
-# a project WBS (a pursuit isn't even in S4 as a project yet). See Person.standing_charge_number
-# and routes/applications.py's /api/my-charges, which shows this only when LSD has no labor-plan
-# assignment of its own to report — a placeholder in the same spirit as LSD's own
-# charge_numbers.py, not a real accounting model.
-STANDING_CHARGE_NUMBERS = {
-    JESS_ID: "B&P-2026",
+# A standing S4 charge number for someone whose time is neither a labor-plan position nor a
+# pursuit (see Person.standing_charge_number and /api/my-charges). None of the demo personas
+# needs one now: business development charges to each pursuit's own B&P number, below.
+STANDING_CHARGE_NUMBERS: dict[str, str] = {}
+
+# Each pursuit's Bid & Proposal charge number from S4. Capture and proposal effort isn't project
+# work (a pursuit has no S4 project or WBS yet), so it charges to the pursuit's own B&P number
+# under the indirect B&P pool: one per pursuit, so what each bid cost can be seen. Kept on the
+# project's crosswalk as system "S4 B&P"; Good Plan and /api/my-charges read it from there.
+BP_SYSTEM = "S4 B&P"
+BP_CHARGE_NUMBERS = {
+    COASTAL_ID: "B&P-26-0417",
+    AVIONICS_IDIQ_ID: "B&P-26-0388",
+    FLEET_READINESS_ID: "B&P-26-0452",
+    LEGACY_RADAR_ID: "B&P-26-0361",
 }
 
 # person -> [(project id, role label, can_manage_members)]
@@ -124,6 +142,23 @@ MEMBERSHIPS = {
         (LEGACY_RADAR_ID, "Capture Manager", True),
         (AVIONICS_IDIQ_ID, "Capture Manager", True),
     ],
+    NATHAN_ID: [
+        (BRACKET_ID, "Project Engineer", False),
+        (NACELLE_ID, "Project Engineer", False),
+        (RADAR_ID, "Project Engineer", False),
+    ],
+    # Contracts works the award: the proposal about to become a contract, and the awarded work.
+    ELLIS_ID: [
+        (AVIONICS_IDIQ_ID, "Contracts Manager", False),
+        (BRACKET_ID, "Contracts Manager", False),
+        (RADAR_ID, "Contracts Manager", False),
+    ],
+    # The solution side of the pursuit, beside business development.
+    THEO_ID: [
+        (AVIONICS_IDIQ_ID, "Solutions Architect", False),
+        (FLEET_READINESS_ID, "Solutions Architect", False),
+        (COASTAL_ID, "Solutions Architect", False),
+    ],
     # The shop-floor side of execution: the projects with a manufacturing build under way.
     JORDAN_ID: [
         (BRACKET_ID, "Production Support Engineer", False),
@@ -135,21 +170,26 @@ MEMBERSHIPS = {
 # Organizational-scope apps are on for everyone by default; a role's launchpad is shaped by what
 # it HIDES. Project-scope apps are shaped by what it PINS (in this order).
 _ORG_APPS = [
-    "Aaron's Meadow", "Contract & Legal Authoring", "Labor Supply & Demand", "Let's Have a Meeting",
+    "Aaron's Meadow", "Capability Models", "Contract & Legal Authoring", "Labor Supply & Demand", "Let's Have a Meeting",
     "Org Charts", "Portfolio Manager", "QMS", "Scan Me", "Task Master",
 ]
 _VISIBLE_ORG = {
     ADMIN_ID: set(_ORG_APPS),
-    SAM_ID: {"Task Master", "Let's Have a Meeting", "Labor Supply & Demand"},
+    SAM_ID: {"Task Master", "Let's Have a Meeting", "Labor Supply & Demand", "Capability Models"},
     ALEX_ID: {"Labor Supply & Demand", "Org Charts", "Task Master", "Let's Have a Meeting"},
     PRIYA_ID: {"Scan Me", "Task Master"},
     MARCUS_ID: {"Portfolio Manager", "Labor Supply & Demand", "Org Charts", "Task Master", "Let's Have a Meeting"},
-    JESS_ID: {"Contract & Legal Authoring", "Task Master"},
+    JESS_ID: {"Contract & Legal Authoring", "Task Master", "Capability Models"},
     JORDAN_ID: {"Scan Me", "QMS", "Task Master", "Let's Have a Meeting"},
+    NATHAN_ID: {"Task Master", "Let's Have a Meeting", "Scan Me", "Labor Supply & Demand"},
+    ELLIS_ID: {"Contract & Legal Authoring", "Task Master"},
+    THEO_ID: {"Capability Models", "Aaron's Meadow", "Task Master"},
 }
 PINS = {
     ADMIN_ID: ["Good Plan", "Value Stream", "WinMax"],
-    SAM_ID: ["Good Plan", "Value Stream", "MARTI", "Scope Manager", "Reckon"],
+    # Customer, leadership and follow-on: budget and performance, not the shop floor (that moved
+    # to the project engineer).
+    SAM_ID: ["Good Plan", "Reckon", "Scope Manager", "WinMax", "Value Stream"],
     ALEX_ID: ["Good Plan"],
     PRIYA_ID: ["The Fixer", "Value Stream"],
     MARCUS_ID: ["Good Plan", "Value Stream", "MARTI", "WinMax", "Reckon"],
@@ -160,6 +200,13 @@ PINS = {
     # MARTI first: material, routing and the Tradeoffs queue are the job. Value Stream for the
     # flow itself, The Fixer for the nonconformances that stop it.
     JORDAN_ID: ["MARTI", "Value Stream", "The Fixer"],
+    # Execution: material and routings, the WBS and its progress, the budget, and what broke.
+    NATHAN_ID: ["MARTI", "Scope Manager", "Good Plan", "The Fixer"],
+    # The contract's value and type, and how the work is performing against it. (Contract &
+    # Legal Authoring, built by Legal / Contracts, is on too: it's an organizational app.)
+    ELLIS_ID: ["Good Plan", "Reckon"],
+    # The pursuit's odds, and the draft WBS and estimate the solution is priced on.
+    THEO_ID: ["WinMax", "Good Plan"],
 }
 
 # ── portfolios & projects ─────────────────────────────────────────────────────────────────────
@@ -267,16 +314,18 @@ NEW_PROJECTS = {
 PROJECT_FACTS = {
     BRACKET_ID: dict(
         contract_url="https://contoso.sharepoint.com/sites/contracts/Shared%20Documents/ACM-2026-0142.pdf",
+        pop=("2026-08-17", "2027-07-31"),
         portfolio_id=INDUSTRIAL_PORTFOLIO_ID,
         s4="P-100234",
         channels=[
-            {"label": "Program Team", "url": "https://teams.microsoft.com/l/channel/bracket-program-team", "kind": "teams"},
-            {"label": "Program Library", "url": "https://contoso.sharepoint.com/sites/bracket-assembly", "kind": "sharepoint"},
+            {"label": "Project Team", "url": "https://teams.microsoft.com/l/channel/bracket-project-team", "kind": "teams"},
+            {"label": "Project Library", "url": "https://contoso.sharepoint.com/sites/bracket-assembly", "kind": "sharepoint"},
             {"label": "Engineering Backlog", "url": "https://dev.azure.com/contoso/Bracket-Assembly/_boards", "kind": "azure-devops"},
         ],
     ),
     NACELLE_ID: dict(
         contract_url="https://contoso.sharepoint.com/sites/contracts/Shared%20Documents/SKY-2026-0087.pdf",
+        pop=("2026-08-17", "2027-06-30"),
         portfolio_id=INDUSTRIAL_PORTFOLIO_ID,
         s4="P-100310",
         channels=[
@@ -292,6 +341,7 @@ PROJECT_FACTS = {
     ),
     RADAR_ID: dict(
         contract_url="https://contoso.sharepoint.com/sites/contracts/Shared%20Documents/NGD-2026-0311.pdf",
+        pop=("2026-08-03", "2027-08-31"),
         s4="P-100455",
         channels=[
             {"label": "Production Team", "url": "https://teams.microsoft.com/l/channel/radar-housing", "kind": "teams"},
@@ -301,6 +351,7 @@ PROJECT_FACTS = {
     ),
     AVIONICS_ID: dict(
         contract_url="https://contoso.sharepoint.com/sites/contracts/Shared%20Documents/MER-2025-0219.pdf",
+        pop=("2025-03-01", "2026-08-31"),
         s4="P-099871",
         channels=[
             {"label": "Closeout Binder", "url": "https://contoso.sharepoint.com/sites/avionics-closeout", "kind": "sharepoint"},
@@ -332,7 +383,15 @@ APP_LINKS = [
     (RADAR_ID, "Labor Supply & Demand", "execution", "Who is named to the labor this project asked for."),
     (COASTAL_ID, "Labor Supply & Demand", "pursuit", "Pipeline demand — not staffed until the bid is won."),
     (COASTAL_ID, "WinMax", "pursuit", "Recompete capture — bid/no-bid pending."),
-    (COASTAL_ID, "Scope Manager", "pursuit", "Statement-of-work scope for the proposal."),
+    # A pursuit has no WBS in Scope Manager: the proposal's draft WBS and estimate live in Good Plan.
+    (COASTAL_ID, "Good Plan", "pursuit", "Draft WBS and basis of estimate for the proposal."),
+    (BRACKET_ID, "Scope Manager", "execution", "The WBS: work packages Good Plan budgets against, and progress."),
+    (NACELLE_ID, "Scope Manager", "execution", "The WBS: work packages Good Plan budgets against, and progress."),
+    (RADAR_ID, "Scope Manager", "execution", "The WBS: work packages Good Plan budgets against, and progress."),
+    (BRACKET_ID, "Reckon", "execution", "Cost, schedule and progress; risks and opportunities."),
+    (NACELLE_ID, "Reckon", "execution", "Cost, schedule and progress; risks and opportunities."),
+    (RADAR_ID, "Reckon", "execution", "Cost, schedule and progress; risks and opportunities."),
+    (COASTAL_ID, "Reckon", "pursuit", "Pursuit odds, B&P spend and capture risks."),
 ]
 
 # (project id, author, days ago, text)
@@ -415,6 +474,8 @@ def apply_demo_data() -> dict:
         project.channel_list = facts["channels"]
         if "contract_url" in facts:
             project.contract_url = facts["contract_url"]
+        if "pop" in facts:
+            project.pop_start, project.pop_end = (date.fromisoformat(d) for d in facts["pop"])
         for system, key in (("S4", "s4"), ("WinMax", "winmax")):
             if key not in facts:
                 continue
@@ -424,6 +485,15 @@ def apply_demo_data() -> dict:
             else:
                 existing.external_id = facts[key]
 
+    for pid, number in BP_CHARGE_NUMBERS.items():
+        if db.session.get(Project, pid) is None:
+            continue
+        existing = ExternalId.query.filter_by(project_id=pid, system=BP_SYSTEM).first()
+        if existing is None:
+            db.session.add(ExternalId(project_id=pid, system=BP_SYSTEM, external_id=number))
+        else:
+            existing.external_id = number
+
     # app connections
     for pid, app_name, phase, note in APP_LINKS:
         app = apps.get(app_name)
@@ -432,15 +502,24 @@ def apply_demo_data() -> dict:
         # The Fixer is Depot-unaware and knows a case's project only by NAME, so its crosswalk ref
         # is the project name (the Depot passes that to its /api/summary).
         ref = db.session.get(Project, pid).name if app_name == "The Fixer" else None
+        # Scope Manager and Reckon key on the Depot project id, so their links open this project.
+        url = app.url or None
+        if app_name == "Scope Manager" and app.url:
+            url = f"{app.url.rstrip('/')}/?project={pid}"
+        elif app_name == "Reckon" and app.url:
+            url = f"{app.url.rstrip('/')}/projects/{pid}"
         link = ProjectAppLink.query.filter_by(project_id=pid, application_id=app.id).first()
         if link is None:
             db.session.add(ProjectAppLink(
                 project_id=pid, application_id=app.id, phase=phase, notes=note,
-                link_url=app.url or None, external_ref=ref,
+                link_url=url, external_ref=ref,
             ))
             summary["links_added"] += 1
-        elif ref and not link.external_ref:
-            link.external_ref = ref
+        else:
+            if ref and not link.external_ref:
+                link.external_ref = ref
+            if app_name in ("Scope Manager", "Reckon") and link.link_url != url:
+                link.link_url = url
     db.session.flush()
 
     # WinMax deep links for Jess Kim's three real pursuits: the project's id IS the pursuit's id

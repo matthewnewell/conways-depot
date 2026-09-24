@@ -6,11 +6,14 @@
  * shared "← Conway's Depot" back bar (@conways/drawer's DepotBackBar) can return you to
  * exactly where you came from. Apps that ignore these params are unaffected.
  */
-export function withDepotOrigin(url: string, from: string, personId?: string): string {
+export function withDepotOrigin(url: string, from: string, personId?: string, fromLabel?: string): string {
   try {
     const u = new URL(url)
     if (personId && !u.searchParams.has('person_id')) u.searchParams.set('person_id', personId)
     u.searchParams.set('from', from)
+    // The app's back link names this page ("← Bracket Assembly Project"); without a label it
+    // falls back to the page type (Launchpad, Catalog, Project).
+    if (fromLabel) u.searchParams.set('from_label', fromLabel)
     u.searchParams.set('depot', window.location.origin)
     return u.toString()
   } catch {
