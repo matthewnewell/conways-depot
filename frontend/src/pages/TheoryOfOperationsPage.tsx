@@ -1,5 +1,4 @@
 import { useEffect } from 'react'
-import { Link } from 'react-router-dom'
 import './TheoryOfOperationsPage.css'
 
 const FONT_HREF =
@@ -30,9 +29,6 @@ export default function TheoryOfOperationsPage() {
     <div className="theory-page">
       <div className="theory-page__inner">
         <header className="theory-masthead">
-          <Link className="theory-eyebrow" to="/about">
-            ← Conway&rsquo;s Depot
-          </Link>
           <h1>Theory of Operations</h1>
           <p className="theory-masthead__thesis">
             A system ends up shaped like the organization that built it.

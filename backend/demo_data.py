@@ -36,6 +36,7 @@ ALEX_ID = "b97db3f6-5cef-43a0-8db0-80d87ec01b2a"  # Engineering Functional Manag
 PRIYA_ID = "5b0e3f0a-6c1d-4a52-9d0e-7d2a1c8b4f11"  # Mission Assurance
 MARCUS_ID = "8c2d7e14-3f5a-4b96-a1c7-92e5b6d0a3c2"  # Portfolio Manager
 JESS_ID = "c96051dc-b435-476f-8600-2283a6039df4"  # Business Development
+JORDAN_ID = "80eb0042-d7b5-436b-9a88-9784aef22858"  # Production Support Engineer
 
 # Portfolios
 INDUSTRIAL_PORTFOLIO_ID = "9b8d3480-2052-439d-9a24-3f90c824c31a"
@@ -48,6 +49,17 @@ RIVERSIDE_ID = "fee0a151-fc90-42d1-ac74-49525d7d9d8d"
 RADAR_ID = "2a9c5e71-84d3-4f0b-b6a2-c13e7d9f5a08"
 AVIONICS_ID = "6f1b8d23-0a4e-47c5-8e93-5b7c2a1d9e64"
 COASTAL_ID = "d4e7a1b9-5c28-4360-9f1a-e83b0c6d72f5"
+
+# Jess Kim's real pipeline — one Depot project per actual WinMax pursuit (see winmax/seed.py's
+# own PURSUITS), replacing the two made-up "Prospect" placeholders above for her specifically.
+# The id is deliberately the SAME as that pursuit's own id in WinMax's database (not a fresh
+# uuid) — same "fixed ids so a sibling app's own seed lines up" convention as everywhere else in
+# this ecosystem, and it makes the WinMax deep link trivial: no separate ExternalId crosswalk to
+# maintain, the project id IS the pursuit id. Riverside/Coastal stay exactly as they were for
+# Marcus Webb (Portfolio Manager) — only Jess Kim's membership moves to these three.
+FLEET_READINESS_ID = "058bf4bb-5a4b-44c9-9163-8e9935e883a3"  # Fleet Readiness Center Depot-Level Repair
+LEGACY_RADAR_ID = "253e7b04-1bab-4467-83fe-b2249cbcbe5f"  # Legacy Radar Depot Repair Recompete
+AVIONICS_IDIQ_ID = "demo-avionics-idiq"  # Next-Gen Avionics Sustainment IDIQ
 
 
 def _days_ago(n: float) -> datetime:
@@ -63,6 +75,17 @@ PEOPLE = {
     PRIYA_ID: ("Priya Nair", "Mission Assurance Manager", False),
     MARCUS_ID: ("Marcus Webb", "Portfolio Manager", False),
     JESS_ID: ("Jess Kim", "Business Development Lead", False),
+    JORDAN_ID: ("Jordan Park", "Production Support Engineer", False),
+}
+
+# A standing S4 charge number for whoever's time isn't a project labor-plan position at all —
+# Business Development's proposal/capture work charges to an indirect Bid & Proposal pool, not
+# a project WBS (a pursuit isn't even in S4 as a project yet). See Person.standing_charge_number
+# and routes/applications.py's /api/my-charges, which shows this only when LSD has no labor-plan
+# assignment of its own to report — a placeholder in the same spirit as LSD's own
+# charge_numbers.py, not a real accounting model.
+STANDING_CHARGE_NUMBERS = {
+    JESS_ID: "B&P-2026",
 }
 
 # person -> [(project id, role label, can_manage_members)]
@@ -92,9 +115,20 @@ MEMBERSHIPS = {
         (COASTAL_ID, "Portfolio Manager", True),
     ],
     JESS_ID: [
-        (RIVERSIDE_ID, "Capture Manager", True),
-        (COASTAL_ID, "Capture Manager", True),
-        (BRACKET_ID, "Capture Lead (handoff)", False),
+        # Pursuit-only, deliberately — Business Development's own Launchpad should show the
+        # deals she's actually chasing, not a project that's already in execution just because
+        # she handed it off there once. (She used to also sit on BRACKET_ID as a post-award
+        # handoff role, and on the Riverside/Coastal placeholders — see FLEET_READINESS_ID
+        # above for why those moved to WinMax's actual three pursuits instead.)
+        (FLEET_READINESS_ID, "Capture Manager", True),
+        (LEGACY_RADAR_ID, "Capture Manager", True),
+        (AVIONICS_IDIQ_ID, "Capture Manager", True),
+    ],
+    # The shop-floor side of execution: the projects with a manufacturing build under way.
+    JORDAN_ID: [
+        (BRACKET_ID, "Production Support Engineer", False),
+        (NACELLE_ID, "Production Support Engineer", False),
+        (RADAR_ID, "Production Support Engineer", False),
     ],
 }
 
@@ -107,18 +141,25 @@ _ORG_APPS = [
 _VISIBLE_ORG = {
     ADMIN_ID: set(_ORG_APPS),
     SAM_ID: {"Task Master", "Let's Have a Meeting", "Labor Supply & Demand"},
-    ALEX_ID: {"Labor Supply & Demand", "Org Charts", "Task Master", "Let's Have a Meeting", "Aaron's Meadow"},
-    PRIYA_ID: {"QMS", "Scan Me", "Task Master", "Let's Have a Meeting"},
+    ALEX_ID: {"Labor Supply & Demand", "Org Charts", "Task Master", "Let's Have a Meeting"},
+    PRIYA_ID: {"Scan Me", "Task Master"},
     MARCUS_ID: {"Portfolio Manager", "Labor Supply & Demand", "Org Charts", "Task Master", "Let's Have a Meeting"},
-    JESS_ID: {"Contract & Legal Authoring", "Task Master", "Let's Have a Meeting", "Org Charts"},
+    JESS_ID: {"Contract & Legal Authoring", "Task Master"},
+    JORDAN_ID: {"Scan Me", "QMS", "Task Master", "Let's Have a Meeting"},
 }
 PINS = {
     ADMIN_ID: ["Good Plan", "Value Stream", "WinMax"],
     SAM_ID: ["Good Plan", "Value Stream", "MARTI", "Scope Manager", "Reckon"],
-    ALEX_ID: ["Good Plan", "Value Stream", "The Fixer"],
-    PRIYA_ID: ["The Fixer", "MARTI", "Value Stream", "Scope Manager"],
+    ALEX_ID: ["Good Plan"],
+    PRIYA_ID: ["The Fixer", "Value Stream"],
     MARCUS_ID: ["Good Plan", "Value Stream", "MARTI", "WinMax", "Reckon"],
-    JESS_ID: ["WinMax", "Scope Manager", "Good Plan", "Reckon"],
+    # No Good Plan/Reckon (post-award cost planning, not her job) and, per _VISIBLE_ORG above,
+    # Let's Have a Meeting/Org Charts are hidden too — a capture lead's Launchpad should be
+    # about winning the deal, not running the program once it's won.
+    JESS_ID: ["WinMax", "Scope Manager"],
+    # MARTI first: material, routing and the Tradeoffs queue are the job. Value Stream for the
+    # flow itself, The Fixer for the nonconformances that stop it.
+    JORDAN_ID: ["MARTI", "Value Stream", "The Fixer"],
 }
 
 # ── portfolios & projects ─────────────────────────────────────────────────────────────────────
@@ -188,6 +229,37 @@ NEW_PROJECTS = {
             "is due in three weeks."
         ),
         history=[(None, "pursuit", 14)],
+    ),
+    # Jess Kim's real pipeline — see FLEET_READINESS_ID above. Names, customers and portfolio
+    # match WinMax's own pursuit records exactly (winmax/seed.py's PURSUITS); phase is "pursuit"
+    # regardless of WinMax's own gate/bid-decision (Depot's phase model doesn't have a "no-bid"
+    # state — a declined pursuit is still tracked, just not moving toward award).
+    FLEET_READINESS_ID: dict(
+        name="Fleet Readiness Center Depot-Level Repair",
+        customer="Naval Air Systems Command",
+        phase="pursuit",
+        portfolio_id=INDUSTRIAL_PORTFOLIO_ID,
+        description="Depot-level repair opportunity, still in qualification — no customer access yet.",
+        history=[(None, "pursuit", 15)],
+    ),
+    LEGACY_RADAR_ID: dict(
+        name="Legacy Radar Depot Repair Recompete",
+        customer="Naval Air Systems Command",
+        phase="pursuit",
+        portfolio_id=INDUSTRIAL_PORTFOLIO_ID,
+        description=(
+            "Recompete of a legacy radar depot repair contract. Capture investment declined "
+            "in WinMax pending resolution of a Continuing Resolution with no new-start authority."
+        ),
+        history=[(None, "pursuit", 58)],
+    ),
+    AVIONICS_IDIQ_ID: dict(
+        name="Next-Gen Avionics Sustainment IDIQ",
+        customer="Air Force Sustainment Center",
+        phase="pursuit",
+        portfolio_id=INDUSTRIAL_PORTFOLIO_ID,
+        description="IDIQ sustainment recompete — capture investment authorized in WinMax; teaming with a small-business partner closes the one capability gap.",
+        history=[(None, "pursuit", 83)],
     ),
 }
 
@@ -307,15 +379,17 @@ def apply_demo_data() -> dict:
 
     # people
     for pid, (name, title, is_admin) in PEOPLE.items():
+        standing_charge_number = STANDING_CHARGE_NUMBERS.get(pid)
         person = db.session.get(Person, pid)
         if person is None:
             # a legacy row with the same name but a random id: adopt that name's slot only if it
             # has no fixed id yet — simplest is to create the fixed-id person alongside.
-            person = Person(id=pid, name=name, title=title, is_admin=is_admin)
+            person = Person(id=pid, name=name, title=title, is_admin=is_admin, standing_charge_number=standing_charge_number)
             db.session.add(person)
             summary["people"] += 1
         else:
             person.name, person.title, person.is_admin = name, title, is_admin
+            person.standing_charge_number = standing_charge_number
     db.session.flush()
 
     # new projects
@@ -367,6 +441,24 @@ def apply_demo_data() -> dict:
             summary["links_added"] += 1
         elif ref and not link.external_ref:
             link.external_ref = ref
+    db.session.flush()
+
+    # WinMax deep links for Jess Kim's three real pursuits: the project's id IS the pursuit's id
+    # (see FLEET_READINESS_ID etc. above), so the link goes straight to that pursuit's own show
+    # page in WinMax, not WinMax's generic index — a project's "connected app" tile should always
+    # land you on THAT project's page in the app, same expectation as every other connected app.
+    winmax_app = apps.get("WinMax")
+    if winmax_app and winmax_app.url:
+        for pid in (FLEET_READINESS_ID, LEGACY_RADAR_ID, AVIONICS_IDIQ_ID):
+            if db.session.get(Project, pid) is None:
+                continue
+            link_url = f"{winmax_app.url.rstrip('/')}/pursuits/{pid}"
+            link = ProjectAppLink.query.filter_by(project_id=pid, application_id=winmax_app.id).first()
+            if link is None:
+                db.session.add(ProjectAppLink(project_id=pid, application_id=winmax_app.id, phase="pursuit", link_url=link_url))
+                summary["links_added"] += 1
+            else:
+                link.link_url = link_url
     db.session.flush()
 
     # memberships, pins and hidden org apps: REPLACED for the demo personas

@@ -72,8 +72,7 @@ PRESETS: dict[str, dict] = {
             "Contract & Legal Authoring",
             "QMS",
             "Scan Me",
-            "Dude, Where's My Part?",
-            "Dude, Where's My Order?",
+            "MARTI",
         ],
     },
     "mission_assurance": {
@@ -85,6 +84,17 @@ PRESETS: dict[str, dict] = {
             "Scan Me",
             "The Fixer",
             "Lessons Learned",  # not built yet — resolves to nothing until it's registered
+        ],
+    },
+    "production_support": {
+        "label": "Production Support",
+        "description": "Keeping builds moving: material, routing, constraints and rework.",
+        "app_names": [
+            "QMS",
+            "Scan Me",
+            "MARTI",
+            "Value Stream",
+            "The Fixer",
         ],
     },
 }

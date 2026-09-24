@@ -98,8 +98,8 @@ def seed_if_empty():
         description="Turning an idea into a specification and prototype-level design before anyone writes code — distinct from building the thing itself.",
     )
     cap_material_priority = Capability(
-        name="Material, Acquisition, Routing & Priority Visibility",
-        description="Manufacturing-side project visibility: mocked S4 material/acquisition/routing status, plus Tradeoffs (org priority) and Impact (computed risk from priority vs. due date).",
+        name="Material, Routing & Triage",
+        description="Manufacturing-side project visibility over S4: what each build needs and where its material is, where every assembly is in its routing, leadership's stack rank of projects (Triage), and the forecast of which need-by dates slip (Impact).",
     )
     db.session.add_all([
         cap_capture, cap_vsm, cap_staffing, cap_contract_authoring, cap_task_priority,
@@ -227,21 +227,6 @@ def seed_if_empty():
         capability=cap_contract_authoring,
         url=None,
     )
-    cap_manufacturing_status = Capability(
-        name="Manufacturing Status Visibility",
-        description="Where a part actually is on the shop floor, how long it's been there, and a shared way to flag it for expedite.",
-    )
-    db.session.add(cap_manufacturing_status)
-    db.session.flush()
-    app_dwmp = Application(
-        name="Dude, Where's My Part?",
-        description="Shop-floor part status and expedite visibility, over an on-demand S4 extract — not a new system of record.",
-        owning_team="Matt (informal enabling team)",
-        team_type="enabling",
-        category="project,enterprise",  # 15288 Project + Organizational Project-Enabling — filed under both
-        capability=cap_manufacturing_status,
-        url="http://localhost:5176",
-    )
     cap_rca_capa = Capability(
         name="Root Cause Analysis / CAPA",
         description="Investigating why something failed and tracking the corrective and preventive action taken so it does not happen again.",
@@ -298,26 +283,6 @@ def seed_if_empty():
         category="enterprise",
         capability=cap_org_structure,
         url="http://localhost:5181",
-    )
-    cap_procurement = Capability(
-        name="Procurement Status Visibility",
-        description="Where a purchase order actually is on the way in — material master, PR, PO, received, inspected, in inventory, assigned to demand — and a shared way to flag it for expedite. The procurement-side counterpart to Manufacturing Status Visibility.",
-    )
-    db.session.add(cap_procurement)
-    db.session.flush()
-    app_dwmo = Application(
-        name="Dude, Where's My Order?",
-        description=(
-            "Every order line, from material master to assigned-to-demand, over an on-demand "
-            "S4 procurement extract — not a new system of record. The procurement-side sibling "
-            "of Dude, Where's My Part?"
-        ),
-        owning_team="Matt (informal enabling team)",
-        team_type="enabling",
-        scope="project",
-        category="project,agreement",
-        capability=cap_procurement,
-        url="http://localhost:5182",
     )
     cap_scope = Capability(
         name="Scope Definition & Progress Tracking",
@@ -402,10 +367,10 @@ def seed_if_empty():
     app_marti = Application(
         name="MARTI",
         description=(
-            "Material, Acquisition, Routings, Tradeoffs, Impact — manufacturing-side project "
-            "visibility over mocked S4 data, plus a priority (Tradeoffs) and computed risk "
-            "(Impact) layer. Meant to eventually replace Dude, Where's My Part? and Dude, "
-            "Where's My Order? once validated."
+            "Material Acquisition, Routing, Triage and Impact: what each build needs and "
+            "whether it's here, where every assembly is in its routing, leadership's stack rank "
+            "of projects, and a forecast of whose need-by date slips, with what-ifs for capacity "
+            "and material. Replaced Dude, Where's My Part? and Dude, Where's My Order?"
         ),
         owning_team="Matt (informal enabling team)",
         team_type="enabling",
@@ -419,7 +384,7 @@ def seed_if_empty():
     db.session.add_all([
         app_value_stream, app_winmax,
         app_good_plan, app_labor_supply_demand, app_qms, app_lham, app_portfolio_manager,
-        app_contract_authoring, app_dwmp, app_fixer, app_scan_me, app_org_charts, app_dwmo,
+        app_contract_authoring, app_fixer, app_scan_me, app_org_charts,
         app_scope_manager, app_reckon, app_task_master, app_aarons_meadow, app_marti,
     ])
     db.session.flush()

@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom'
-import { useApplications, useProjects } from '../api/hooks'
+import { useProjects } from '../api/hooks'
 import DepotNav from '../components/DepotNav'
-import { withDepotOrigin } from '../lib/launch'
 import { usePersona } from '../lib/persona'
 import './SplashPage.css'
 
@@ -13,35 +12,30 @@ const LANE_H = 40
 const LANE_GAP = 14
 const LANES_Y = 112
 
-// One lane per role: the stretch of the project's life where that role is most active (the soft
-// bar), and the apps that role reaches for at each phase (`at` = the phase index).
-const ROLES = [
-  {
-    name: 'Project Manager',
-    span: [1, 3],
-    apps: [
-      { at: 1, label: 'Good Plan' },
-      { at: 2, label: 'Reckon' },
-      { at: 3, label: 'Lessons Learned' },
-    ],
-  },
+// Every box in the graphic is a ROLE, not an app: app names mean little to someone new, and the
+// headline is "workflows for every role". Each box opens that role's own Launchpad (switch
+// "viewing as" to the demo persona with that title, then land on "/"), where the apps live.
+// `title` is the persona's exact Person.title in the Depot's demo data.
+type Role = { label: string; title: string }
+type SpanRole = Role & { at: number; span: [number, number] }
+
+// Roles that work inside the project, each on its own lane under the thread: the box sits at
+// the phase where the role is most active (`at`), and the soft bar is the stretch of the
+// project's life it stays active for (`span`, phase indexes). Closeout has no box of its own;
+// the Program Manager's bar runs through it.
+const LANES: SpanRole[] = [
+  { label: 'Program Manager', title: 'Program Manager', at: 1, span: [1, 3] },
+  { label: 'Production Support Engineer', title: 'Production Support Engineer', at: 2, span: [2, 2] },
 ]
-// Business development works ahead of the project, so it sits in the strip above the thread with
-// a line down to it from each app, at pursuit and at award.
-const BIZDEV = {
-  name: 'Business Development',
-  span: [0, 1],
-  apps: [
-    { at: 0, label: 'WinMax' },
-    { at: 1, label: 'Scope Manager' },
-  ],
-}
+// Business development works ahead of the project, so it sits in the strip above the thread,
+// active from pursuit through award, with a line down to the thread at pursuit.
+const BIZDEV: SpanRole = { label: 'Business Development', title: 'Business Development Lead', at: 0, span: [0, 1] }
 // The demo project the graphic follows; its name links to the project's page.
 const PROJECT_NAME = 'Bracket Assembly Program'
 const laneY = (i: number) => LANES_Y + i * (LANE_H + LANE_GAP)
-const INNER_H = laneY(ROLES.length - 1) + LANE_H + 20
-// The portfolio is the outer box a project sits inside: a header strip for the portfolio and its
-// manager's app, and a margin around the project.
+const INNER_H = laneY(LANES.length - 1) + LANE_H + 20
+// The portfolio is the outer box a project sits inside: a header strip for business development,
+// and a margin around the project.
 const FRAME_PAD = 16
 const FRAME_HEAD = 62
 // Top of the business-development strip inside the box.
@@ -51,20 +45,26 @@ const BOX_W = 870 + FRAME_PAD * 2
 const STACK = 10
 const SVG_W = BOX_W + STACK * 2
 const PF_H = INNER_H + FRAME_HEAD + FRAME_PAD
-// Above the project box: the portfolio manager, with an arrow down into the project.
+// Above the project box: roles that work across or beside projects, each a tile with an arrow
+// down into the project, aimed at the phase where it matters most.
 const TOP = 82
 const SVG_H = TOP + PF_H + 6
-// Roles that work across or beside projects rather than in a lane: each is a tile above the
-// project box with an arrow down into it, aimed at the phase where it matters most. The tile
-// names the role; `app` is the registry app it launches.
-const TOP_TILES = [
-  { label: 'Portfolio Manager', app: 'Portfolio Manager', x: FRAME_PAD + 4 + CHIP_W / 2, note: 'project success' },
-  { label: 'Functional Manager', app: 'Labor Supply & Demand', x: FRAME_PAD + COLUMNS[2], note: 'labor allocation' },
-  { label: 'Mission Assurance', app: 'The Fixer', x: FRAME_PAD + COLUMNS[3], note: 'continuous improvement' },
+const TOP_TILES: (Role & { x: number; note: string })[] = [
+  { label: 'Portfolio Manager', title: 'Portfolio Manager', x: FRAME_PAD + 4 + CHIP_W / 2, note: 'project success' },
+  { label: 'Functional Manager', title: 'Engineering Functional Manager', x: FRAME_PAD + COLUMNS[2], note: 'labor allocation' },
+  { label: 'Mission Assurance', title: 'Mission Assurance Manager', x: FRAME_PAD + COLUMNS[3], note: 'continuous improvement' },
 ]
-const FUNCTION_APPS = [
-  { at: 2, label: 'Labor Supply & Demand' },
-]
+
+/** Box width that fits a role name; never narrower than the standard chip. */
+const chipW = (label: string) => Math.max(CHIP_W, Math.round(label.length * 6.9 + 24))
+
+/** A role's soft bar: starts under its box and runs to the end of its span. */
+function spanBar(r: SpanRole) {
+  const w = chipW(r.label)
+  const left = COLUMNS[r.span[0]] - w / 2 - 8
+  const right = Math.max(COLUMNS[r.span[1]] + CHIP_W / 2 + 8, COLUMNS[r.at] + w / 2 + 8)
+  return { x: left, width: right - left }
+}
 
 const FEATURES = [
   {
@@ -113,15 +113,37 @@ const FEATURES = [
   },
 ]
 
-/** An app chip: launches the app's own splash (/about), its front door, when the app is
- * registered with a URL. Same launch as a catalog card — same tab, person and back link handed
- * over. */
-function SvgAppChip({ href, children }: { href: string | undefined; children: React.ReactNode }) {
-  if (!href) return <g className="splash-svg__app">{children}</g>
+/** A role box: opens that role's Launchpad by switching "viewing as" to the demo persona holding
+ * that title. With no such persona seeded it stays a plain, muted box rather than a dead link. */
+function RoleChip({
+  x,
+  y,
+  h,
+  label,
+  personaId,
+  onPick,
+}: {
+  x: number
+  y: number
+  h: number
+  label: string
+  personaId: string | undefined
+  onPick: (id: string) => void
+}) {
+  const w = chipW(label)
+  const body = (
+    <>
+      <rect x={x - w / 2} y={y} width={w} height={h} rx="8" fill="var(--color-surface)" stroke="var(--color-border-strong)" />
+      <text className="splash-svg__chip" x={x} y={y + h / 2 + 4} textAnchor="middle">
+        {label}
+      </text>
+    </>
+  )
+  if (!personaId) return <g className="splash-svg__app">{body}</g>
   return (
-    <a href={href} className="splash-svg__app splash-svg__app--link">
-      {children}
-    </a>
+    <Link to="/" onClick={() => onPick(personaId)} className="splash-svg__app splash-svg__app--link" aria-label={`${label} Launchpad`}>
+      {body}
+    </Link>
   )
 }
 
@@ -129,21 +151,10 @@ function SvgAppChip({ href, children }: { href: string | undefined; children: Re
  * the core idea (a project runs one thread and connects to apps from the store), a short
  * feature triad, and the Conway's Law grounding. */
 export default function SplashPage() {
-  // Chips launch the app's splash, matched by registry name; an app that isn't registered
-  // (Lessons Learned) stays a plain, muted chip rather than a dead link.
-  const { data: applications } = useApplications()
-  const { persona, people, setPersonaId } = usePersona()
+  const { people, setPersonaId } = usePersona()
   const { data: projects } = useProjects()
   const projectId = projects?.find((p) => p.name === PROJECT_NAME)?.id
-  const appHref = (label: string) => {
-    const url = applications?.find((a) => a.name === label)?.url
-    return url ? withDepotOrigin(`${url.replace(/\/$/, '')}/about`, '/about', persona?.id) : undefined
-  }
-  // The role lanes' names link to that role's own Launchpad — switch "viewing as" to the demo
-  // persona who holds that title, then land on "/", same lens the nav's own persona switcher uses.
-  // Falls back to plain (unlinked) text if no seeded persona carries that title.
-  const businessDevPersonaId = people.find((p) => p.title?.includes('Business Development'))?.id
-  const projectManagerPersonaId = people.find((p) => p.title === 'Program Manager')?.id
+  const personaFor = (title: string) => people.find((p) => p.title === title)?.id
 
   return (
     <div className="splash-page">
@@ -154,8 +165,9 @@ export default function SplashPage() {
           <header className="splash-hero">
             <h1 className="splash-hero__title">AI-Enhanced Workflows for Every Role.</h1>
             <p className="splash-hero__sub">
-              Improve cross-functional collaboration, do better work, clear bottlenecks,
-              and deliver more value.
+              Improve cross-functional collaboration, do better work,
+              <br />
+              clear bottlenecks, and deliver more value.
             </p>
           </header>
 
@@ -164,22 +176,17 @@ export default function SplashPage() {
               <svg viewBox={`0 0 ${SVG_W} ${SVG_H}`} role="img" aria-labelledby="depot-diagram-title">
                 <title id="depot-diagram-title">
                   One project ID runs through pursuit, award, execution and closeout. Business
-                  development and project managers launch the apps that fit their job inside the
-                  project, in the phases where they are most active. Above it, a portfolio manager
-                  oversees many such projects, functional managers handle labor allocation, and mission
-                  assurance drives continuous improvement.
+                  development works the pursuit, the program manager runs the project from award
+                  through closeout, and a production support engineer keeps the build moving during
+                  execution. Above it, a portfolio manager oversees many such projects, functional
+                  managers handle labor allocation, and mission assurance drives continuous
+                  improvement. Each role opens its own Launchpad.
                 </title>
 
-                {/* portfolio, functional and mission-assurance managers: tiles above the project,
-                    each with an arrow down into it */}
+                {/* roles above the project, each with an arrow down into it */}
                 {TOP_TILES.map((t) => (
                   <g key={t.label}>
-                    <SvgAppChip href={appHref(t.app)}>
-                      <rect x={t.x - CHIP_W / 2} y="4" width={CHIP_W} height="26" rx="8" fill="var(--color-surface)" stroke="var(--color-border-strong)" />
-                      <text className="splash-svg__chip" x={t.x} y="21" textAnchor="middle">
-                        {t.label}
-                      </text>
-                    </SvgAppChip>
+                    <RoleChip x={t.x} y={4} h={26} label={t.label} personaId={personaFor(t.title)} onPick={setPersonaId} />
                     <path
                       d={`M${t.x} 32 V${TOP - 2} m-4 -6 l4 6 l4 -6`}
                       fill="none"
@@ -219,62 +226,36 @@ export default function SplashPage() {
                   stroke="var(--color-border-strong)"
                 />
 
-                {/* business development: above the thread, with a line down to it from each app */}
+                {/* business development: above the thread, with a line down to it at pursuit */}
                 <rect
-                  x={FRAME_PAD + COLUMNS[BIZDEV.span[0]] - CHIP_W / 2 - 8}
+                  x={FRAME_PAD + spanBar(BIZDEV).x}
                   y={BIZ_Y}
-                  width={COLUMNS[BIZDEV.span[1]] - COLUMNS[BIZDEV.span[0]] + CHIP_W + 16}
+                  width={spanBar(BIZDEV).width}
                   height={LANE_H}
                   rx="12"
                   fill="var(--color-surface-sunken)"
                   stroke="var(--color-border)"
                 />
-                {businessDevPersonaId ? (
-                  <Link
-                    to="/"
-                    onClick={() => setPersonaId(businessDevPersonaId)}
-                    className="splash-svg__role-link"
-                  >
-                    <text className="splash-svg__role" x={FRAME_PAD + 24} y={BIZ_Y + LANE_H / 2 + 4}>
-                      {BIZDEV.name}
-                    </text>
-                  </Link>
-                ) : (
-                  <text className="splash-svg__role" x={FRAME_PAD + 24} y={BIZ_Y + LANE_H / 2 + 4}>
-                    {BIZDEV.name}
-                  </text>
-                )}
-                {BIZDEV.apps.map((app) => (
-                  <g key={app.label}>
-                    <path
-                      d={`M${FRAME_PAD + COLUMNS[app.at]} ${BIZ_Y + LANE_H} V${FRAME_HEAD + 44} m-4 -6 l4 6 l4 -6`}
-                      fill="none"
-                      stroke="var(--color-accent)"
-                      strokeWidth="1.6"
-                      strokeDasharray="3 4"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                    <SvgAppChip href={appHref(app.label)}>
-                      <rect
-                        x={FRAME_PAD + COLUMNS[app.at] - CHIP_W / 2}
-                        y={BIZ_Y + 6}
-                        width={CHIP_W}
-                        height={LANE_H - 12}
-                        rx="8"
-                        fill="var(--color-surface)"
-                        stroke="var(--color-border-strong)"
-                      />
-                      <text className="splash-svg__chip" x={FRAME_PAD + COLUMNS[app.at]} y={BIZ_Y + LANE_H / 2 + 4} textAnchor="middle">
-                        {app.label}
-                      </text>
-                    </SvgAppChip>
-                  </g>
-                ))}
+                <path
+                  d={`M${FRAME_PAD + COLUMNS[BIZDEV.at]} ${BIZ_Y + LANE_H} V${FRAME_HEAD + 44} m-4 -6 l4 6 l4 -6`}
+                  fill="none"
+                  stroke="var(--color-accent)"
+                  strokeWidth="1.6"
+                  strokeDasharray="3 4"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <RoleChip
+                  x={FRAME_PAD + COLUMNS[BIZDEV.at]}
+                  y={BIZ_Y + 6}
+                  h={LANE_H - 12}
+                  label={BIZDEV.label}
+                  personaId={personaFor(BIZDEV.title)}
+                  onPick={setPersonaId}
+                />
 
                 <g transform={`translate(${FRAME_PAD} ${FRAME_HEAD})`}>
 
-                {/* the project id, at the thread's origin */}
                 {/* the project, by name (a link to its page), with its permanent ID under the thread */}
                 {projectId ? (
                   <Link to={`/projects/${projectId}`} className="splash-svg__project splash-svg__project--link">
@@ -313,13 +294,13 @@ export default function SplashPage() {
                   ))}
                 </g>
 
-                {/* each role's active stretch — drawn first so everything else sits on it */}
-                {ROLES.map((r, i) => (
+                {/* each in-project role's active stretch, drawn first so everything else sits on it */}
+                {LANES.map((r, i) => (
                   <rect
-                    key={`bar-${r.name}`}
-                    x={COLUMNS[r.span[0]] - CHIP_W / 2 - 8}
+                    key={`bar-${r.label}`}
+                    x={spanBar(r).x}
                     y={laneY(i)}
-                    width={COLUMNS[r.span[1]] - COLUMNS[r.span[0]] + CHIP_W + 16}
+                    width={spanBar(r).width}
                     height={LANE_H}
                     rx="12"
                     fill="var(--color-surface-sunken)"
@@ -338,51 +319,26 @@ export default function SplashPage() {
                   </g>
                 ))}
 
-                {/* role names, then the apps each one uses */}
-                {ROLES.map((r, i) => (
-                  <g key={r.name}>
-                    {projectManagerPersonaId ? (
-                      <Link
-                        to="/"
-                        onClick={() => setPersonaId(projectManagerPersonaId)}
-                        className="splash-svg__role-link"
-                      >
-                        <text className="splash-svg__role" x="24" y={laneY(i) + LANE_H / 2 + 4}>
-                          {r.name}
-                        </text>
-                      </Link>
-                    ) : (
-                      <text className="splash-svg__role" x="24" y={laneY(i) + LANE_H / 2 + 4}>
-                        {r.name}
-                      </text>
-                    )}
-                    {r.apps.map((app) => (
-                      <g key={app.label}>
-                      <path
-                        d={`M${COLUMNS[app.at]} ${laneY(i) + 4} V${60} m-4 6 l4 -6 l4 6`}
-                        fill="none"
-                        stroke="var(--color-accent)"
-                        strokeWidth="1.6"
-                        strokeDasharray="3 4"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <SvgAppChip href={appHref(app.label)}>
-                        <rect
-                          x={COLUMNS[app.at] - CHIP_W / 2}
-                          y={laneY(i) + 6}
-                          width={CHIP_W}
-                          height={LANE_H - 12}
-                          rx="8"
-                          fill="var(--color-surface)"
-                          stroke="var(--color-border-strong)"
-                        />
-                        <text className="splash-svg__chip" x={COLUMNS[app.at]} y={laneY(i) + LANE_H / 2 + 4} textAnchor="middle">
-                          {app.label}
-                        </text>
-                      </SvgAppChip>
-                      </g>
-                    ))}
+                {/* the in-project roles, each with a line up to the thread at its phase */}
+                {LANES.map((r, i) => (
+                  <g key={r.label}>
+                    <path
+                      d={`M${COLUMNS[r.at]} ${laneY(i) + 4} V${60} m-4 6 l4 -6 l4 6`}
+                      fill="none"
+                      stroke="var(--color-accent)"
+                      strokeWidth="1.6"
+                      strokeDasharray="3 4"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <RoleChip
+                      x={COLUMNS[r.at]}
+                      y={laneY(i) + 6}
+                      h={LANE_H - 12}
+                      label={r.label}
+                      personaId={personaFor(r.title)}
+                      onPick={setPersonaId}
+                    />
                   </g>
                 ))}
                 </g>

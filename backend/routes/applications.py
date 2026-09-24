@@ -10,6 +10,7 @@ from models import (
     Application,
     Capability,
     HiddenOrgApp,
+    Person,
     Pin,
     PinOrder,
     Project,
@@ -210,23 +211,44 @@ def application_summary(application_id):
 def my_charges():
     """The Launchpad drawer's "what am I supposed to charge to" tile — proxied server-to-server
     to Labor Supply & Demand the same way an app's own summary tile is (see application_summary
-    above): the Depot never computes a charge number itself, LSD does, this just calls it and
-    passes the answer through. No app found or unreachable is the same quiet empty state as
-    everywhere else, not an error the frontend has to special-case."""
+    above): the Depot never computes a project labor-plan charge number itself, LSD does, this
+    just calls it and passes the answer through. No app found or unreachable is the same quiet
+    empty state as everywhere else, not an error the frontend has to special-case.
+
+    Not everyone's chargeable time is a labor-plan position, though — Business Development's
+    proposal/capture work, for instance, isn't in LSD at all. For that, this falls back to the
+    person's own standing charge number (Person.standing_charge_number) as a synthetic
+    assignment, so their drawer still shows something real-looking instead of "couldn't find
+    you" — a placeholder in the same honest spirit as LSD's own charge_numbers.py, not a claim
+    that Business Development charge lines are actually modeled anywhere."""
     person_id = request.args.get("person_id")
     empty = {"person_name": None, "assignments": [], "actuals": []}
     if not person_id:
         return jsonify(empty)
+
+    data = dict(empty)
     a = Application.query.filter_by(name="Labor Supply & Demand").first()
-    if not a or not a.api_url:
-        return jsonify(empty)
-    try:
-        r = httpx.get(f"{a.api_url.rstrip('/')}/api/my-charges", params={"person_id": person_id}, timeout=2.0)
-        if r.status_code != 200:
-            return jsonify(empty)
-        return jsonify(r.json())
-    except (httpx.HTTPError, ValueError):
-        return jsonify(empty)
+    if a and a.api_url:
+        try:
+            r = httpx.get(f"{a.api_url.rstrip('/')}/api/my-charges", params={"person_id": person_id}, timeout=2.0)
+            if r.status_code == 200:
+                data = r.json()
+        except (httpx.HTTPError, ValueError):
+            pass
+
+    person = db.session.get(Person, person_id)
+    if person and person.standing_charge_number and not data.get("assignments"):
+        data = dict(data)
+        data["person_name"] = data.get("person_name") or person.name
+        data["assignments"] = [{
+            "id": f"standing-{person.id}",
+            "project_name": "Business Development",
+            "position_label": person.title,
+            "start_date": None,
+            "end_date": None,
+            "charge_number": person.standing_charge_number,
+        }]
+    return jsonify(data)
 
 
 def fetch_app_journal_entries(a: "Application", depot_project_id: str | None) -> list[dict]:

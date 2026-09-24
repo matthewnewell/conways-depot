@@ -357,6 +357,13 @@ class Person(db.Model):
     name = db.Column(db.String(200), nullable=False)
     title = db.Column(db.String(200), nullable=True)
     is_admin = db.Column(db.Boolean, nullable=False, default=False)
+    # A real S4 charge number for someone whose time isn't a project labor-plan position at all
+    # (Business Development's proposal/capture time, for instance) — not tied to any one
+    # project, since work like that charges to a standing indirect/overhead pool (e.g. Bid &
+    # Proposal) rather than a project WBS. Nullable: most personas charge through an actual
+    # LSD-modeled position instead (see routes/applications.py's /api/my-charges, which prefers
+    # that and only falls back to this).
+    standing_charge_number = db.Column(db.String(64), nullable=True)
     created_at = db.Column(db.DateTime, default=_now, nullable=False)
 
     memberships = db.relationship(
