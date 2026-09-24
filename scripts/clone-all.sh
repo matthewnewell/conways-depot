@@ -37,6 +37,7 @@ REPOS=(
   "portfolio-manager"
   "qms"
   "reckon"
+  "capability-models"
   # keep in sync with scripts/apps.sh whenever a new app is added
 )
 
