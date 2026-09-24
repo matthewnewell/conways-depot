@@ -9,7 +9,7 @@
 #   ./demo.sh stop       stop everything this script started
 #   ./demo.sh restart    stop then start
 #
-# From Windows (PowerShell / cmd):  wsl -d Ubuntu -- /home/matthew/conways-depot/demo-shell/demo.sh
+# From Windows (PowerShell / cmd):  wsl -d Ubuntu -- bash -lc ~/conways-depot/demo-shell/demo.sh
 #
 # Lives inside conways-depot (moved here 2026-09-15 so `git clone conways-depot` brings the
 # shell with it) — Value Stream still has to be cloned as a sibling under the same $HOME
@@ -29,11 +29,11 @@ fi
 
 # name|port|working dir|command
 SERVICES=(
-  "demo-shell|5180|/home/matthew/conways-depot/demo-shell|python3 -m http.server 5180 --bind 0.0.0.0 --directory /home/matthew/conways-depot/demo-shell"
-  "depot-backend|8090|/home/matthew/conways-depot/backend|DATA_DIR=/home/matthew/conways-depot/data .venv/bin/python app.py"
-  "depot-frontend|5175|/home/matthew/conways-depot/frontend|npm run dev -- --host 0.0.0.0"
-  "valuestream-backend|8080|/home/matthew/ValueStream/backend|.venv/bin/python app.py"
-  "valuestream-frontend|5173|/home/matthew/ValueStream/frontend|npm run dev -- --host 0.0.0.0"
+  "demo-shell|5180|$HOME/conways-depot/demo-shell|python3 -m http.server 5180 --bind 0.0.0.0 --directory $HOME/conways-depot/demo-shell"
+  "depot-backend|8090|$HOME/conways-depot/backend|DATA_DIR=$HOME/conways-depot/data .venv/bin/python app.py"
+  "depot-frontend|5175|$HOME/conways-depot/frontend|npm run dev -- --host 0.0.0.0"
+  "valuestream-backend|8080|$HOME/ValueStream/backend|.venv/bin/python app.py"
+  "valuestream-frontend|5173|$HOME/ValueStream/frontend|npm run dev -- --host 0.0.0.0"
 )
 
 port_up() { (exec 3<>"/dev/tcp/127.0.0.1/$1") 2>/dev/null && exec 3>&- && return 0 || return 1; }

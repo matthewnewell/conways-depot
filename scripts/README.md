@@ -18,3 +18,26 @@ output to `logs/<name>.log` (also gitignored).
 
 **Adding a new app**: add one line to `apps.sh`'s `APPS` array — `name|port|cwd|command` — and
 all three scripts pick it up.
+
+## A new machine, or one that's fallen behind
+
+```bash
+git clone https://github.com/matthewnewell/conways-depot.git ~/conways-depot   # once, by hand
+~/conways-depot/scripts/clone-all.sh        # every other repo, into $HOME
+~/conways-depot/scripts/bootstrap.sh        # venvs, pip/npm installs, the shared drawer, .env template
+~/conways-depot/scripts/start-all.sh        # run everything; status.sh to check
+```
+
+Everything lives directly under `$HOME` (`apps.sh` uses `$HOME`, so any WSL username works).
+Each app seeds its demo data into an EMPTY database on first start.
+
+**Already cloned there before?** Pull every repo, re-run `bootstrap.sh` (new dependencies),
+then `scripts/reset-demo-data.sh`: an existing database never reseeds, so without it the old
+demo data stays. It moves each app's database into `<app>/data-backup/<timestamp>/` (nothing is
+deleted) and restarts everything so each app seeds fresh.
+
+```bash
+for d in ~/*/; do [ -d "$d/.git" ] && git -C "$d" pull --ff-only; done
+~/conways-depot/scripts/bootstrap.sh
+~/conways-depot/scripts/reset-demo-data.sh
+```

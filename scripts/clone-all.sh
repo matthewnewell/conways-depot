@@ -58,6 +58,8 @@ done
 
 echo
 echo "Next: scripts/bootstrap.sh (venvs, installs, shared drawer, .env template), then scripts/start-all.sh."
+echo "(Repos that were already here: pull them, re-run bootstrap.sh, then scripts/reset-demo-data.sh"
+echo " so every app reseeds from the current demo data.)"
 echo "(demo-shell — the combined-demo parent frame — lives inside conways-depot/demo-shell, no separate step needed.)"
 if [[ ${#failed[@]} -gt 0 ]]; then
   echo

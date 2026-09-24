@@ -45,20 +45,20 @@ Browser-pane preview manager allows) — `demo.sh`, for a focused demo without t
 ecosystem running:
 
 ```bash
-/home/matthew/conways-depot/demo-shell/demo.sh          # start everything not already up
-/home/matthew/conways-depot/demo-shell/demo.sh status   # what's listening
-/home/matthew/conways-depot/demo-shell/demo.sh stop     # stop everything it started
-/home/matthew/conways-depot/demo-shell/demo.sh restart
+~/conways-depot/demo-shell/demo.sh          # start everything not already up
+~/conways-depot/demo-shell/demo.sh status   # what's listening
+~/conways-depot/demo-shell/demo.sh stop     # stop everything it started
+~/conways-depot/demo-shell/demo.sh restart
 ```
 
-From Windows: `wsl -d Ubuntu -- /home/matthew/conways-depot/demo-shell/demo.sh`. Processes are
+From Windows: `wsl -d Ubuntu -- ~/conways-depot/demo-shell/demo.sh`. Processes are
 `setsid`-detached, so they survive the terminal closing. Logs land in `/tmp/demo-env/`. Value
 Stream still needs to be cloned as a sibling under the same `$HOME` for its two entries to have
 anything to start (`../scripts/clone-all.sh` handles that).
 
 The shell alone is also **"Demo Shell"** in both `~/.claude/launch.json` (port 5180) and this
 repo's own `.claude/launch.json`:
-`python3 -m http.server 5180 --bind 0.0.0.0 --directory /home/matthew/conways-depot/demo-shell`
+`python3 -m http.server 5180 --bind 0.0.0.0 --directory ~/conways-depot/demo-shell`
 — no dependencies, no build. An app that isn't running just shows a connection error in the
 frame.
 
