@@ -5,7 +5,7 @@ import DepotNav from '../components/DepotNav'
 import LaunchpadChargesPanel from '../components/LaunchpadChargesPanel'
 import LaunchpadCustomizePanel from '../components/LaunchpadCustomizePanel'
 import { usePersona } from '../lib/persona'
-import { ProjectAdminPanel, ProjectInfoPanel, ProjectTeamPanel } from './ProjectDetailPage'
+import { ProjectAdminPanel, ProjectInfoPanel, ProjectLinksPanel, ProjectTeamPanel } from './ProjectDetailPage'
 import './DepotLayout.css'
 
 /** Shared parent for every operational route (Launchpad, project list/detail, catalog). The
@@ -24,12 +24,13 @@ export default function DepotLayout() {
 
   // On the Launchpad it gains two, in order: My Charges (what YOU charge to — a person's own
   // answer) above Customize (role presets, pinned-apps manager, catalog link). On a project page
-  // the drawer instead gains three tabs — the project's own Info / Team / Admin — alongside the
-  // usual Agent and Journal at the bottom.
+  // the drawer instead gains four tabs — the project's own Info / Team / Links / Admin — alongside
+  // the usual Agent and Journal at the bottom.
   const tabs = project
     ? [
         { id: 'info', icon: 'ℹ️', label: 'Project info', content: <ProjectInfoPanel project={project} /> },
         { id: 'team', icon: '👥', label: 'Team', content: <ProjectTeamPanel project={project} /> },
+        { id: 'links', icon: '🔗', label: 'Project links', content: <ProjectLinksPanel project={project} /> },
         { id: 'admin', icon: '⚙️', label: 'Admin', wide: true, content: <ProjectAdminPanel project={project} /> },
       ]
     : onLaunchpad

@@ -617,13 +617,12 @@
 /* ── overview: wide main column + a narrower side column ── */
 .project-overview {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 340px;
+  grid-template-columns: minmax(0, 1fr);
   gap: 16px;
   align-items: start;
 }
 
 .project-overview__main,
-.project-overview__side,
 .project-admin__col {
   display: flex;
   flex-direction: column;

@@ -45,10 +45,10 @@ const PHASE_ORDER: Record<Phase, number> = Object.fromEntries(
 ) as Record<Phase, number>
 
 /** A project's detail page IS its home base: the operating surface for everyone — connected apps to
- * launch, the merged journal, the project's links — in a wide two-column layout. Everything about
- * the project *itself* lives in the shared drawer's top tabs (see DepotLayout): **Project info**
- * (what it is), **Team** (who's on it, and adding/removing them) and **Admin** (what an owner
- * changes, plus Delete). Like every admin affordance in this app, Admin is signposting, not
+ * launch and the merged journal. Everything about the project *itself* lives in the shared
+ * drawer's top tabs (see DepotLayout): **Project info** (what it is), **Team** (who's on it, and
+ * adding/removing them), **Project links** (Teams, SharePoint, DevOps) and **Admin** (what an
+ * owner changes, plus Delete). Like every admin affordance in this app, Admin is signposting, not
  * enforcement — there is no auth or role check yet. */
 /** "Aug 17, 2026" from an ISO date, without a timezone shift. */
 function popDate(iso: string): string {
@@ -58,7 +58,6 @@ function popDate(iso: string): string {
 export default function ProjectDetailPage() {
   const { projectId } = useParams<{ projectId: string }>()
   const { data: project, isLoading } = useProject(projectId)
-  const { openTab } = useDrawer()
 
   if (!projectId) return null
   if (isLoading || !project) return <div className="project-detail-page__loading">Loading…</div>
@@ -78,9 +77,6 @@ export default function ProjectDetailPage() {
             <ConnectedApps project={project} />
             <Journal project={project} />
           </div>
-          <aside className="project-overview__side">
-            <JumpStation project={project} onSetUp={() => openTab('admin')} />
-          </aside>
         </div>
       </div>
     </div>
@@ -148,6 +144,13 @@ export function ProjectInfoPanel({ project }: { project: ProjectDetail }) {
 /** Drawer tab: the people on this project — add, remove, grant the manage flag. */
 export function ProjectTeamPanel({ project }: { project: ProjectDetail }) {
   return <Members project={project} />
+}
+
+/** Drawer tab: the project's links (Teams, SharePoint, Azure DevOps, documents), its own first,
+ * then its portfolio's shared ones. Edited in Admin. */
+export function ProjectLinksPanel({ project }: { project: ProjectDetail }) {
+  const { openTab } = useDrawer()
+  return <JumpStation project={project} onSetUp={() => openTab('admin')} />
 }
 
 /** Drawer tab: everything an owner changes, with Delete at the bottom behind a typed confirmation. */
@@ -441,13 +444,13 @@ function ProjectLinks({ project }: { project: ProjectDetail }) {
     <section className="depot-section">
       <h2 className="depot-section__title">Project links</h2>
       <p className="depot-section__subtitle">
-        The jumpstation on the Overview — the project's Teams channel, SharePoint, Azure DevOps and
-        key documents. Paste a link and its type is detected.
+        The project's Teams channel, SharePoint, Azure DevOps and key documents, shown in the
+        Project links drawer. Paste a link and its type is detected.
       </p>
       {sharedCount > 0 && (
         <p className="link-shared-note">
           {sharedCount} shared link{sharedCount === 1 ? '' : 's'} from {project.portfolio_name}{' '}
-          {sharedCount === 1 ? 'also appears' : 'also appear'} on the Overview — manage them under <Link to="/admin">Admin → Portfolios</Link>.
+          {sharedCount === 1 ? 'also appears' : 'also appear'} in Project links — manage them under <Link to="/admin">Admin → Portfolios</Link>.
         </p>
       )}
       <LinksEditor
