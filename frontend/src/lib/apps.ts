@@ -8,7 +8,3 @@ const CORE_TEAM = 'Matt (informal enabling team)'
 export function builtByOther(app: Pick<Application, 'owning_team'>): string | null {
   return app.owning_team && app.owning_team !== CORE_TEAM ? app.owning_team : null
 }
-
-/** Roles whose own apps aren't built yet. Their Launchpads are stubs: what already exists, plus
- * whatever other departments contribute. */
-export const STUB_ROLE_TITLES = new Set(['Contracts Manager', 'Solutions Architect'])

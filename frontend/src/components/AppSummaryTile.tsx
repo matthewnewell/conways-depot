@@ -10,8 +10,17 @@ import './AppSummaryTile.css'
  * stays quiet rather than cluttering every tile with "nothing to see here" text. See backend
  * routes/applications.py's summary proxy for why an empty state is always the fallback, never
  * an error. */
-export default function AppSummaryTile({ applicationId, projectId }: { applicationId: string; projectId?: string }) {
-  const { data } = useApplicationSummary(applicationId, projectId)
+export default function AppSummaryTile({
+  applicationId,
+  projectId,
+  personId,
+}: {
+  applicationId: string
+  projectId?: string
+  /** Who's viewing, for apps whose summary is per person. Apps that don't care ignore it. */
+  personId?: string
+}) {
+  const { data } = useApplicationSummary(applicationId, projectId, true, personId)
   const summary: AppSummary = data ?? { headline: null, label: null, status: null, href: null }
 
   if (!summary.headline) {

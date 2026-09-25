@@ -38,8 +38,6 @@ MARCUS_ID = "8c2d7e14-3f5a-4b96-a1c7-92e5b6d0a3c2"  # Portfolio Manager
 JESS_ID = "c96051dc-b435-476f-8600-2283a6039df4"  # Business Development
 JORDAN_ID = "80eb0042-d7b5-436b-9a88-9784aef22858"  # Production Support Engineer
 NATHAN_ID = "3f6c1e2a-8b47-4d09-a5e3-6d2b9c0f7a14"  # Project Engineer
-# Roles whose own apps aren't built yet: their Launchpads are stubs, pinning what already exists
-# (and, for contracts, Legal / Contracts' own authoring app). See STUB_ROLE_TITLES in the frontend.
 ELLIS_ID = "7a2e9d41-5c3b-4f86-b0d2-1e8c4a6f9b35"  # Contracts Manager
 THEO_ID = "c1d84b6e-2f9a-47c3-8e15-5b0a7d3c2e98"  # Solutions Architect
 

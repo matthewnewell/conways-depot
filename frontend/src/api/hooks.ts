@@ -300,11 +300,14 @@ export function useCapabilities() {
 /** The Launchpad's app-summary contract — one query per tile (not a batched call) so a slow or
  * unimplemented app never blocks the others from rendering. `enabled` lets the caller hold off
  * until it actually knows which apps to ask about. */
-export function useApplicationSummary(applicationId: string, projectId?: string, enabled = true) {
+export function useApplicationSummary(applicationId: string, projectId?: string, enabled = true, personId?: string) {
   return useQuery({
-    queryKey: ['applications', applicationId, 'summary', projectId ?? null],
+    queryKey: ['applications', applicationId, 'summary', projectId ?? null, personId ?? null],
     queryFn: () => {
-      const qs = projectId ? `?project_id=${encodeURIComponent(projectId)}` : ''
+      const params = new URLSearchParams()
+      if (projectId) params.set('project_id', projectId)
+      if (personId) params.set('person_id', personId)
+      const qs = params.toString() ? `?${params}` : ''
       return api.get<AppSummary>(`/applications/${applicationId}/summary${qs}`)
     },
     enabled,

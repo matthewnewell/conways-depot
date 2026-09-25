@@ -192,6 +192,10 @@ def application_summary(application_id):
     params = {}
     if project_id := _translate_project_id(application_id, request.args.get("project_id")):
         params["project_id"] = project_id
+    # Optional: who's viewing (a Depot person id, which sibling apps already share). An app whose
+    # summary is per person (Task Master) scopes to it; every other app just ignores it.
+    if person_id := request.args.get("person_id"):
+        params["person_id"] = person_id
 
     try:
         r = httpx.get(f"{a.api_url.rstrip('/')}/api/summary", params=params, timeout=1.5)
