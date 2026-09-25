@@ -32,7 +32,6 @@ APPS=(
   "marti-backend|8102|$HOME/marti/backend|AI_PROVIDER=depot .venv/bin/python app.py"
   "marti-frontend|5188|$HOME/marti/frontend|source ~/.nvm/nvm.sh && npm run dev -- --host 0.0.0.0"
   "lets-have-a-meeting-frontend|5189|$HOME/lets-have-a-meeting/frontend|source ~/.nvm/nvm.sh && npm run dev -- --host 0.0.0.0"
-  "portfolio-manager-frontend|5190|$HOME/portfolio-manager/frontend|source ~/.nvm/nvm.sh && npm run dev -- --host 0.0.0.0"
   "qms-frontend|5191|$HOME/qms/frontend|source ~/.nvm/nvm.sh && npm run dev -- --host 0.0.0.0"
   "capability-models-frontend|5193|$HOME/capability-models/frontend|source ~/.nvm/nvm.sh && npm run dev -- --host 0.0.0.0"
   "reckon-backend|8103|$HOME/reckon/backend|.venv/bin/python app.py"

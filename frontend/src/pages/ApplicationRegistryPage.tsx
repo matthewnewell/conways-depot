@@ -22,7 +22,7 @@ const PHASE_LABEL: Record<Phase, string> = {
 // isn't one), just the handful worth putting in front of someone before they've picked a
 // category. Shown by name so it survives an app being renamed underneath it without silent
 // breakage (a missing name just quietly drops that card).
-const FEATURED_APP_NAMES = ['Good Plan', 'Value Stream', 'WinMax']
+const FEATURED_APP_NAMES = ['Reckon', 'The Fixer', "Aaron's Meadow"]
 
 /** The "?" beside the Category filter — a legend mapping each aisle to its 15288 process group
  * and the kind of tool that lives there. */

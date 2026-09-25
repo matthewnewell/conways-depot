@@ -167,47 +167,28 @@ MEMBERSHIPS = {
     ],
 }
 
-# Organizational-scope apps are on for everyone by default; a role's launchpad is shaped by what
-# it HIDES. Project-scope apps are shaped by what it PINS (in this order).
-_ORG_APPS = [
-    "Aaron's Meadow", "Capability Models", "Contract & Legal Authoring", "Labor Supply & Demand", "Let's Have a Meeting",
-    "Org Charts", "Portfolio Manager", "QMS", "Scan Me", "Task Master",
-]
-_VISIBLE_ORG = {
-    ADMIN_ID: set(_ORG_APPS),
-    SAM_ID: {"Task Master", "Let's Have a Meeting", "Labor Supply & Demand", "Capability Models"},
-    ALEX_ID: {"Labor Supply & Demand", "Org Charts", "Task Master", "Let's Have a Meeting"},
-    PRIYA_ID: {"Scan Me", "Task Master"},
-    MARCUS_ID: {"Portfolio Manager", "Labor Supply & Demand", "Org Charts", "Task Master", "Let's Have a Meeting"},
-    JESS_ID: {"Contract & Legal Authoring", "Task Master", "Capability Models"},
-    JORDAN_ID: {"Scan Me", "QMS", "Task Master", "Let's Have a Meeting"},
-    NATHAN_ID: {"Task Master", "Let's Have a Meeting", "Scan Me", "Labor Supply & Demand"},
-    ELLIS_ID: {"Contract & Legal Authoring", "Task Master"},
-    THEO_ID: {"Capability Models", "Aaron's Meadow", "Task Master"},
+# Each role's Launchpad: exactly these apps, in this order (set by the user 2026-09-25).
+# Organizational-scope apps are on for everyone by default, so apply_demo_data() HIDES every
+# organizational app not listed here, PINS every project-scope app that is, and stores the order.
+LAUNCHPADS = {
+    # Customer, leadership and follow-on: capability, budget, performance and scope.
+    SAM_ID: ["Capability Models", "Good Plan", "Reckon", "Scope Manager", "Task Master"],
+    # Staffing and reporting lines across projects.
+    ALEX_ID: ["Good Plan", "Labor Supply & Demand", "Org Charts"],
+    PRIYA_ID: ["Task Master", "The Fixer", "Value Stream", "MARTI"],
+    # Portfolio information lives in Reckon (the separate Portfolio Manager app was retired).
+    MARCUS_ID: ["Labor Supply & Demand", "Let's Have a Meeting", "Reckon", "Task Master"],
+    # Winning the deal, not running the program once it's won.
+    JESS_ID: ["Capability Models", "Scope Manager", "Task Master", "WinMax"],
+    JORDAN_ID: ["MARTI", "Task Master", "Value Stream"],
+    # Execution: budget, staffing, material and routings, the WBS, what broke, and the flow.
+    NATHAN_ID: ["Good Plan", "Labor Supply & Demand", "MARTI", "Scope Manager", "Task Master", "The Fixer", "Value Stream"],
+    # Contract & Legal Authoring is built by Legal / Contracts.
+    ELLIS_ID: ["Contract & Legal Authoring", "Task Master"],
+    THEO_ID: ["Capability Models", "Good Plan", "Task Master", "WinMax"],
 }
-PINS = {
-    ADMIN_ID: ["Good Plan", "Value Stream", "WinMax"],
-    # Customer, leadership and follow-on: budget and performance, not the shop floor (that moved
-    # to the project engineer).
-    SAM_ID: ["Good Plan", "Reckon", "Scope Manager", "WinMax", "Value Stream"],
-    ALEX_ID: ["Good Plan"],
-    PRIYA_ID: ["The Fixer", "Value Stream"],
-    MARCUS_ID: ["Good Plan", "Value Stream", "MARTI", "WinMax", "Reckon"],
-    # No Good Plan/Reckon (post-award cost planning, not her job) and, per _VISIBLE_ORG above,
-    # Let's Have a Meeting/Org Charts are hidden too — a capture lead's Launchpad should be
-    # about winning the deal, not running the program once it's won.
-    JESS_ID: ["WinMax", "Scope Manager"],
-    # MARTI first: material, routing and the Tradeoffs queue are the job. Value Stream for the
-    # flow itself, The Fixer for the nonconformances that stop it.
-    JORDAN_ID: ["MARTI", "Value Stream", "The Fixer"],
-    # Execution: material and routings, the WBS and its progress, the budget, and what broke.
-    NATHAN_ID: ["MARTI", "Scope Manager", "Good Plan", "The Fixer"],
-    # The contract's value and type, and how the work is performing against it. (Contract &
-    # Legal Authoring, built by Legal / Contracts, is on too: it's an organizational app.)
-    ELLIS_ID: ["Good Plan", "Reckon"],
-    # The pursuit's odds, and the draft WBS and estimate the solution is priced on.
-    THEO_ID: ["WinMax", "Good Plan"],
-}
+# Admin, the see-everything seat: every organizational app plus these, in name order.
+ADMIN_PINS = ["Good Plan", "Value Stream", "WinMax"]
 
 # ── portfolios & projects ─────────────────────────────────────────────────────────────────────
 PORTFOLIOS = {
@@ -552,14 +533,19 @@ def apply_demo_data() -> dict:
             if db.session.get(Project, project_id) is None:
                 continue
             db.session.add(ProjectMembership(person_id=pid, project_id=project_id, role_label=role, can_manage_members=manage))
-    for pid, names in PINS.items():
-        for name in names:
-            if name in apps:
-                db.session.add(Pin(person_id=pid, application_id=apps[name].id))
-    for pid, visible in _VISIBLE_ORG.items():
-        for name in _ORG_APPS:
-            if name not in visible and name in apps:
-                db.session.add(HiddenOrgApp(person_id=pid, application_id=apps[name].id))
+    for name in ADMIN_PINS:
+        if name in apps:
+            db.session.add(Pin(person_id=ADMIN_ID, application_id=apps[name].id))
+    for pid, names in LAUNCHPADS.items():
+        wanted = [apps[n] for n in names if n in apps]
+        wanted_ids = {a.id for a in wanted}
+        for app in apps.values():
+            if app.scope == "organizational" and app.id not in wanted_ids:
+                db.session.add(HiddenOrgApp(person_id=pid, application_id=app.id))
+        for position, app in enumerate(wanted):
+            if app.scope != "organizational":
+                db.session.add(Pin(person_id=pid, application_id=app.id))
+            db.session.add(PinOrder(person_id=pid, application_id=app.id, position=position))
 
     # journal notes (skip any already present)
     for project_id, author, ago, body in NOTES:

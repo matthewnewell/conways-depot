@@ -7,9 +7,9 @@ roles" restraint the membership-tightening work already applied. Hardcoded on pu
 user's own call: five short lists beat a whole editable-presets feature for what this is.
 
 Each preset is a COMPLETE list of app names — both organizational and project-scope — that
-should be pinned once applied; nothing else stays pinned. "Default" is exactly the 7
-organizational apps and nothing more, i.e. the same state a persona starts in before touching
-anything — so it doubles as the Launchpad's "reset my pins" action, not a separate feature.
+should be pinned once applied; nothing else stays pinned. "Default" is the core organizational
+apps and nothing more — it doubles as the Launchpad's "reset my pins" action, not a separate
+feature.
 
 Referenced by app name, same pattern seed.py's own _ADMIN_PINS already uses, resolved to ids
 at apply time (routes/pins.py) — never assume a fixed id, an app that isn't registered yet on
@@ -22,13 +22,12 @@ change needed.
 PRESETS: dict[str, dict] = {
     "default": {
         "label": "Default",
-        "description": "The 7 organizational apps, nothing else — also your reset button.",
+        "description": "The core organizational apps, nothing else — also your reset button.",
         "app_names": [
             "Contract & Legal Authoring",
             "Labor Supply & Demand",
             "Let's Have a Meeting",
             "Org Charts",
-            "Portfolio Manager",
             "QMS",
             "Scan Me",
         ],
@@ -46,11 +45,13 @@ PRESETS: dict[str, dict] = {
     "portfolio_manager": {
         "label": "Portfolio Manager",
         "description": "Cross-project oversight and performance.",
+        # Same set as the demo Portfolio Manager's Launchpad (demo_data.LAUNCHPADS); portfolio
+        # information lives in Reckon now that the separate Portfolio Manager app is retired.
         "app_names": [
+            "Labor Supply & Demand",
             "Let's Have a Meeting",
-            "Org Charts",
-            "Portfolio Manager",
             "Reckon",
+            "Task Master",
         ],
     },
     "engineering_technical": {

@@ -34,7 +34,6 @@ REPOS=(
   "marti"
   "conways-drawer"  # shared @conways/drawer package — app frontends depend on it via file:../../conways-drawer
   "lets-have-a-meeting"
-  "portfolio-manager"
   "qms"
   "reckon"
   "capability-models"

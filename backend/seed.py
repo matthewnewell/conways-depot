@@ -226,20 +226,6 @@ def seed_if_empty():
         capability=cap_portfolio_mgmt,
         url=None,
     )
-    app_portfolio_manager = Application(
-        name="Portfolio Manager",
-        description=(
-            "Not yet built — the oversight view a business area lead uses to see every one "
-            "of their projects at once. 15288 Organizational Project-Enabling: Portfolio "
-            "Management (6.2.3)."
-        ),
-        owning_team=None,
-        team_type=None,
-        scope="organizational",
-        category="enterprise",
-        capability=cap_portfolio_mgmt,
-        url=None,
-    )
     app_contract_authoring = Application(
         name="Contract & Legal Authoring",
         description="Ron's Contract and Legal Authoring",
@@ -405,7 +391,7 @@ def seed_if_empty():
 
     db.session.add_all([
         app_value_stream, app_winmax,
-        app_good_plan, app_labor_supply_demand, app_qms, app_capability_models, app_lham, app_portfolio_manager,
+        app_good_plan, app_labor_supply_demand, app_qms, app_capability_models, app_lham,
         app_contract_authoring, app_fixer, app_scan_me, app_org_charts,
         app_scope_manager, app_reckon, app_task_master, app_aarons_meadow, app_marti,
     ])
