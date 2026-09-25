@@ -5,10 +5,15 @@ WSL terminal — deliberately outside Claude Code's Browser-pane preview manager
 5 concurrent servers per worktree (this ecosystem has more than 5 servers now).
 
 ```bash
-scripts/start-all.sh   # starts every app in apps.sh that isn't already up
-scripts/status.sh      # lists each app's port and up/down state
-scripts/stop-all.sh    # stops everything start-all.sh started
+scripts/start-all.sh             # clone/install/refresh whatever's missing, start everything, wait until all ports answer
+scripts/start-all.sh --restart   # stop everything first, then the same
+scripts/status.sh                # lists each app's port and up/down state
+scripts/stop-all.sh              # stops everything start-all.sh started
 ```
+
+`start-all.sh` is the single "start all" command (see the root `CLAUDE.md`). It runs
+`clone-all.sh` / `bootstrap.sh` / `refresh-drawer.sh` itself when it needs to, and exits non-zero
+with log tails if anything fails to come up.
 
 Each app then runs at its usual port (see `apps.sh` or the root `.claude/launch.json`) — open
 them in your own browser tabs. `start-all.sh` skips anything already listening on its port (so
