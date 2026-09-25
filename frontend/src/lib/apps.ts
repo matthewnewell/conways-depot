@@ -11,4 +11,4 @@ export function builtByOther(app: Pick<Application, 'owning_team'>): string | nu
 
 /** Roles whose own apps aren't built yet. Their Launchpads are stubs: what already exists, plus
  * whatever other departments contribute. */
-export const STUB_ROLE_TITLES = new Set(['Project Engineer', 'Contracts Manager', 'Solutions Architect'])
+export const STUB_ROLE_TITLES = new Set(['Contracts Manager', 'Solutions Architect'])

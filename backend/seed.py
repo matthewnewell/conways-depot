@@ -244,7 +244,7 @@ def seed_if_empty():
     db.session.flush()
     app_fixer = Application(
         name="The Fixer",
-        description="Root cause analysis (5 Whys) and CAPA, guided as you work - with an AI-guided documented plan and journal evidence, not a paperwork exercise after the fact.",
+        description="Root cause analysis (5 Whys) and corrective action, guided as you work.",
         owning_team="Matt (informal enabling team)",
         team_type="enabling",
         category="project",  # 15288 Project Processes — closest to Quality Assurance (6.3.8); no dedicated category exists
@@ -321,12 +321,7 @@ def seed_if_empty():
     db.session.flush()
     app_reckon = Application(
         name="Reckon",
-        description=(
-            "The portfolio as badges: each project's cost, schedule and progress (earned value "
-            "from Good Plan's budget, Scope Manager's progress and S4 actuals), its period of "
-            "performance, and its risks and opportunities. Click through to any project; pursuits "
-            "show their odds and B&P spend."
-        ),
+        description="Cost, schedule and technical performance for every project in the portfolio.",
         owning_team="Matt (informal enabling team)",
         team_type="enabling",
         scope="project",
@@ -356,14 +351,7 @@ def seed_if_empty():
     )
     app_aarons_meadow = Application(
         name="Aaron's Meadow",
-        description=(
-            "A place, not a tool: a chatbot-driven interview that turns an idea into a "
-            "specification and a prototype-level design, never working code. Pushes back on "
-            "scope creep, asks once whether the thing needs to exist at all, and shows the "
-            "spec assembling itself as you talk. Owns its own draft -> in_review -> published "
-            "lifecycle end to end, and every stage stays right here — publishing marks a spec "
-            "done, it does not register anything new in this catalog."
-        ),
+        description="A chatbot-driven interview that turns ideas into a specification and prototype.",
         owning_team="Matt (informal enabling team)",
         team_type="enabling",
         scope="organizational",  # general category, not tied to one project

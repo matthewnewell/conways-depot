@@ -37,9 +37,9 @@ PRIYA_ID = "5b0e3f0a-6c1d-4a52-9d0e-7d2a1c8b4f11"  # Mission Assurance
 MARCUS_ID = "8c2d7e14-3f5a-4b96-a1c7-92e5b6d0a3c2"  # Portfolio Manager
 JESS_ID = "c96051dc-b435-476f-8600-2283a6039df4"  # Business Development
 JORDAN_ID = "80eb0042-d7b5-436b-9a88-9784aef22858"  # Production Support Engineer
-# Roles whose own apps aren't built yet: their Launchpads are stubs, pinning what already exists
-# (and, for contracts, Legal / Contracts' own authoring app).
 NATHAN_ID = "3f6c1e2a-8b47-4d09-a5e3-6d2b9c0f7a14"  # Project Engineer
+# Roles whose own apps aren't built yet: their Launchpads are stubs, pinning what already exists
+# (and, for contracts, Legal / Contracts' own authoring app). See STUB_ROLE_TITLES in the frontend.
 ELLIS_ID = "7a2e9d41-5c3b-4f86-b0d2-1e8c4a6f9b35"  # Contracts Manager
 THEO_ID = "c1d84b6e-2f9a-47c3-8e15-5b0a7d3c2e98"  # Solutions Architect
 
@@ -181,8 +181,12 @@ LAUNCHPADS = {
     # Winning the deal, not running the program once it's won.
     JESS_ID: ["Capability Models", "Scope Manager", "Task Master", "WinMax"],
     JORDAN_ID: ["MARTI", "Task Master", "Value Stream"],
-    # Execution: budget, staffing, material and routings, the WBS, what broke, and the flow.
-    NATHAN_ID: ["Good Plan", "Labor Supply & Demand", "MARTI", "Scope Manager", "Task Master", "The Fixer", "Value Stream"],
+    # Execution: budget, staffing, material and routings, performance, the WBS, what broke, and
+    # the flow.
+    NATHAN_ID: [
+        "Good Plan", "Labor Supply & Demand", "MARTI", "Reckon", "Scope Manager", "Task Master", "The Fixer",
+        "Value Stream",
+    ],
     # Contract & Legal Authoring is built by Legal / Contracts.
     ELLIS_ID: ["Contract & Legal Authoring", "Task Master"],
     THEO_ID: ["Capability Models", "Good Plan", "Task Master", "WinMax"],
