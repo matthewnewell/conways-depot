@@ -21,6 +21,13 @@ wsl -d Ubuntu -- bash -lc "~/conways-depot/scripts/start-all.sh"
 - If sibling repos are missing, it clones them (`clone-all.sh`). If venvs or `node_modules` are
   missing, it installs them (`bootstrap.sh`). If a frontend's copy of the shared
   `@conways/drawer` package is out of date, it refreshes that copy and restarts the frontend.
+- If the demo data version (`scripts/demo-data-version`) differs from this machine's stamp
+  (`data/.demo-data-version`), it moves every app's database to `<app>/data-backup/<timestamp>/`
+  and lets each app reseed. Apps only seed an empty database, so without this a machine that
+  pulls new demo data (pins, projects, plans) keeps its old data. Nothing is deleted.
+- It doesn't pull. On a machine that already has the repos, "start all" after new commits means
+  pulling every repo first:
+  `for d in ~/*/; do [ -d "$d/.git" ] && git -C "$d" pull --ff-only; done`
 - It waits until every port answers, retries anything that died once, and ends with either
   `All N servers are up. Open the demo at http://localhost:5180` (exit 0) or a list of what's
   down with log tails (exit 1). Report that final line to the user. If something is down, read
@@ -46,6 +53,14 @@ This means a browser is holding an older `@conways/drawer` pre-bundle. Every app
 `vite.config.ts` includes `conwaysDrawer()` from `@conways/drawer/vite`, which changes Vite's
 dependency URLs whenever the drawer's contents change. So `start-all.sh --restart` fixes it
 without anyone clearing their browser cache. Keep that plugin in any new app's `vite.config.ts`.
+
+## Changing demo data (any app's `seed.py`, or `backend/demo_data.py` here)
+
+Bump `scripts/demo-data-version` (e.g. `2026-09-25.1` to `2026-09-25.2`, or today's date) in
+the same commit. That's what makes every other machine reseed on its next "start all". On the
+machine where you made the change, re-apply it by hand instead: for the Depot, run
+`DATA_DIR=~/conways-depot/data backend/.venv/bin/python backend/refresh_demo.py`. Then copy the
+new version into `data/.demo-data-version`, so start-all doesn't also reset that machine.
 
 ## Changing the shared drawer (`~/conways-drawer`)
 

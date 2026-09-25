@@ -7,7 +7,11 @@
 #   1. Missing repos           -> scripts/clone-all.sh
 #   2. Missing venvs/node deps -> scripts/bootstrap.sh (which also refreshes the shared drawer)
 #   3. Stale shared drawer     -> scripts/refresh-drawer.sh, then restarts running frontends
-#   4. Starts anything not already listening, waits until every port answers, retries anything
+#   4. Demo data changed       -> scripts/reset-demo-data.sh: every app's database moves to
+#      <app>/data-backup/ and each app reseeds (apps only seed an EMPTY database, so pulled
+#      demo-data changes would otherwise never show up). Triggered when scripts/demo-data-version
+#      differs from this machine's stamp in data/.demo-data-version.
+#   5. Starts anything not already listening, waits until every port answers, retries anything
 #      that died once, and exits non-zero (with log tails) if something still isn't up.
 #
 # Browser caches can't serve a stale drawer: every app's vite.config uses conwaysDrawer() from
@@ -112,7 +116,23 @@ if (( stale_drawer )); then
   sleep 2
 fi
 
-# ---- 4. Start, wait, retry --------------------------------------------------------------------
+# ---- 4. Demo data version ---------------------------------------------------------------------
+VERSION_FILE="$SCRIPTS/demo-data-version"
+STAMP="$SCRIPTS/../data/.demo-data-version"
+want="$(tr -d '[:space:]' < "$VERSION_FILE" 2>/dev/null)"
+have="$(tr -d '[:space:]' < "$STAMP" 2>/dev/null)"
+reseeded=0
+if [[ -n "$want" && "$want" != "$have" ]]; then
+  echo "== Demo data is version $want; this machine has ${have:-none}. Reseeding every app"
+  echo "   (existing databases move to <app>/data-backup/<timestamp>/, nothing is deleted)"
+  bash "$SCRIPTS/stop-all.sh" >/dev/null 2>&1
+  sleep 2
+  bash "$SCRIPTS/reset-demo-data.sh" --move-only
+  reseeded=1
+  echo
+fi
+
+# ---- 5. Start, wait, retry --------------------------------------------------------------------
 echo "== Starting servers"
 for entry in "${APPS[@]}"; do
   IFS='|' read -r name port cwd cmd <<< "$entry"
@@ -166,6 +186,11 @@ done
 
 echo
 if (( ${#down[@]} == 0 )); then
+  # Only stamp once everything came up, so a failed run tries the reseed again next time.
+  if (( reseeded )); then
+    mkdir -p "$(dirname "$STAMP")" && echo "$want" > "$STAMP"
+    echo "Demo data reseeded to version $want."
+  fi
   echo "All ${#APPS[@]} servers are up. Open the demo at http://localhost:5180"
   exit 0
 fi

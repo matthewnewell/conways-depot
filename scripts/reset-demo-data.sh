@@ -4,8 +4,13 @@
 # after a pull its old data stays and new demo data never appears. This moves every app's
 # database aside (nothing is deleted) and restarts, so each app seeds itself fresh.
 #
-#   scripts/reset-demo-data.sh         # asks first
-#   scripts/reset-demo-data.sh --yes   # no prompt
+#   scripts/reset-demo-data.sh              # asks first
+#   scripts/reset-demo-data.sh --yes        # no prompt
+#   scripts/reset-demo-data.sh --move-only  # just move the databases aside (start-all.sh uses
+#                                           # this; it has already stopped the servers)
+#
+# start-all.sh runs this by itself when scripts/demo-data-version changes, so a machine that
+# pulls new demo data gets it on the next "start all".
 #
 # Backups land in <app>/data-backup/<timestamp>/ (gitignored). To go back, stop everything and
 # move the files back into <app>/data/.
@@ -13,13 +18,18 @@ set -uo pipefail
 HERE="$(dirname "${BASH_SOURCE[0]}")"
 source "$HERE/apps.sh"
 
-if [[ "${1:-}" != "--yes" ]]; then
+MOVE_ONLY=0
+[[ "${1:-}" == "--move-only" ]] && MOVE_ONLY=1
+
+if [[ "${1:-}" != "--yes" ]] && (( ! MOVE_ONLY )); then
   read -r -p "Move every app's database aside and reseed from demo data? [y/N] " answer
   [[ "$answer" == [yY]* ]] || { echo "Nothing changed."; exit 0; }
 fi
 
-bash "$HERE/stop-all.sh" >/dev/null 2>&1 || true
-sleep 1
+if (( ! MOVE_ONLY )); then
+  bash "$HERE/stop-all.sh" >/dev/null 2>&1 || true
+  sleep 1
+fi
 
 stamp="$(date +%Y%m%d-%H%M%S)"
 seen=()
@@ -40,6 +50,8 @@ for entry in "${APPS[@]}"; do
   mv "${dbs[@]}" "$app_dir/data-backup/$stamp/"
   echo "  [moved] $(basename "$app_dir") → data-backup/$stamp/"
 done
+
+(( MOVE_ONLY )) && exit 0
 
 echo
 bash "$HERE/start-all.sh"
